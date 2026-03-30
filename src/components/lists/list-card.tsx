@@ -39,6 +39,39 @@ const typeLabels: Record<SearchType, string> = {
   INFLUENCER: "Influencer",
 }
 
+const typeAccentClasses: Record<SearchType, { gradient: string; iconBg: string; iconText: string; badge: string }> = {
+  PEOPLE: {
+    gradient: "from-amber-400 to-amber-500",
+    iconBg: "bg-amber-500/10",
+    iconText: "text-amber-600 dark:text-amber-400",
+    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  },
+  LOCAL: {
+    gradient: "from-emerald-400 to-emerald-500",
+    iconBg: "bg-emerald-500/10",
+    iconText: "text-emerald-600 dark:text-emerald-400",
+    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  },
+  COMPANY: {
+    gradient: "from-blue-400 to-blue-500",
+    iconBg: "bg-blue-500/10",
+    iconText: "text-blue-600 dark:text-blue-400",
+    badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  },
+  DOMAIN: {
+    gradient: "from-purple-400 to-purple-500",
+    iconBg: "bg-purple-500/10",
+    iconText: "text-purple-600 dark:text-purple-400",
+    badge: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
+  },
+  INFLUENCER: {
+    gradient: "from-pink-400 to-pink-500",
+    iconBg: "bg-pink-500/10",
+    iconText: "text-pink-600 dark:text-pink-400",
+    badge: "bg-pink-500/10 text-pink-700 dark:text-pink-400",
+  },
+}
+
 function relativeTime(date: string | Date): string {
   const now = Date.now()
   const then = new Date(date).getTime()
@@ -82,14 +115,18 @@ export function ListCard({
 }: ListCardProps) {
   const router = useRouter()
   const Icon = typeIcons[type]
+  const accent = typeAccentClasses[type]
 
   return (
     <Card
-      className="group relative cursor-pointer p-5 transition-all hover:shadow-md hover:border-primary/50"
+      className="group relative cursor-pointer overflow-hidden rounded-xl border border-border bg-card p-0 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
       onClick={() => router.push(`/lead-search/saved-lists/${id}`)}
     >
+      {/* Accent gradient bar */}
+      <div className={`h-[3px] w-full bg-gradient-to-r ${accent.gradient}`} />
+
       {/* Settings dropdown */}
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-4 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -122,21 +159,30 @@ export function ListCard({
       </div>
 
       {/* Card content */}
-      <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+      <div className="px-5 pt-4 pb-5 space-y-3">
+        <div className="flex items-start gap-3.5">
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${accent.iconBg}`}>
+            <Icon className={`h-5 w-5 ${accent.iconText}`} />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1">
+            <h3 className="text-sm font-semibold text-foreground truncate pr-8">
+              {name}
+            </h3>
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${accent.badge}`}>
+              {typeLabels[type]}
+            </span>
+          </div>
         </div>
-        <div className="min-w-0 space-y-1">
-          <h3 className="text-sm font-semibold text-foreground truncate pr-8">
-            {name}
-          </h3>
+
+        <div className="flex items-center justify-between pt-1 border-t border-border/50">
           <p className="text-xs text-muted-foreground">
-            Type: {typeLabels[type]}
+            <span className="tabular-nums font-medium text-foreground/80">{leadCount}</span>
+            {" leads"}
+            <span className="mx-1.5 text-border">&#183;</span>
+            <span className="tabular-nums font-medium text-foreground/80">{emailFoundCount}</span>
+            {" with email"}
           </p>
-          <p className="text-xs text-muted-foreground">
-            All ({leadCount}), Email found ({emailFoundCount})
-          </p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-muted-foreground/60">
             {relativeTime(createdAt)}
           </p>
         </div>

@@ -37,22 +37,22 @@ export function ListFilters({
           key={tab.value}
           onClick={() => onFilterChange(tab.value)}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
             activeFilter === tab.value
-              ? "bg-primary text-primary-foreground"
-              : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
           {tab.label}
           <span
             className={cn(
-              "text-xs",
+              "text-xs tabular-nums",
               activeFilter === tab.value
-                ? "text-primary-foreground/80"
-                : "text-muted-foreground/60"
+                ? "text-primary-foreground/70"
+                : "text-muted-foreground/50"
             )}
           >
-            ({counts[tab.value] ?? 0})
+            {counts[tab.value] ?? 0}
           </span>
         </button>
       ))}

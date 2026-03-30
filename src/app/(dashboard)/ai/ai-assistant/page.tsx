@@ -11,7 +11,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -103,42 +102,17 @@ export default function AiAssistantPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          AI Assistant — Prompt Library
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Create reusable prompt templates for your AI Assistant. Use variables
-          like{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-            {"{name}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-            {"{company}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-            {"{title}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-            {"{email}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
-            {"{location}"}
-          </code>{" "}
-          to personalize content.
-        </p>
-      </div>
+    <div className="space-y-8 max-w-4xl">
+      {/* Lead paragraph */}
+      <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
+        Create reusable prompt templates for your AI Assistant. Use variables to
+        personalize content dynamically for each lead.
+      </p>
 
       {/* Create Template Section */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Create Template</h2>
-        <div className="space-y-3">
+      <Card className="p-6">
+        <h2 className="text-base font-semibold mb-4">Create Template</h2>
+        <div className="space-y-4">
           <Input
             placeholder="Template name"
             value={newName}
@@ -149,37 +123,50 @@ export default function AiAssistantPage() {
             placeholder="Write your prompt... Use {name}, {company}, {title} for personalization"
             value={newPrompt}
             onChange={(e) => setNewPrompt(e.target.value)}
-            rows={4}
+            rows={6}
             className="font-mono text-sm"
             disabled={createPrompt.isPending}
           />
-          <Button
-            onClick={handleCreate}
-            disabled={
-              !newName.trim() || !newPrompt.trim() || createPrompt.isPending
-            }
-          >
-            {createPrompt.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            Create Template
-          </Button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-1.5">
+              {VARIABLES.map((v) => (
+                <code
+                  key={v}
+                  className="rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
+                >
+                  {v}
+                </code>
+              ))}
+            </div>
+            <Button
+              onClick={handleCreate}
+              disabled={
+                !newName.trim() || !newPrompt.trim() || createPrompt.isPending
+              }
+              className="shrink-0"
+            >
+              {createPrompt.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              Create Template
+            </Button>
+          </div>
           {createPrompt.isError && (
             <p className="text-sm text-destructive">
               {createPrompt.error.message}
             </p>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Templates List */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Your Templates</h2>
+        <h2 className="text-base font-semibold">Your Templates</h2>
 
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-5">
                 <div className="space-y-3">
@@ -195,19 +182,22 @@ export default function AiAssistantPage() {
             ))}
           </div>
         ) : !templates || templates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-10 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-10 text-center">
             <BookTemplate className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               No prompt templates yet. Create your first template above.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {templates.map((template) => (
-              <Card key={template.id} className="p-5">
+              <Card
+                key={template.id}
+                className="group relative border-l-[3px] border-l-primary/20 hover:border-l-primary/60 transition-colors"
+              >
                 {editingId === template.id ? (
                   /* Edit Mode */
-                  <div className="space-y-3">
+                  <div className="space-y-3 p-5">
                     <Input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
@@ -218,7 +208,7 @@ export default function AiAssistantPage() {
                       value={editPrompt}
                       onChange={(e) => setEditPrompt(e.target.value)}
                       placeholder="Write your prompt..."
-                      rows={4}
+                      rows={5}
                       className="font-mono text-sm"
                       disabled={updatePrompt.isPending}
                     />
@@ -233,9 +223,9 @@ export default function AiAssistantPage() {
                         }
                       >
                         {updatePrompt.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : (
-                          <Check className="h-4 w-4" />
+                          <Check className="mr-2 h-4 w-4" />
                         )}
                         Save
                       </Button>
@@ -245,7 +235,7 @@ export default function AiAssistantPage() {
                         onClick={handleCancelEdit}
                         disabled={updatePrompt.isPending}
                       >
-                        <X className="h-4 w-4" />
+                        <X className="mr-1 h-4 w-4" />
                         Cancel
                       </Button>
                     </div>
@@ -257,35 +247,36 @@ export default function AiAssistantPage() {
                   </div>
                 ) : (
                   /* Display Mode */
-                  <div className="space-y-3">
+                  <div className="p-5 space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold truncate">
+                        <h3 className="font-semibold text-sm truncate">
                           {template.name}
                         </h3>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Created {formatDate(template.createdAt)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="h-8 px-2"
                           onClick={() => handleStartEdit(template)}
                         >
-                          <Pencil className="h-4 w-4" />
-                          Edit
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         {deleteConfirmId === template.id ? (
                           <div className="flex items-center gap-1">
                             <Button
                               size="sm"
                               variant="destructive"
+                              className="h-8 px-2 text-xs"
                               onClick={() => handleDelete(template.id)}
                               disabled={deletePrompt.isPending}
                             >
                               {deletePrompt.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               ) : (
                                 "Confirm"
                               )}
@@ -293,6 +284,7 @@ export default function AiAssistantPage() {
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-8 px-2 text-xs"
                               onClick={() => setDeleteConfirmId(null)}
                               disabled={deletePrompt.isPending}
                             >
@@ -303,33 +295,21 @@ export default function AiAssistantPage() {
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="h-8 px-2"
                             onClick={() => {
                               setDeleteConfirmId(template.id)
                               setEditingId(null)
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>
                     </div>
 
-                    <p className="font-mono text-sm text-muted-foreground whitespace-pre-wrap line-clamp-4">
+                    <p className="font-mono text-xs text-muted-foreground whitespace-pre-wrap line-clamp-3 leading-relaxed bg-muted/40 rounded-md px-3 py-2">
                       {template.prompt}
                     </p>
-
-                    <div className="flex flex-wrap gap-1.5">
-                      {VARIABLES.map((v) => (
-                        <Badge
-                          key={v}
-                          variant="secondary"
-                          className="text-xs font-mono"
-                        >
-                          {v}
-                        </Badge>
-                      ))}
-                    </div>
                   </div>
                 )}
               </Card>

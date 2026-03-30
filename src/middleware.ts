@@ -7,9 +7,10 @@ export default auth((req) => {
   const isAuthPage = req.nextUrl.pathname.startsWith("/login")
   const isApiRoute = req.nextUrl.pathname.startsWith("/api")
   const isDevLoginRoute = req.nextUrl.pathname === "/api/auth/dev-login"
+  const isLandingPage = req.nextUrl.pathname === "/"
 
-  // Allow API routes and auth routes to pass through
-  if (isApiRoute) {
+  // Allow API routes, auth routes, and landing page to pass through
+  if (isApiRoute || isLandingPage) {
     return NextResponse.next()
   }
 

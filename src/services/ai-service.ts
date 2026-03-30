@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { AiActionType } from "@/generated/prisma"
+import { AiActionType } from "@/generated/prisma/enums"
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   SIMILAR_PEOPLE:

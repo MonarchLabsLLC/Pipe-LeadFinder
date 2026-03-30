@@ -1,5 +1,5 @@
 import { apifyClient } from "@/lib/apify"
-import { SearchType } from "@/generated/prisma"
+import { SearchType } from "@/generated/prisma/enums"
 
 // Map search type to Apify actor ID from env vars
 function getActorId(type: SearchType): string {

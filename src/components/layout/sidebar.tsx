@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import {
   ChevronRight,
   Lightbulb,
+  Radar,
   Search,
   Settings,
   HelpCircle,
@@ -127,8 +128,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-            P
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Radar className="h-5 w-5" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
@@ -155,9 +156,12 @@ export function AppSidebar() {
                 variant="outline"
                 size="sm"
                 className="mt-2 w-full gap-2 text-xs border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+                asChild
               >
-                <Wallet className="h-3.5 w-3.5" />
-                Credit Wallet
+                <a href="https://credits.scaleplus.gg/" target="_blank" rel="noopener noreferrer">
+                  <Wallet className="h-3.5 w-3.5" />
+                  Credit Wallet
+                </a>
               </Button>
             </div>
           </div>

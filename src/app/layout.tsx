@@ -15,7 +15,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-theme="amber">
+    <html lang="en" data-theme="amber" className="scroll-smooth">
+      <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+      </head>
       <body className="font-sans antialiased">
         <QueryProvider>
           <SessionProvider>{children}</SessionProvider>

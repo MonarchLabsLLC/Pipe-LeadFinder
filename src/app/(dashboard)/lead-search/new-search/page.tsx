@@ -12,6 +12,7 @@ import { InfluencerSearchForm } from "@/components/search/influencer-search-form
 import { useSearchMutation } from "@/hooks/useSearch"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function NewSearchPage() {
   const [selectedType, setSelectedType] = useState<SearchType | null>(null)
@@ -88,29 +89,33 @@ export default function NewSearchPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">New Search</h1>
-        <p className="mt-1 text-muted-foreground">What are you searching for?</p>
-      </div>
-
+    <div className="space-y-6">
       <SearchTypePicker selectedType={selectedType} onSelect={setSelectedType} />
 
-      {selectedType && (
-        <div className="relative rounded-lg border border-border bg-card p-4 sm:p-6">
-          {searchMutation.isPending && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="size-8 animate-spin text-primary" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Running search...
-                </p>
-              </div>
+      <div
+        className={cn(
+          "grid transition-all duration-300 ease-out",
+          selectedType ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="overflow-hidden">
+          {selectedType && (
+            <div className="relative rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+              {searchMutation.isPending && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/80 backdrop-blur-[2px]">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="size-8 animate-spin text-primary" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Running search...
+                    </p>
+                  </div>
+                </div>
+              )}
+              {renderForm()}
             </div>
           )}
-          {renderForm()}
         </div>
-      )}
+      </div>
     </div>
   )
 }

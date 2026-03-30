@@ -3,7 +3,7 @@ import { streamText } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { AiActionType } from "@/generated/prisma"
+import { AiActionType } from "@/generated/prisma/enums"
 import {
   getBusinessContext,
   getLeadContext,

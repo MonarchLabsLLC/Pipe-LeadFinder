@@ -22,11 +22,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Bookmark, LayoutGrid, List, Plus, Search } from "lucide-react"
 import { ListCardSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
+import { cn } from "@/lib/utils"
 
 const searchTypeOptions: { value: SearchType; label: string }[] = [
   { value: "PEOPLE" as SearchType, label: "People" },
@@ -139,7 +139,7 @@ export default function SavedListsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Filter tabs */}
       <ListFilters
         counts={counts}
@@ -150,7 +150,7 @@ export default function SavedListsPage() {
       {/* Search + Create row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search lists..."
             value={searchQuery}
@@ -158,7 +158,7 @@ export default function SavedListsPage() {
             className="pl-9"
           />
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setCreateOpen(true)} className="shadow-sm">
           <Plus className="mr-2 h-4 w-4" />
           Create New
         </Button>
@@ -166,42 +166,55 @@ export default function SavedListsPage() {
 
       {/* Active / Archive toggle + View mode */}
       <div className="flex items-center justify-between">
-        <RadioGroup
-          value={statusFilter}
-          onValueChange={(val) => setStatusFilter(val as "ACTIVE" | "ARCHIVED")}
-          className="flex gap-3"
-        >
-          <div className="flex items-center gap-1.5">
-            <RadioGroupItem value="ACTIVE" id="status-active" />
-            <Label htmlFor="status-active" className="text-sm cursor-pointer">
-              Active
-            </Label>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <RadioGroupItem value="ARCHIVED" id="status-archived" />
-            <Label htmlFor="status-archived" className="text-sm cursor-pointer">
-              Archived
-            </Label>
-          </div>
-        </RadioGroup>
+        {/* Segmented control */}
+        <div className="inline-flex items-center rounded-lg bg-muted p-1">
+          <button
+            onClick={() => setStatusFilter("ACTIVE")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+              statusFilter === "ACTIVE"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setStatusFilter("ARCHIVED")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+              statusFilter === "ARCHIVED"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Archived
+          </button>
+        </div>
 
-        <div className="flex gap-1">
-          <Button
-            variant={viewMode === "grid" ? "default" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
+        <div className="inline-flex items-center rounded-lg bg-muted p-1 gap-0.5">
+          <button
             onClick={() => setViewMode("grid")}
+            className={cn(
+              "flex items-center justify-center rounded-md h-8 w-8 transition-all",
+              viewMode === "grid"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
           >
             <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "default" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
+          </button>
+          <button
             onClick={() => setViewMode("list")}
+            className={cn(
+              "flex items-center justify-center rounded-md h-8 w-8 transition-all",
+              viewMode === "list"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
           >
             <List className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
 

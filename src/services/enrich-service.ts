@@ -1,6 +1,6 @@
 import { apifyClient } from "@/lib/apify"
 import { prisma } from "@/lib/prisma"
-import type { Lead } from "@/generated/prisma"
+import type { Lead } from "@/generated/prisma/client"
 
 // ---------------------------------------------------------------------------
 // Actor IDs from environment

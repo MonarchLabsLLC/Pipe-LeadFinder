@@ -1,0 +1,3538 @@
+[      44ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     202ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     288ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     348ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     377ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     426ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     471ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     513ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     560ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     606ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     651ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     699ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     735ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     783ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     829ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     876ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     924ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[     970ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1016ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1063ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1110ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1149ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1198ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1248ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1301ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1351ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1400ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1451ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1502ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1554ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1603ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1647ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1702ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1742ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1791ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1843ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1892ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1940ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    1987ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2034ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2082ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2131ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2184ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2232ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2280ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2328ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2377ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2428ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2478ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2528ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2579ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2632ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2682ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2724ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2771ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2817ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2862ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2909ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    2956ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3009ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3062ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3114ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3163ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3211ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3261ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3314ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3365ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3413ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3462ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3511ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3560ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3608ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3655ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3703ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3757ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3806ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3856ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3907ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    3958ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4002ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4053ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4101ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4149ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4194ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4242ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4290ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4343ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4395ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4447ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4495ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4544ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4593ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4639ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4686ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4732ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4779ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4825ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4872ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4920ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    4974ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5025ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5076ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5125ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5176ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5226ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5276ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5325ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5375ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5424ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5475ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5525ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5575ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5624ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5675ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5725ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5776ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5823ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5875ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5922ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    5960ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6007ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6054ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6100ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6147ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6193ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6239ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6284ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6327ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6377ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6428ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6478ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6524ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6573ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6623ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6672ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6730ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6781ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6834ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6882ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6929ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    6978ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7027ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7075ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7124ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7175ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7224ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7273ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7324ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7372ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7420ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7469ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7536ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7585ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7632ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7678ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7725ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7772ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7818ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7866ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7913ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    7959ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8004ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8050ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8096ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8157ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8203ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8245ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8284ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8321ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8368ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8445ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8493ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8539ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8585ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8633ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8680ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8720ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8767ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8814ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8860ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8902ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8949ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    8998ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9047ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9095ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9145ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9195ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9245ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9299ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9348ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9397ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9446ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9500ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9548ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9600ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9648ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9698ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9750ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9803ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9857ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9910ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[    9960ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10014ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10062ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10111ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10159ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10210ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10261ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10319ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10368ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10417ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10470ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10523ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10567ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10621ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10668ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10706ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10755ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10803ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10853ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10896ms] [ERROR] ./src/lib/prisma.ts:1:1
+Module not found: Can't resolve '@/generated/prisma'
+> 1 | import { PrismaClient } from "@/generated/prisma"
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | const globalForPrisma = globalThis as unknown as {
+  4 |   prisma: PrismaClient | undefined
+
+Import map: aliased to relative './src/generated/prisma' inside of [project]/
+
+Import trace:
+  App Route:
+    ./src/lib/prisma.ts
+    ./src/app/api/lists/route.ts
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   10911ms] [ERROR] WebSocket connection to 'ws://localhost:3060/_next/webpack-hmr?id=wkfziJUFMLB-CEl89dj53' failed:  @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_client_17643121._.js:10878
+[   11920ms] [ERROR] WebSocket connection to 'ws://localhost:3060/_next/webpack-hmr?id=wkfziJUFMLB-CEl89dj53' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_client_17643121._.js:10878

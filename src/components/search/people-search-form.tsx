@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { SlidersHorizontal, ArrowRight } from "lucide-react"
+import { ChevronDown, ArrowRight, Lightbulb, Coins } from "lucide-react"
 
 import { peopleSearchSchema, type PeopleSearchInput } from "@/lib/validators/search"
 import { SearchType } from "@/generated/prisma/enums"
@@ -11,6 +11,7 @@ import { ListSelector } from "@/components/search/list-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import {
   Select,
   SelectContent,
@@ -99,7 +100,7 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="font-semibold">{label}</Label>
+      <Label className="text-sm font-medium text-foreground">{label}</Label>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
@@ -119,7 +120,7 @@ function SelectField({
 }) {
   return (
     <Select value={value || ""} onValueChange={onValueChange}>
-      <SelectTrigger className="w-full">
+      <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -161,221 +162,252 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
   })
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))} className="space-y-6">
-      {/* ── Top Section (always visible) ─────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <FormField label="Description" error={errors.description?.message}>
-          <Input
-            placeholder="Eg: Web Designer"
-            {...register("description")}
-            aria-invalid={!!errors.description}
-          />
-        </FormField>
+    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))}>
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
 
-        <FormField label="Location" error={errors.location?.message}>
-          <Input
-            placeholder="Type to search"
-            {...register("location")}
-          />
-        </FormField>
-
-        <FormField label="Results Limit" error={errors.resultsLimit?.message}>
-          <Controller
-            control={control}
-            name="resultsLimit"
-            render={({ field }) => (
-              <SelectField
-                placeholder="Select limit"
-                options={RESULTS_LIMIT_OPTIONS}
-                value={String(field.value)}
-                onValueChange={(val) => field.onChange(Number(val))}
+        {/* ── Search Criteria Section ─────────────────── */}
+        <div className="pb-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Search Criteria
+          </h3>
+          <Separator className="mt-2 mb-4" />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <FormField label="Description" error={errors.description?.message}>
+              <Input
+                placeholder="Eg: Web Designer"
+                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+                {...register("description")}
+                aria-invalid={!!errors.description}
               />
-            )}
-          />
-        </FormField>
-      </div>
-
-      {/* ── Advanced Filters (collapsible) ───────────────── */}
-      <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <CollapsibleTrigger asChild>
-          <Button type="button" variant="ghost" className="gap-2 px-0 text-muted-foreground hover:text-foreground">
-            <SlidersHorizontal className="size-4" />
-            Advanced filters
-          </Button>
-        </CollapsibleTrigger>
-
-        <CollapsibleContent className="mt-4 space-y-4">
-          <p className="text-sm text-muted-foreground italic">
-            PRO TIP: Over Filtering can reduce results. Start broad to return the most.
-          </p>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Job Title */}
-            <FormField label="Job Title" error={errors.jobTitle?.message}>
-              <Input placeholder="Search..." {...register("jobTitle")} />
             </FormField>
 
-            {/* Department */}
-            <FormField label="Department" error={errors.department?.message}>
-              <Input placeholder="Search..." {...register("department")} />
+            <FormField label="Location" error={errors.location?.message}>
+              <Input
+                placeholder="Type to search"
+                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+                {...register("location")}
+              />
             </FormField>
 
-            {/* Management Levels */}
-            <FormField label="Management Levels" error={errors.managementLevel?.message}>
+            <FormField label="Results Limit" error={errors.resultsLimit?.message}>
               <Controller
                 control={control}
-                name="managementLevel"
+                name="resultsLimit"
                 render={({ field }) => (
                   <SelectField
-                    placeholder="Choose Level"
-                    options={MANAGEMENT_LEVEL_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
+                    placeholder="Select limit"
+                    options={RESULTS_LIMIT_OPTIONS}
+                    value={String(field.value)}
+                    onValueChange={(val) => field.onChange(Number(val))}
                   />
                 )}
               />
-            </FormField>
-
-            {/* Changed Jobs Within */}
-            <FormField label="Changed Jobs Within" error={errors.changedJobsWithin?.message}>
-              <Controller
-                control={control}
-                name="changedJobsWithin"
-                render={({ field }) => (
-                  <SelectField
-                    placeholder="Choose Period"
-                    options={CHANGED_JOBS_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-            </FormField>
-
-            {/* Skills */}
-            <FormField label="Skills" error={errors.skills?.message}>
-              <Input placeholder="Eg: Communication" {...register("skills")} />
-            </FormField>
-
-            {/* Years of Experience */}
-            <FormField label="Years of Experience" error={errors.yearsOfExperience?.message}>
-              <Controller
-                control={control}
-                name="yearsOfExperience"
-                render={({ field }) => (
-                  <SelectField
-                    placeholder="Choose Experience"
-                    options={YEARS_EXPERIENCE_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-            </FormField>
-
-            {/* Company Name or Domain */}
-            <FormField label="Company Name or Domain" error={errors.companyNameOrDomain?.message}>
-              <Input placeholder="Search..." {...register("companyNameOrDomain")} />
-            </FormField>
-
-            {/* Employee Count */}
-            <FormField label="Employee Count" error={errors.employeeCount?.message}>
-              <Controller
-                control={control}
-                name="employeeCount"
-                render={({ field }) => (
-                  <SelectField
-                    placeholder="Choose Count"
-                    options={EMPLOYEE_COUNT_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-            </FormField>
-
-            {/* Revenue */}
-            <FormField label="Revenue" error={errors.revenue?.message}>
-              <Controller
-                control={control}
-                name="revenue"
-                render={({ field }) => (
-                  <SelectField
-                    placeholder="Choose Revenue"
-                    options={REVENUE_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-            </FormField>
-
-            {/* Industry */}
-            <FormField label="Industry" error={errors.industry?.message}>
-              <Input placeholder="Search..." {...register("industry")} />
-            </FormField>
-
-            {/* Contact Method */}
-            <FormField label="Contact Method" error={errors.contactMethod?.message}>
-              <Controller
-                control={control}
-                name="contactMethod"
-                render={({ field }) => (
-                  <SelectField
-                    placeholder="Select"
-                    options={CONTACT_METHOD_OPTIONS}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-            </FormField>
-
-            {/* Major */}
-            <FormField label="Major" error={errors.major?.message}>
-              <Input placeholder="Search..." {...register("major")} />
-            </FormField>
-
-            {/* School */}
-            <FormField label="School" error={errors.school?.message}>
-              <Input placeholder="Search..." {...register("school")} />
-            </FormField>
-
-            {/* Degree */}
-            <FormField label="Degree" error={errors.degree?.message}>
-              <Input placeholder="Search..." {...register("degree")} />
-            </FormField>
-
-            {/* Social Link */}
-            <FormField label="Social Link" error={errors.socialLink?.message}>
-              <Input placeholder="Eg: https://www.linkedin.com/" {...register("socialLink")} />
-            </FormField>
-
-            {/* Contact Info Email */}
-            <FormField label="Contact Info Email" error={errors.contactEmail?.message}>
-              <Input placeholder="Eg: example@example.com" {...register("contactEmail")} />
-            </FormField>
-
-            {/* Contact Info Phone */}
-            <FormField label="Contact Info Phone" error={errors.contactPhone?.message}>
-              <Input placeholder="Eg: +1 111-111-1111" {...register("contactPhone")} />
             </FormField>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        </div>
 
-      {/* ── List Selector ────────────────────────────────── */}
-      <ListSelector value={listId} onChange={setListId} searchType={SearchType.PEOPLE} />
+        <Separator />
 
-      {/* ── Bottom Section ───────────────────────────────── */}
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
-        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-          {isLoading ? "Searching..." : "Continue"}
-          {!isLoading && <ArrowRight className="size-4" />}
-        </Button>
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading} className="w-full sm:w-auto">
-          Cancel
-        </Button>
+        {/* ── Advanced Filters (collapsible) ───────────────── */}
+        <div className="py-6">
+          <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <span>Advanced Filters</span>
+                <ChevronDown
+                  className={`size-4 transition-transform duration-200 ${advancedOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="mt-4">
+              <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
+                {/* Pro Tip Banner */}
+                <div className="mb-4 flex items-start gap-2 rounded-r-lg border-l-2 border-primary bg-primary/5 px-4 py-2">
+                  <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">PRO TIP:</span> Over-filtering can reduce results. Start broad to return the most.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <FormField label="Job Title" error={errors.jobTitle?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("jobTitle")} />
+                  </FormField>
+
+                  <FormField label="Department" error={errors.department?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("department")} />
+                  </FormField>
+
+                  <FormField label="Management Levels" error={errors.managementLevel?.message}>
+                    <Controller
+                      control={control}
+                      name="managementLevel"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Choose Level"
+                          options={MANAGEMENT_LEVEL_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Changed Jobs Within" error={errors.changedJobsWithin?.message}>
+                    <Controller
+                      control={control}
+                      name="changedJobsWithin"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Choose Period"
+                          options={CHANGED_JOBS_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Skills" error={errors.skills?.message}>
+                    <Input placeholder="Eg: Communication" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("skills")} />
+                  </FormField>
+
+                  <FormField label="Years of Experience" error={errors.yearsOfExperience?.message}>
+                    <Controller
+                      control={control}
+                      name="yearsOfExperience"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Choose Experience"
+                          options={YEARS_EXPERIENCE_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Company Name or Domain" error={errors.companyNameOrDomain?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("companyNameOrDomain")} />
+                  </FormField>
+
+                  <FormField label="Employee Count" error={errors.employeeCount?.message}>
+                    <Controller
+                      control={control}
+                      name="employeeCount"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Choose Count"
+                          options={EMPLOYEE_COUNT_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Revenue" error={errors.revenue?.message}>
+                    <Controller
+                      control={control}
+                      name="revenue"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Choose Revenue"
+                          options={REVENUE_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Industry" error={errors.industry?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("industry")} />
+                  </FormField>
+
+                  <FormField label="Contact Method" error={errors.contactMethod?.message}>
+                    <Controller
+                      control={control}
+                      name="contactMethod"
+                      render={({ field }) => (
+                        <SelectField
+                          placeholder="Select"
+                          options={CONTACT_METHOD_OPTIONS}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FormField>
+
+                  <FormField label="Major" error={errors.major?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("major")} />
+                  </FormField>
+
+                  <FormField label="School" error={errors.school?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("school")} />
+                  </FormField>
+
+                  <FormField label="Degree" error={errors.degree?.message}>
+                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("degree")} />
+                  </FormField>
+
+                  <FormField label="Social Link" error={errors.socialLink?.message}>
+                    <Input placeholder="Eg: https://www.linkedin.com/" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("socialLink")} />
+                  </FormField>
+
+                  <FormField label="Contact Info Email" error={errors.contactEmail?.message}>
+                    <Input placeholder="Eg: example@example.com" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("contactEmail")} />
+                  </FormField>
+
+                  <FormField label="Contact Info Phone" error={errors.contactPhone?.message}>
+                    <Input placeholder="Eg: +1 111-111-1111" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("contactPhone")} />
+                  </FormField>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
+        <Separator />
+
+        {/* ── Save & Run Section ──────────────────────── */}
+        <div className="pt-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Save & Run
+          </h3>
+          <Separator className="mt-2 mb-4" />
+
+          <ListSelector value={listId} onChange={setListId} searchType={SearchType.PEOPLE} />
+
+          {/* Credit Info */}
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
+            <Coins className="size-3.5 shrink-0 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">
+              People search will consume 1 credit per record returned.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-4 flex items-center justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading} className="text-muted-foreground">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
+            >
+              {isLoading ? "Searching..." : "Continue"}
+              {!isLoading && <ArrowRight className="ml-2 size-4" />}
+            </Button>
+          </div>
+        </div>
+
       </div>
     </form>
   )

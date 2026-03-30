@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAgents, useCreateAgent, useUpdateAgent, useDeleteAgent } from "@/hooks/useAgents"
 import type { AgentStatus } from "@/generated/prisma/enums"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -39,27 +39,27 @@ const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: "PAUSED", label: "Paused" },
 ]
 
-function statusBadgeVariant(status: AgentStatus) {
+function statusDotColor(status: AgentStatus) {
   switch (status) {
     case "ACTIVE":
-      return "default" as const
+      return "bg-green-500"
     case "PAUSED":
-      return "secondary" as const
+      return "bg-amber-500"
     case "DRAFT":
     default:
-      return "outline" as const
+      return "bg-gray-400"
   }
 }
 
-function statusBadgeClass(status: AgentStatus) {
+function statusLabel(status: AgentStatus) {
   switch (status) {
     case "ACTIVE":
-      return "bg-green-600 hover:bg-green-600 text-white"
+      return "Active"
     case "PAUSED":
-      return "bg-yellow-500 hover:bg-yellow-500 text-white"
+      return "Paused"
     case "DRAFT":
     default:
-      return ""
+      return "Draft"
   }
 }
 
@@ -123,38 +123,32 @@ export default function AiAgentPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Toolbar row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">AI Agents</h1>
-          <p className="text-sm text-muted-foreground">
-            Automated prospecting pipelines that run search, enrichment, and actions.
-          </p>
+        <p className="text-sm text-muted-foreground max-w-xl">
+          Automated prospecting pipelines that run search, enrichment, and actions.
+        </p>
+        <div className="flex items-center gap-3">
+          <Select
+            value={statusFilter}
+            onValueChange={(val) => setStatusFilter(val as StatusFilter)}
+          >
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setCreateOpen(true)} size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            New AI Agent
+          </Button>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New AI Agent
-        </Button>
-      </div>
-
-      {/* Status filter */}
-      <div className="flex items-center gap-3">
-        <Label className="text-sm text-muted-foreground">Filter:</Label>
-        <Select
-          value={statusFilter}
-          onValueChange={(val) => setStatusFilter(val as StatusFilter)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Agent grid */}
@@ -186,37 +180,38 @@ export default function AiAgentPage() {
             return (
               <Card
                 key={agent.id}
-                className="cursor-pointer transition-colors hover:border-primary/50"
+                className="group relative cursor-pointer overflow-hidden rounded-xl transition-all hover:border-primary/40 hover:shadow-md"
                 onClick={() => router.push(`/ai/ai-agent/${agent.id}`)}
               >
-                <CardContent className="p-5 space-y-3">
+                {/* Subtle gradient top bar */}
+                <div className="h-1 w-full bg-gradient-to-r from-primary/40 via-primary/20 to-transparent" />
+
+                <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-base leading-tight truncate">
+                    <h3 className="font-semibold text-sm leading-tight truncate flex-1">
                       {agent.name}
                     </h3>
-                    <Badge
-                      variant={statusBadgeVariant(agent.status)}
-                      className={statusBadgeClass(agent.status)}
-                    >
-                      {agent.status}
-                    </Badge>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`h-2 w-2 rounded-full ${statusDotColor(agent.status)}`} />
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {statusLabel(agent.status)}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground">
-                    Created At: {new Date(agent.createdAt).toLocaleDateString()}
+                    {counts.actions} action{counts.actions !== 1 ? "s" : ""} · {counts.connections} connection{counts.connections !== 1 ? "s" : ""} · {counts.leads} lead{counts.leads !== 1 ? "s" : ""}
                   </p>
 
-                  <p className="text-sm text-muted-foreground">
-                    {counts.actions} action{counts.actions !== 1 ? "s" : ""},{" "}
-                    {counts.connections} connection{counts.connections !== 1 ? "s" : ""},{" "}
-                    {counts.leads} lead{counts.leads !== 1 ? "s" : ""}
+                  <p className="text-xs text-muted-foreground">
+                    Created {new Date(agent.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </p>
 
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleToggleStatus(agent.id, agent.status)
@@ -224,25 +219,25 @@ export default function AiAgentPage() {
                       title={agent.status === "ACTIVE" ? "Pause" : "Activate"}
                     >
                       {agent.status === "ACTIVE" ? (
-                        <Pause className="h-4 w-4" />
+                        <Pause className="h-3.5 w-3.5" />
                       ) : (
-                        <Play className="h-4 w-4" />
+                        <Play className="h-3.5 w-3.5" />
                       )}
                     </Button>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDelete(agent.id)
                       }}
                       title="Delete"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             )
           })}

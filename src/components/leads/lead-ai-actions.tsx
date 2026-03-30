@@ -37,7 +37,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { useAIAction } from "@/hooks/useAI"
-import type { AiActionType } from "@/generated/prisma"
+import type { AiActionType } from "@/generated/prisma/enums"
 
 interface LeadAIActionsProps {
   leadId: string

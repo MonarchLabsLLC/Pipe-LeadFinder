@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react"
 import { useLabels, useCreateLabel, useDeleteLabel } from "@/hooks/useLabels"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { X, Plus, Loader2, Tag } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 
 const DEFAULT_LABELS = ["Called", "Messaged", "Emailed", "Exported to CSV"]
 
@@ -49,80 +50,93 @@ export default function CustomLabelsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Custom Labels</h1>
-        <p className="text-muted-foreground mt-1">
-          Create labels to categorize and organize your leads.
-        </p>
-      </div>
-
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Add Label Section */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Add Custom Lead Label</h2>
-        <div className="flex items-center gap-3 max-w-md">
-          <Input
-            placeholder="Enter label name..."
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={createLabel.isPending}
-          />
-          <Button
-            onClick={handleAdd}
-            disabled={!newLabel.trim() || createLabel.isPending}
-          >
-            {createLabel.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            Add Label
-          </Button>
-        </div>
-        {createLabel.isError && (
-          <p className="text-sm text-destructive">
-            {createLabel.error.message}
-          </p>
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Add Custom Lead Label</CardTitle>
+          <CardDescription>
+            Create labels to categorize and organize your leads.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Enter label name..."
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={createLabel.isPending}
+                className="pl-9"
+              />
+            </div>
+            <Button
+              onClick={handleAdd}
+              disabled={!newLabel.trim() || createLabel.isPending}
+              className="shrink-0 shadow-sm"
+            >
+              {createLabel.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              Add
+            </Button>
+          </div>
+          {createLabel.isError && (
+            <p className="mt-2 text-sm text-destructive">
+              {createLabel.error.message}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Available Labels Section */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Available Custom Lead Labels</h2>
-
-        {isLoading ? (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading labels...
-          </div>
-        ) : !labels || labels.length === 0 ? (
-          <div className="flex items-center gap-2 text-muted-foreground py-4">
-            <Tag className="h-4 w-4" />
-            No custom labels yet
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {labels.map((label) => (
-              <Badge
-                key={label.id}
-                variant="secondary"
-                className="gap-1 py-1 px-3 text-sm"
-              >
-                {label.name}
-                <button
-                  onClick={() => deleteLabel.mutate(label.id)}
-                  className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors"
-                  disabled={deleteLabel.isPending}
-                  aria-label={`Remove ${label.name}`}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Available Labels</CardTitle>
+          <CardDescription>
+            Click the X on any label to remove it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading labels...
+            </div>
+          ) : !labels || labels.length === 0 ? (
+            <div className="py-2">
+              <EmptyState
+                icon={Tag}
+                title="No custom labels yet"
+                description="Add your first label above to start organizing your leads."
+              />
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {labels.map((label) => (
+                <span
+                  key={label.id}
+                  className="group/chip inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted-foreground/10"
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
+                  {label.name}
+                  <button
+                    onClick={() => deleteLabel.mutate(label.id)}
+                    className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover/chip:opacity-100 hover:bg-muted-foreground/20 transition-all"
+                    disabled={deleteLabel.isPending}
+                    aria-label={`Remove ${label.name}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

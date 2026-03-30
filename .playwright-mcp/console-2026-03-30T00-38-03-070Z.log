@@ -1,0 +1,24 @@
+[    6504ms] ReferenceError: user is not defined
+    at <anonymous>:5:14
+    at https://app.pipeleads.ai/assets/index-1139b491.js:59:267401
+    at Array.forEach (<anonymous>)
+    at e (https://app.pipeleads.ai/assets/index-1139b491.js:59:267083)
+    at Tt.SET_BUSINESS_SETTINGS (https://app.pipeleads.ai/assets/index-1139b491.js:59:269020)
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:2404
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:9655
+    at Array.forEach (<anonymous>)
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:9635
+    at Tt._withCommit (https://app.pipeleads.ai/assets/index-1139b491.js:34:11439)
+[    6748ms] [WARNING] [Intercom] The App ID in your code snippet has not been set. Set it to your App ID found in settings to complete installation: https://app.intercom.com/a/apps/_/settings/web @ https://js.intercomcdn.com/frame-modern.8d29fe65.js:0
+[   25874ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://api.leadfndr.com/auth/login:0
+[   34915ms] ReferenceError: user is not defined
+    at <anonymous>:5:14
+    at https://app.pipeleads.ai/assets/index-1139b491.js:59:267401
+    at Array.forEach (<anonymous>)
+    at e (https://app.pipeleads.ai/assets/index-1139b491.js:59:267083)
+    at Tt.SET_BUSINESS_SETTINGS (https://app.pipeleads.ai/assets/index-1139b491.js:59:269020)
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:2404
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:9655
+    at Array.forEach (<anonymous>)
+    at https://app.pipeleads.ai/assets/index-1139b491.js:34:9635
+    at Tt._withCommit (https://app.pipeleads.ai/assets/index-1139b491.js:34:11439)

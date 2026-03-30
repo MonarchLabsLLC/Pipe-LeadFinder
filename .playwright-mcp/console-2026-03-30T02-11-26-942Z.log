@@ -1,0 +1,16 @@
+[     692ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[     692ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[    1784ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[    1790ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  117614ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  117621ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[  118676ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  118722ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[  135202ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  135232ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[  136261ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  136291ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[  324918ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  324980ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0
+[  325968ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base:0
+[  326013ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3060/api/ai/knowledge-base/sources:0

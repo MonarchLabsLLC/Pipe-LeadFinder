@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
-import type { AiActionType } from "@/generated/prisma"
+import type { AiActionType } from "@/generated/prisma/enums"
 
 interface UseAIActionReturn {
   generate: (params: {
