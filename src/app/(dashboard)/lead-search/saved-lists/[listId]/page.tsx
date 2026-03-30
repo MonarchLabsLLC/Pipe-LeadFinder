@@ -17,12 +17,23 @@ import {
   Loader2,
   Sparkles,
   Users,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Search,
 } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { useEnrichBulk } from "@/hooks/useEnrich"
 import { toast } from "sonner"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 type EmailFilter = "ALL" | "FOUND" | "NOT_FOUND" | "POTENTIAL"
 
@@ -143,16 +154,7 @@ export default function ListDetailPage() {
 
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            toast.info("Search history coming soon")
-          }}
-        >
-          <Clock className="size-4" />
-          History
-        </Button>
+        <SearchHistorySheet listId={listId as string} />
 
         <div className="h-6 w-px bg-border mx-1" />
 
@@ -266,5 +268,113 @@ export default function ListDetailPage() {
         />
       )}
     </div>
+  )
+}
+
+// ─── Search History Sheet ─────────────────────────────────
+
+interface HistoryEntry {
+  id: string
+  searchType: string
+  parameters: Record<string, unknown>
+  resultCount: number
+  status: string
+  createdAt: string
+}
+
+function SearchHistorySheet({ listId }: { listId: string }) {
+  const [open, setOpen] = useState(false)
+  const historyQuery = useQuery({
+    queryKey: ["history", listId, open],
+    queryFn: async (): Promise<HistoryEntry[]> => {
+      const res = await fetch(`/api/lists/${listId}/history`)
+      if (!res.ok) return []
+      return res.json()
+    },
+    enabled: open,
+  })
+
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return <CheckCircle2 className="size-4 text-green-600" />
+      case "FAILED":
+        return <XCircle className="size-4 text-destructive" />
+      case "RUNNING":
+        return <Loader2 className="size-4 animate-spin text-primary" />
+      default:
+        return <AlertCircle className="size-4 text-muted-foreground" />
+    }
+  }
+
+  const formatParams = (params: Record<string, unknown>) => {
+    const parts: string[] = []
+    if (params.description) parts.push(String(params.description))
+    if (params.location) parts.push(String(params.location))
+    return parts.join(" · ") || "—"
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return "just now"
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ago`
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Clock className="size-4" />
+          History
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="w-[400px] sm:w-[450px]">
+        <SheetHeader>
+          <SheetTitle>Search History</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+          {historyQuery.isLoading && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {historyQuery.data && historyQuery.data.length === 0 && (
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              <Search className="size-8 mx-auto mb-2 opacity-40" />
+              No searches yet for this list
+            </div>
+          )}
+          {historyQuery.data?.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-start gap-3 p-3 border border-border bg-card"
+            >
+              <div className="mt-0.5">{statusIcon(entry.status)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] uppercase">
+                    {entry.searchType}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {timeAgo(entry.createdAt)}
+                  </span>
+                </div>
+                <p className="text-sm mt-1 truncate">
+                  {formatParams(entry.parameters)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {entry.resultCount} result{entry.resultCount !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
