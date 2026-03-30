@@ -152,17 +152,20 @@ export function AppSidebar() {
                 Credits Remaining
               </p>
               <p className="text-2xl font-bold text-sidebar-foreground">0</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full gap-2 text-xs border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
-                asChild
+              <a
+                href="https://credits.scaleplus.gg/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-semibold no-underline"
+                style={{
+                  backgroundColor: '#ffffff',
+                  color: '#1a1a1a',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                }}
               >
-                <a href="https://credits.scaleplus.gg/" target="_blank" rel="noopener noreferrer">
-                  <Wallet className="h-3.5 w-3.5" />
-                  Credit Wallet
-                </a>
-              </Button>
+                <Wallet className="h-3.5 w-3.5" style={{ color: '#1a1a1a' }} />
+                <span style={{ color: '#1a1a1a' }}>Credit Wallet</span>
+              </a>
             </div>
           </div>
           <Separator className="bg-sidebar-border" />

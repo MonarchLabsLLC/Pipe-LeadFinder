@@ -1,0 +1,45 @@
+[     155ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <TooltipProvider data-slot="tooltip-pr..." delayDuration={0}>
+      <TooltipProviderProvider scope={undefined} isOpenDelayedRef={{current:true}} delayDuration={0} ...>
+        <div data-slot="sidebar-wr..." style={{...}} className="group/side...">
+          <AppSidebar>
+            <Sidebar collapsible="icon">
+              <div className="group peer..." data-state="expanded" data-collapsible="" data-variant="sidebar" ...>
+                <div>
+                <div data-slot="sidebar-co..." className="fixed inse...">
+                  <div data-sidebar="sidebar" data-slot="sidebar-inner" className="flex h-ful...">
+                    <SidebarHeader>
+                    <div className="px-4 pb-2">
+                      <div className="rounded-lg...">
+                        <p>
+                        <p>
+                        <Button variant="outline" size="sm" className="mt-2 w-ful..." asChild={true}>
+                          <Slot.Slot data-slot="button" data-variant="outline" data-size="sm" className={"inline-f..."}>
+                            <Slot.SlotClone data-slot="button" data-variant="outline" data-size="sm" ...>
+                              <a
+                                href="https://credits.scaleplus.gg/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                data-slot="button"
+                                data-variant="outline"
+                                data-size="sm"
++                               className={"inline-flex shrink-0 items-center justify-center font-medium whitespace-n..."}
+-                               className={"inline-flex shrink-0 items-center justify-center font-medium whitespace-n..."}
+                                ref={null}
+                              >
+                    ...
+                    ...
+          ...
+ @ http://localhost:3060/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
