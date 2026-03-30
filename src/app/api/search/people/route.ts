@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       searchId: searchHistory.id,
+      listId: listId || null,
       status: "COMPLETED",
       resultCount: leads.length,
       results: leads,

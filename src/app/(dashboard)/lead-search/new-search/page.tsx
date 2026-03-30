@@ -30,8 +30,12 @@ export default function NewSearchPage() {
         type,
         params: { ...params, listId },
       })
-      toast.success("Search completed successfully!")
-      router.push(`/lead-search/saved-lists/${result.listId}`)
+      toast.success(`Search completed — ${result.resultCount} results found!`)
+      if (result.listId) {
+        router.push(`/lead-search/saved-lists/${result.listId}`)
+      } else {
+        router.push("/lead-search/saved-lists")
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Search failed. Please try again.")
     }
