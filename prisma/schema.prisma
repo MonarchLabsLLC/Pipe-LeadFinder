@@ -68,12 +68,13 @@ enum AgentStatus {
 // ─── Models ──────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String?
+  role           String   @default("user")
+  keycloakSubId  String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   lists           LeadList[]
   labels          CustomLabel[]
@@ -282,4 +283,19 @@ model PromptTemplate {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model FileUpload {
+  id          String   @id @default(cuid())
+  userId      String
+  storageKey  String   @unique
+  filename    String
+  contentType String
+  size        Int
+  folder      String
+  url         String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, folder])
 }
