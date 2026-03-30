@@ -25,33 +25,32 @@ function getPhoneActorId(): string {
 // ---------------------------------------------------------------------------
 
 function buildEmailActorInput(lead: Lead): Record<string, unknown> {
+  // code_crafter/personal-email-finder takes linkedin_url array
+  if (lead.linkedinUrl) {
+    return { linkedin_url: [lead.linkedinUrl] }
+  }
+  // Fallback: try name-based lookup if no LinkedIn URL
   return {
     firstName: lead.firstName ?? undefined,
     lastName: lead.lastName ?? undefined,
     fullName: lead.fullName ?? undefined,
     company: lead.companyName ?? undefined,
     domain: lead.companyWebsite ?? undefined,
-    linkedinUrl: lead.linkedinUrl ?? undefined,
-    location: lead.location ?? undefined,
-    city: lead.city ?? undefined,
-    state: lead.state ?? undefined,
-    country: lead.country ?? undefined,
   }
 }
 
 function buildPhoneActorInput(lead: Lead): Record<string, unknown> {
+  // code_crafter/mobile-finder takes linkedin_url array
+  if (lead.linkedinUrl) {
+    return { linkedin_url: [lead.linkedinUrl] }
+  }
+  // Fallback
   return {
     firstName: lead.firstName ?? undefined,
     lastName: lead.lastName ?? undefined,
     fullName: lead.fullName ?? undefined,
     company: lead.companyName ?? undefined,
-    domain: lead.companyWebsite ?? undefined,
-    linkedinUrl: lead.linkedinUrl ?? undefined,
     email: lead.email ?? undefined,
-    location: lead.location ?? undefined,
-    city: lead.city ?? undefined,
-    state: lead.state ?? undefined,
-    country: lead.country ?? undefined,
   }
 }
 
