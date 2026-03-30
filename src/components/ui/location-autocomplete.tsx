@@ -37,7 +37,7 @@ export function LocationAutocomplete({
   const [results, setResults] = useState<NominatimResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

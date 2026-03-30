@@ -1,5 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import { verifyKeycloakToken } from "@/lib/keycloak-verify"
+import { prisma } from "@/lib/prisma"
 
 // Dev user for local development - bypasses all auth
 const DEV_USER = {
@@ -16,16 +18,72 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        keycloakToken: { label: "Keycloak Token", type: "text" },
       },
       async authorize(credentials) {
-        // In development, auto-login as dev admin
-        if (process.env.NODE_ENV === "development") {
+        // ── Dev auto-login ──────────────────────────────────
+        if (process.env.NODE_ENV === "development" || process.env.DEV_AUTO_LOGIN === "true") {
           return DEV_USER
         }
 
-        // In production, implement real authentication here
-        // For now, reject all logins in production
-        return null
+        // ── Keycloak token auth (production) ────────────────
+        const token = credentials?.keycloakToken as string | undefined
+        if (!token) return null
+
+        try {
+          const claims = await verifyKeycloakToken(token)
+
+          // Upsert user in database, linking by keycloakSubId or email
+          let user = await prisma.user.findUnique({
+            where: { keycloakSubId: claims.sub },
+          })
+
+          if (!user && claims.email) {
+            // Fallback: find by email for users migrated from dev-login
+            user = await prisma.user.findUnique({
+              where: { email: claims.email },
+            })
+            if (user) {
+              // Link existing user to their Keycloak identity
+              console.log(
+                `[Auth] Linking existing user ${user.id} (${user.email}) to Keycloak sub ${claims.sub}`
+              )
+              user = await prisma.user.update({
+                where: { id: user.id },
+                data: { keycloakSubId: claims.sub },
+              })
+            }
+          }
+
+          if (!user) {
+            // Create new user from Keycloak claims
+            const fullName = claims.name ||
+              [claims.given_name, claims.family_name].filter(Boolean).join(" ") ||
+              claims.preferred_username ||
+              claims.email ||
+              "Unknown"
+
+            user = await prisma.user.create({
+              data: {
+                email: claims.email!,
+                name: fullName,
+                keycloakSubId: claims.sub,
+                role: "user",
+              },
+            })
+            console.log(`[Auth] Created new user ${user.id} for ${user.email}`)
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name || "",
+            role: user.role,
+          }
+        } catch (error) {
+          console.error("[Auth] Keycloak token verification failed:", error)
+          return null
+        }
       },
     }),
   ],
@@ -48,8 +106,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/login",
   },
-  // In development, trust the host
-  trustHost: process.env.NODE_ENV === "development",
+  // Trust the host (Cloudflare terminates SSL in production)
+  trustHost: true,
 })
 
 // Type augmentation for session

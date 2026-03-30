@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       listId: listId || null,
       searchType: "PEOPLE",
-      parameters: searchParams as Record<string, unknown>,
+      parameters: JSON.parse(JSON.stringify(searchParams)),
       status: "PENDING",
     },
   })

@@ -94,7 +94,7 @@ export async function POST(_req: NextRequest, context: RouteContext) {
     data: {
       userId: session.user.id,
       searchType: config.searchType,
-      parameters: searchParams as Record<string, unknown>,
+      parameters: JSON.parse(JSON.stringify(searchParams)),
       status: "PENDING",
     },
   })
@@ -307,11 +307,11 @@ export async function POST(_req: NextRequest, context: RouteContext) {
     await prisma.aiAgent.update({
       where: { id: agent.id },
       data: {
-        config: {
+        config: JSON.parse(JSON.stringify({
           ...config,
           listId,
           leadCount: updatedLeadCount,
-        } as unknown as Record<string, unknown>,
+        })),
       },
     })
 

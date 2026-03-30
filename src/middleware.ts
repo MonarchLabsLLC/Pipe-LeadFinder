@@ -1,12 +1,15 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 
+export const runtime = "nodejs"
+
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const isDevMode = process.env.NODE_ENV === "development"
+  const isDevMode =
+    process.env.NODE_ENV === "development" ||
+    process.env.DEV_AUTO_LOGIN === "true"
   const isAuthPage = req.nextUrl.pathname.startsWith("/login")
   const isApiRoute = req.nextUrl.pathname.startsWith("/api")
-  const isDevLoginRoute = req.nextUrl.pathname === "/api/auth/dev-login"
   const isLandingPage = req.nextUrl.pathname === "/"
 
   // Allow API routes, auth routes, and landing page to pass through
@@ -21,14 +24,12 @@ export default auth((req) => {
     return NextResponse.redirect(devLoginUrl)
   }
 
-  // In production, redirect to login if not logged in
-  if (!isDevMode && !isLoggedIn && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl.origin))
-  }
-
+  // In production, let pages through — KeycloakProvider handles auth
+  // on the client side via keycloak-js (check-sso + silent SSO).
+  // API routes are protected individually by auth() checks in each handler.
   return NextResponse.next()
 })
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|silent-check-sso\\.html|.*\\..*).*)"],
 }
