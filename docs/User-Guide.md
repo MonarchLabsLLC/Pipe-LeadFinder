@@ -2,7 +2,7 @@
 
 ## Pipe-LeadFinder — AI-Powered Lead Intelligence Platform
 
-**Last Updated:** March 2026
+**Last Updated:** March 2026 (rev 2)
 
 ---
 
@@ -51,7 +51,7 @@ Navigate to **Lead Search → New Search**. You'll see five search type cards:
 
 The most detailed search type. Start with:
 - **Description** — what kind of person (e.g., "Web Designer")
-- **Location** — where to search
+- **Location** — where to search (supports autocomplete — type 3+ characters to see suggestions)
 - **Results Limit** — how many results to return
 
 Click **Advanced filters** to access 15+ additional filters: Job Title, Department, Management Level, Skills, Years of Experience, Company, Industry, Education, and more.
@@ -62,14 +62,14 @@ Click **Advanced filters** to access 15+ additional filters: Job Title, Departme
 
 The simplest search. Just enter:
 - **Business Type** — e.g., "Hairdresser", "Restaurant", "Dentist"
-- **Location** — e.g., "Seattle", "Miami, FL"
+- **Location** — e.g., "Seattle", "Miami, FL" (supports autocomplete)
 
 No credits charged if no email is found for a business.
 
 ### Company Search
 
 Search for companies with filters for:
-- Description, Location, Radius
+- Description, Location, Radius (location field supports autocomplete)
 - Industry, Company Name, Domain
 - Technologies used, Keywords
 - Employee Count, Revenue range
@@ -140,14 +140,26 @@ Click a list to open its results. The table shows all leads with these columns:
 ### Action Bar
 
 Above the results table:
-- **History** — view search history for this list
+- **History** — opens a side sheet showing all past searches run into this list (date, type, parameters, result count)
 - **Filter tabs** — All | Email found | Email not found | Potential
 - **Status filter** — filter by outreach status (Unsent, etc.)
 - **More Filters** — additional filtering options
 - **Search** — run another search into this list
-- **Data Enrichment** — bulk enrich all leads
-- **AI Agent** — create an agent for this list
+- **Data Enrichment** — bulk enrich all leads in this list that are missing emails (calls Apify `code_crafter/personal-email-finder` per lead)
+- **AI Agent** — navigate to the AI Agent page to create an agent for this list
 - **List new search** — add more leads via new search
+
+---
+
+## Search History
+
+Every search run into a list is recorded automatically. To view the history for a list:
+
+1. Open the list detail page
+2. Click **History** in the action bar
+3. A side sheet opens showing the last 50 searches, newest first
+
+Each history entry shows: search type, parameters used, number of results returned, and the date/time the search was run.
 
 ---
 
@@ -160,6 +172,9 @@ Labels let you tag leads for tracking outreach status:
 - Default labels: Called, Messaged, Emailed, Exported to CSV
 - Labels appear as tags on leads in the results table
 - Apply labels from the "Add" button in the Custom Labels column
+- Remove labels by clicking the × on an applied tag
+
+Labels are applied per lead entry (a lead can have different labels in different lists).
 
 ---
 
@@ -217,22 +232,40 @@ Agent statuses: **Draft** (building), **Active** (running), **Paused** (stopped)
 
 ## Data Enrichment
 
-Enrich leads with additional contact data:
+Enrich leads with additional contact data. All enrichment uses person-level Apify actors powered by the lead's LinkedIn URL (falls back to name + company if no LinkedIn URL is available).
 
-**Per-lead enrichment** (from results table):
-- Click "Get Phone Numbers" to find phone numbers
-- Click "Add Email" if email wasn't found in initial search
+**Per-lead email enrichment** (from results table):
+1. Find a lead whose email shows "Not Found"
+2. Click **Add Email** in the Contact Info column
+3. The system calls `code_crafter/personal-email-finder` with the lead's LinkedIn URL
+4. The email and verification status update in place when the enrichment completes
+
+**Per-lead phone enrichment** (from results table):
+1. Find a lead in the Contact Info column
+2. Click **Get Phone Numbers**
+3. The system calls `code_crafter/mobile-finder` with the lead's LinkedIn URL
+4. The phone number updates in place when the enrichment completes
 
 **Bulk enrichment** (from action bar):
-- Click "Data Enrichment" to enrich all leads in the list
+1. Click **Data Enrichment** in the action bar
+2. The system enriches all leads in the list where email status is `NOT_FOUND` or `UNKNOWN`
+3. A progress summary is returned showing how many leads were enriched out of the total eligible
 
-Enrichment consumes credits based on the data found.
+Enrichment actors are configured via environment variables (`APIFY_ACTOR_ENRICH_EMAIL`, `APIFY_ACTOR_ENRICH_PHONE`). Enrichment consumes credits based on the data found.
 
 ---
 
 ## Exporting Data
 
-Export any list to CSV from the list detail page. **No credits are charged for exports.**
+Export any list to CSV from the list detail page:
+
+1. Open a list detail page
+2. Click **Export CSV** in the action bar (or results header)
+3. A CSV file downloads automatically — named `<list-name>-leads.csv`
+
+**Exported columns:** Full Name, First Name, Last Name, Title, Email, Email Status, Phone, Phone Status, Company, Company Website, Company LinkedIn, Industry, Location, City, State, Country, LinkedIn, Facebook, Instagram, Twitter, Labels, Created At.
+
+**No credits are charged for exports.**
 
 ---
 

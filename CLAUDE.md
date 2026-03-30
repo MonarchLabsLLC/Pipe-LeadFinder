@@ -66,10 +66,21 @@ To update theme: `npx shadcn@latest add https://tweakcn.com/r/themes/<id>`
 
 ### Prisma
 
-- Schema: `prisma/schema.prisma` (currently bare — no models defined yet)
+- Schema: `prisma/schema.prisma`
 - Generated client outputs to: `src/generated/prisma`
 - Database: DigitalOcean Managed PostgreSQL (or Neon — see `.env.example`)
 - Import client from: `import { PrismaClient } from "@/generated/prisma"`
+- **Prisma 7 requires a driver adapter** — client is instantiated with `PrismaPg` from `@prisma/adapter-pg`:
+  ```ts
+  // src/lib/prisma.ts
+  import { PrismaPg } from "@prisma/adapter-pg"
+  const adapter = new PrismaPg(process.env.DATABASE_URL!)
+  new PrismaClient({ adapter })
+  ```
+
+### ensureUser Pattern
+
+API routes that write to the database call `ensureUser(session)` from `src/lib/ensure-user.ts` to upsert the authenticated user before performing any operations. This handles the case where the `User` row doesn't yet exist in Postgres (e.g., first login via dev-auto-login).
 
 ### Environment Setup
 
@@ -78,11 +89,34 @@ Copy `.env.example` to `.env`. Key required variables:
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `AUTH_URL` — app URL (`http://localhost:3000` for dev)
 - `DEV_AUTO_LOGIN=true` — enables dev auto-login
+- `APIFY_API_KEY` — Apify platform API key
+- `APIFY_ACTOR_ENRICH_EMAIL=code_crafter/personal-email-finder` — person-level email enrichment actor
+- `APIFY_ACTOR_ENRICH_PHONE=code_crafter/mobile-finder` — person-level phone enrichment actor
+- `APIFY_ACTOR_PEOPLE`, `APIFY_ACTOR_LOCAL`, `APIFY_ACTOR_COMPANY`, `APIFY_ACTOR_DOMAIN`, `APIFY_ACTOR_INFLUENCER` — search actors (see `.env.example` for defaults)
 
 ### Key Directories
 
 - `src/app/` - Next.js App Router pages and API routes
 - `src/components/providers/` - React context providers (SessionProvider)
+- `src/components/leads/` - Lead table row, AI action sheet, label management
+- `src/components/ui/location-autocomplete.tsx` - Location field with Nominatim autocomplete
 - `src/lib/utils.ts` - `cn()` helper for className merging
+- `src/lib/ensure-user.ts` - Upsert authenticated user into Prisma before writes
+- `src/lib/pick-lead-fields.ts` - Whitelist valid Lead model fields from raw Apify output
+- `src/lib/prisma.ts` - Singleton Prisma client with PrismaPg adapter
+- `src/services/enrich-service.ts` - `enrichEmail`, `enrichPhone`, `enrichBulk` — call Apify actors and persist results
 - `src/auth.ts` - NextAuth configuration and type augmentation
 - `docs/` - User guide, PRD, technical requirements
+
+### API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/enrich/email` | POST | Enrich a single lead's email (`{ leadId }`) |
+| `/api/enrich/phone` | POST | Enrich a single lead's phone (`{ leadId }`) |
+| `/api/enrich/bulk` | POST | Bulk enrich all un-emailed leads in a list (`{ listId }`) |
+| `/api/labels/apply` | POST/DELETE | Apply or remove a label on a lead entry (`{ entryId, labelId }`) |
+| `/api/labels/remove` | POST | Remove a label from a lead entry (`{ entryId, labelId }`) |
+| `/api/lists/[id]/history` | GET | Fetch search history for a list (last 50) |
+| `/api/lists/[id]/export` | GET | Download CSV of all leads in a list |
+| `/api/location-search` | POST | Nominatim location autocomplete (`{ query }`) |
