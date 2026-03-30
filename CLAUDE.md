@@ -2,11 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project
+
+**Pipe-LeadFinder** (package: `pipedrive-suite`) — a Scale.gg application built on an AI-agent-optimized Next.js starter. Requires **Node.js 24.x LTS**.
+
 ## Commands
 
 ```bash
 npm run dev      # Start dev server (Turbopack) - auto-login enabled
 npm run build    # Production build
+npm run start    # Start production server
 npm run lint     # ESLint
 ```
 
@@ -32,6 +37,7 @@ npx shadcn@latest add <component>    # Add component (button, card, etc.)
 - **NextAuth 5** (Auth.js), **Prisma 7** (PostgreSQL)
 - **React Query**, **Zod**, **React Hook Form**
 - **Vercel AI SDK** with OpenAI + Gemini
+- **Tiptap 3** (rich text editor), **Firecrawl** (web scraping), **Apify** (web automation), **Pexels** (stock photos)
 
 ### Authentication Pattern
 
@@ -60,9 +66,18 @@ To update theme: `npx shadcn@latest add https://tweakcn.com/r/themes/<id>`
 
 ### Prisma
 
-- Schema: `prisma/schema.prisma`
+- Schema: `prisma/schema.prisma` (currently bare — no models defined yet)
 - Generated client outputs to: `src/generated/prisma`
-- Database URL: `DATABASE_URL` env var
+- Database: DigitalOcean Managed PostgreSQL (or Neon — see `.env.example`)
+- Import client from: `import { PrismaClient } from "@/generated/prisma"`
+
+### Environment Setup
+
+Copy `.env.example` to `.env`. Key required variables:
+- `DATABASE_URL` — PostgreSQL connection string
+- `AUTH_SECRET` — generate with `openssl rand -base64 32`
+- `AUTH_URL` — app URL (`http://localhost:3000` for dev)
+- `DEV_AUTO_LOGIN=true` — enables dev auto-login
 
 ### Key Directories
 

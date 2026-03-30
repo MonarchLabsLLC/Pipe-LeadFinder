@@ -1,257 +1,97 @@
-# NextJS-Full-Starter-App-2026
+# Pipe-LeadFinder
 
-A production-ready, AI-agent optimized Next.js starter application built for **Scale.gg** apps. This stack is carefully curated to maximize AI-assisted development success rates—every package works seamlessly together and agents wire it correctly on the first pass.
+AI-powered lead intelligence platform built on Next.js and Apify. Find, enrich, and manage business leads through five specialized search types with AI-powered research and outreach personalization.
 
-## Why This Starter?
+Part of the [Scale.gg](https://scale.gg) ecosystem.
 
-Modern AI coding assistants (Claude, Cursor, GPT) perform best with a "clean lane" stack—technologies that have clear patterns, excellent documentation, and minimal configuration conflicts. This starter eliminates the setup friction so you can focus on building features.
+## What It Does
 
-**Perfect for:**
-- SaaS applications
-- Internal tools & dashboards
-- AI-powered applications
-- Rapid prototyping with production-quality foundations
+- **5 Search Types** — People, Local Business, Company, Domain, and Influencer searches powered by Apify actors
+- **Saved Lists** — organize leads into lists with filtering, search, and bulk operations
+- **Data Enrichment** — one-click email and phone number discovery
+- **AI Assistant** — generate personalized DMs, subject lines, intros, and summaries per lead
+- **AI Agents** — automated prospecting pipelines (search → enrich → action → CRM)
+- **Knowledge Base** — business profile that powers AI personalization
 
 ## Tech Stack
 
-### Core Framework
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Next.js** | 15+ | React framework with App Router & Turbopack |
-| **React** | 19 | UI library with Server Components |
-| **TypeScript** | 5 | Type safety |
-
-### Styling & UI
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Tailwind CSS** | 4 | Utility-first CSS |
-| **shadcn/ui** | latest | Beautiful, accessible component library |
-| **tw-animate-css** | latest | Animation utilities |
-
-### Authentication
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **NextAuth.js** | 5 (Auth.js) | Authentication with dev auto-login |
-
-### Database
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Prisma** | 7 | Type-safe ORM |
-| **PostgreSQL** | - | Production database |
-
-### State & Data
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **React Query** | 5 | Server state management |
-| **Zod** | 4 | Schema validation |
-| **React Hook Form** | 7 | Form handling |
-
-### Rich Text
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Tiptap** | 3 | Headless rich text editor |
-
-### AI Services
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Vercel AI SDK** | 6 | Unified AI interface |
-| **OpenAI SDK** | 6 | GPT models |
-| **Google Generative AI** | latest | Gemini models |
-
-### External APIs
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **Pexels** | latest | Stock photos & videos |
-| **Firecrawl** | latest | Web scraping |
-| **Apify Client** | latest | Web automation |
-
-### Runtime
-- **Node.js 24.x LTS**
-
-## Features
-
-### Dev Auto-Login
-In development mode, authentication is bypassed automatically. Visit any page and you're instantly logged in as:
-```
-Email: admin@GrooveDigital.com
-Name:  Dev Admin
-Role:  admin
-```
-
-No login forms, no credentials—just start building. Production mode requires real authentication.
-
-### Pre-configured Theme
-Custom shadcn/ui theme with:
-- Light & dark mode support
-- OKLCH color space for better color manipulation
-- Custom shadow system
-- Typography scale with Inter + JetBrains Mono
-
-### Type-Safe Everything
-- Prisma generates types from your schema
-- Zod schemas for runtime validation
-- NextAuth session types extended
-- Full TypeScript coverage
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS 4, shadcn/ui |
+| Database | PostgreSQL + Prisma 7 |
+| Auth | NextAuth 5 (Auth.js) |
+| Data Engine | Apify (lead sourcing + enrichment) |
+| AI | Vercel AI SDK 6 (OpenAI + Gemini) |
+| Scraping | Firecrawl (Knowledge Base website crawling) |
+| State | React Query 5, Zod 4, React Hook Form 7 |
+| Runtime | Node.js 24.x LTS |
 
 ## Quick Start
 
-### 1. Clone & Install
+### 1. Install
+
 ```bash
-git clone <repo-url> my-app
-cd my-app
+git clone <repo-url> pipe-leadfinder
+cd pipe-leadfinder
 npm install
 ```
 
-### 2. Configure Environment
+### 2. Configure
+
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your credentials (see [Environment Variables](#environment-variables)).
+Required environment variables:
+- `DATABASE_URL` — PostgreSQL connection string
+- `AUTH_SECRET` — generate with `openssl rand -base64 32`
+- `APIFY_API_KEY` — your Apify API token
+- `OPENAI_API_KEY` — for AI Assistant features
 
-### 3. Setup Database
+### 3. Database
+
 ```bash
-# Start Postgres (local or cloud)
 npx prisma db push
 ```
 
-### 4. Run Development Server
+### 4. Run
+
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) - you'll be auto-logged in.
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-### Required
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `AUTH_SECRET` | NextAuth secret (generate with `openssl rand -base64 32`) |
-| `AUTH_URL` | Your app URL (http://localhost:3000 for dev) |
-
-### AI Services (Optional)
-| Variable | Description |
-|----------|-------------|
-| `OPENAI_API_KEY` | OpenAI API key for GPT models |
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Same as Gemini (required for Vercel AI SDK) |
-
-### External APIs (Optional)
-| Variable | Description |
-|----------|-------------|
-| `PEXELS_API_KEY` | Pexels stock photos & videos API |
-| `FIRECRAWL_API_KEY` | Firecrawl web scraping API |
-| `APIFY_API_KEY` | Apify web automation API |
-
-### Real-time (Optional)
-| Variable | Description |
-|----------|-------------|
-| `ABLY_API_KEY` | Ably real-time messaging |
-| `PUSHER_APP_ID` | Pusher app ID |
-| `PUSHER_KEY` | Pusher key |
-| `PUSHER_SECRET` | Pusher secret |
-| `PUSHER_CLUSTER` | Pusher cluster region |
-
-## Project Structure
-
-```
-├── docs/                    # Documentation
-│   ├── User-Guide.md
-│   ├── PRD.md
-│   └── Technical-Requirements-Doc.md
-├── prisma/
-│   └── schema.prisma        # Database schema
-├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── api/
-│   │   │   └── auth/        # NextAuth routes
-│   │   ├── globals.css      # Tailwind + theme
-│   │   ├── layout.tsx       # Root layout
-│   │   └── page.tsx         # Home page
-│   ├── auth.ts              # NextAuth configuration
-│   ├── components/
-│   │   └── providers/       # React context providers
-│   ├── lib/
-│   │   └── utils.ts         # Utility functions (cn, etc.)
-│   └── middleware.ts        # Auth middleware
-├── .env.example             # Environment template
-└── package.json
-```
+Visit [http://localhost:3000](http://localhost:3000) — auto-logged in as `admin@GrooveDigital.com` in dev mode.
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start development server (Turbopack) |
-| `npm run build` | Build for production |
+| `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 
-## Adding shadcn/ui Components
+## Database
 
 ```bash
-npx shadcn@latest add button
-npx shadcn@latest add card
-npx shadcn@latest add input
-# etc.
+npx prisma db push           # Push schema changes (dev)
+npx prisma migrate dev       # Create migration
+npx prisma generate          # Regenerate client
+npx prisma studio            # Visual database browser
 ```
 
-Browse components: [ui.shadcn.com](https://ui.shadcn.com)
+## Documentation
 
-## Database Workflow
+- [PRD](docs/PRD.md) — product requirements and feature specifications
+- [Technical Requirements](docs/Technical-Requirements-Doc.md) — architecture, schema, API specs
+- [User Guide](docs/User-Guide.md) — end-user documentation
+- [Implementation Plan](docs/implementation-plan.md) — phased build plan with subagent tasks
 
-```bash
-# Edit schema
-code prisma/schema.prisma
+## Themes
 
-# Push changes (dev)
-npx prisma db push
-
-# Create migration (prod)
-npx prisma migrate dev --name your_migration_name
-
-# Generate client
-npx prisma generate
-
-# Open Prisma Studio
-npx prisma studio
-```
-
-## Deployment
-
-### Vercel (Recommended)
-```bash
-npm i -g vercel
-vercel
-```
-
-### Docker
-```dockerfile
-FROM node:24-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-CMD ["npm", "start"]
-```
-
-## Customizing the Theme
-
-Edit `src/app/globals.css` or use [tweakcn.com](https://tweakcn.com) to generate a new theme:
-
-```bash
-npx shadcn@latest add https://tweakcn.com/r/themes/<your-theme-id>
-```
+Dual theme system with warm (amber) and cool (indigo) palettes, each with light and dark mode. Theme selection persists via localStorage.
 
 ## License
 
-MIT
-
----
-
-Built for [Scale.gg](https://scale.gg) applications.
+Proprietary — GrooveDigital / Scale.gg

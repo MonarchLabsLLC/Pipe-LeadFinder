@@ -1,21 +1,12 @@
 import type { Metadata } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { SessionProvider } from "@/components/providers/session-provider"
-
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-})
+import { QueryProvider } from "@/components/providers/query-provider"
+import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
-  title: "PipeDrive Suite",
-  description: "PipeDrive Suite Application",
+  title: "PipeLeads - LeadFinder AI",
+  description: "AI-Powered Lead Intelligence Platform",
 }
 
 export default function RootLayout({
@@ -24,9 +15,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <SessionProvider>{children}</SessionProvider>
+    <html lang="en" data-theme="amber">
+      <body className="font-sans antialiased">
+        <QueryProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </QueryProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   )
