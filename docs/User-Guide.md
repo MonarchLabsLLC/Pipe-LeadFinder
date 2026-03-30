@@ -279,3 +279,33 @@ The application supports two color themes and two display modes:
 - **Dark Mode** — dark backgrounds
 
 Access the theme selector from the user menu or settings.
+
+---
+
+## Credits
+
+### Credit Balance
+
+Your live credit balance is displayed in the sidebar under **Credits Remaining**. The balance updates automatically every 30 seconds, and refreshes more frequently (every 5 seconds) while a search or enrichment is actively running.
+
+### Buying Credits
+
+Click **Credit Wallet** in the sidebar to open the ScaleCredits purchase portal at `credits.scaleplus.gg`. Purchase credits there and your balance updates in the app automatically.
+
+### Credit Checks
+
+Credits are checked **before every search and enrichment operation**. If your balance is negative or insufficient, the operation is blocked and you will be prompted to add credits before continuing.
+
+### Credit Costs
+
+| Operation | Cost |
+|-----------|------|
+| People Search | 3 credits per contact |
+| Local Search | 1 credit per business (free if no email found) |
+| Company Search | 1 credit per company |
+| Domain Search | 1 credit per contact found |
+| Influencer Search | 2 credits per profile |
+| Email enrichment | 1 credit per lead |
+| Phone enrichment | 1 credit per lead |
+| AI Assistant | Token-based (charged per response) |
+| CSV Export | Free |

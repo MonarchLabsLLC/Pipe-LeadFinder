@@ -426,8 +426,15 @@ export default function TutorialsPage() {
                   </Tip>
 
                   <p className="text-sm text-muted-foreground">
+                    Your live credit balance is always visible in the sidebar so you know
+                    exactly where you stand. If your balance ever goes negative, it'll turn
+                    red to get your attention — and operations like searches and enrichment
+                    will be paused until you add more credits.
+                  </p>
+
+                  <p className="text-sm text-muted-foreground">
                     To buy more credits, click the <strong>Credit Wallet</strong> button in
-                    the sidebar, or visit{" "}
+                    the sidebar — it links directly to{" "}
                     <a
                       href="https://credits.scaleplus.gg/"
                       target="_blank"
@@ -435,8 +442,8 @@ export default function TutorialsPage() {
                       className="text-primary underline"
                     >
                       credits.scaleplus.gg
-                    </a>
-                    .
+                    </a>{" "}
+                    where you can purchase more.
                   </p>
                 </CardContent>
               </Card>
@@ -546,7 +553,9 @@ export default function TutorialsPage() {
                   <Note>
                     Every search saves leads to a <strong>list</strong>. You can select an
                     existing list or create a new one each time you search. This lets you keep
-                    different campaigns organized in separate lists.
+                    different campaigns organized in separate lists. Your credit balance is
+                    checked before every search — if it's negative, the search won't run
+                    until you add more credits.
                   </Note>
                 </CardContent>
               </Card>
@@ -1092,6 +1101,12 @@ export default function TutorialsPage() {
                       </p>
                     </div>
                   </div>
+
+                  <Tip>
+                    <strong>Good news on pricing:</strong> Enrichment only charges credits
+                    when contact info is actually found. If a lookup comes back empty, you
+                    don't pay anything — so there's no risk in trying.
+                  </Tip>
 
                   <Note>
                     Enrichment results include a status badge: <strong>Found</strong> (verified

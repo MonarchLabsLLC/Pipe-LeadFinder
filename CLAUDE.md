@@ -93,6 +93,9 @@ Copy `.env.example` to `.env`. Key required variables:
 - `APIFY_ACTOR_ENRICH_EMAIL=code_crafter/personal-email-finder` — person-level email enrichment actor
 - `APIFY_ACTOR_ENRICH_PHONE=code_crafter/mobile-finder` — person-level phone enrichment actor
 - `APIFY_ACTOR_PEOPLE`, `APIFY_ACTOR_LOCAL`, `APIFY_ACTOR_COMPANY`, `APIFY_ACTOR_DOMAIN`, `APIFY_ACTOR_INFLUENCER` — search actors (see `.env.example` for defaults)
+- `MICRO_SERVICE_BASE` — ScaleCredits microservice URL (default `http://localhost:3002/api`)
+- `SCALECREDITS_URL` — Credit purchase portal URL (e.g., `https://credits.scaleplus.gg`)
+- `NEXT_PUBLIC_SCALECREDITS_URL` — Client-side credit purchase URL (exposed to browser)
 
 ### Key Directories
 
@@ -105,6 +108,10 @@ Copy `.env.example` to `.env`. Key required variables:
 - `src/lib/pick-lead-fields.ts` - Whitelist valid Lead model fields from raw Apify output
 - `src/lib/prisma.ts` - Singleton Prisma client with PrismaPg adapter
 - `src/services/enrich-service.ts` - `enrichEmail`, `enrichPhone`, `enrichBulk` — call Apify actors and persist results
+- `src/services/credits-service.ts` - ScaleCredits microservice proxy (`getBalance`, `consumeCredits`, `consumeTokenCredits`)
+- `src/lib/credit-guard.ts` - `guardCredits` pre-check + `deductCredits` helpers for API routes
+- `src/contexts/credits-context.tsx` - `CreditsProvider`, `useCredits`, `useCreditsCheck` hooks
+- `src/types/credits.ts` - Credit system type definitions
 - `src/auth.ts` - NextAuth configuration and type augmentation
 - `docs/` - User guide, PRD, technical requirements
 
@@ -119,4 +126,28 @@ Copy `.env.example` to `.env`. Key required variables:
 | `/api/labels/remove` | POST | Remove a label from a lead entry (`{ entryId, labelId }`) |
 | `/api/lists/[id]/history` | GET | Fetch search history for a list (last 50) |
 | `/api/lists/[id]/export` | GET | Download CSV of all leads in a list |
+| `/api/credits` | GET | Get user credit balance (or `?action=check` for pre-op availability) |
 | `/api/location-search` | POST | Nominatim location autocomplete (`{ query }`) |
+
+### ScaleCredits Integration
+
+The app uses an external **ScaleCredits** microservice for metered billing. All communication goes through `src/services/credits-service.ts` using internal webhook auth headers (`x-internal-webhook: true`, `x-user-id`, `x-user-email`).
+
+**Flow for search routes:** pre-check via `guardCredits()` before running the search, then `deductCredits()` after results are returned.
+
+**Flow for enrichment routes:** pre-check via `guardCredits()` before enrichment, then charge only on success (data found).
+
+**Flow for AI assistant:** token-based consumption via `consumeTokenCredits()` called in the Vercel AI SDK `onFinish` callback.
+
+**Frontend:** `CreditsProvider` (`src/contexts/credits-context.tsx`) polls `/api/credits` every 30 seconds (accelerates to every 5 seconds during active operations). The `useCredits` hook exposes balance; `useCreditsCheck` validates availability before starting an operation.
+
+**Credit costs:**
+
+| Operation | Cost |
+|-----------|------|
+| People Search | 3 per contact |
+| Local Search | 1 per business (free if no email found) |
+| Company Search | 1 per company |
+| Domain Search | 1 per contact |
+| Influencer Search | 2 per profile |
+| Enrich email/phone | 1 per lead |
