@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 
 import { localSearchSchema, type LocalSearchInput } from "@/lib/validators/search"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -24,6 +25,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<LocalSearchInput>({
     resolver: zodResolver(localSearchSchema),
@@ -66,12 +68,16 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
               <Label htmlFor="location" className="text-sm font-medium text-foreground">
                 Location
               </Label>
-              <Input
-                id="location"
-                placeholder="Eg: Seattle"
-                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
-                aria-invalid={!!errors.location}
-                {...register("location")}
+              <Controller
+                control={control}
+                name="location"
+                render={({ field }) => (
+                  <LocationAutocomplete
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="City, State or ZIP..."
+                  />
+                )}
               />
               {errors.location && (
                 <p className="text-xs text-destructive">

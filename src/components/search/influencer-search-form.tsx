@@ -14,6 +14,7 @@ import { ListSelector } from "@/components/search/list-selector"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyResolver = any
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -246,11 +247,16 @@ export function InfluencerSearchForm({
             <Label htmlFor="location" className="text-sm font-medium text-foreground">
               Location
             </Label>
-            <Input
-              id="location"
-              placeholder="Eg: Seattle"
-              className={inputClass}
-              {...register("location")}
+            <Controller
+              control={control}
+              name="location"
+              render={({ field }) => (
+                <LocationAutocomplete
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  placeholder="City, State or ZIP..."
+                />
+              )}
             />
           </div>
 

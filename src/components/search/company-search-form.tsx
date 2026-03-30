@@ -7,6 +7,7 @@ import { ArrowRight, Coins } from "lucide-react"
 import { companySearchSchema, type CompanySearchInput } from "@/lib/validators/search"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -70,11 +71,16 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
               <Label htmlFor="location" className="text-sm font-medium text-foreground">
                 Location
               </Label>
-              <Input
-                id="location"
-                placeholder="Type to search"
-                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
-                {...register("location")}
+              <Controller
+                control={control}
+                name="location"
+                render={({ field }) => (
+                  <LocationAutocomplete
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="City, State or ZIP..."
+                  />
+                )}
               />
               {errors.location && (
                 <p className="text-xs text-destructive">{errors.location.message}</p>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
+import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { executeSearch } from "@/services/search-service"
 import { peopleSearchSchema } from "@/lib/validators/search"
 
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       results.map(async (leadData) => {
         const lead = await prisma.lead.create({
           data: {
-            ...(leadData as Record<string, unknown>),
+            ...pickLeadFields(leadData),
             sourceType: "PEOPLE",
             emailStatus: leadData.email ? "FOUND" : "NOT_FOUND",
           },

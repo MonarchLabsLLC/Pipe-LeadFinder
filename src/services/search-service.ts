@@ -87,26 +87,44 @@ function normalizeResults(
     }
 
     switch (type) {
-      case "PEOPLE":
-        // HarvestAPI LinkedIn output
+      case "PEOPLE": {
+        // HarvestAPI LinkedIn output — location is a nested object
+        const loc = item.location as Record<string, unknown> | string | null | undefined
+        const locParsed = (typeof loc === "object" && loc !== null)
+          ? loc.parsed as Record<string, unknown> | undefined
+          : undefined
+        const locationText = typeof loc === "string"
+          ? loc
+          : (typeof loc === "object" && loc !== null)
+            ? (loc.linkedinText as string) || (locParsed?.text as string) || null
+            : null
+        const cityVal = (locParsed?.city as string) || null
+        const stateVal = (locParsed?.state as string) || null
+        const countryVal = (locParsed?.country as string) || (locParsed?.countryFull as string) || null
+
         return {
           ...base,
           fullName: item.fullName || item.name || `${item.firstName || ""} ${item.lastName || ""}`.trim() || null,
-          firstName: item.firstName || null,
-          lastName: item.lastName || null,
-          title: item.headline || item.title || item.currentTitle || null,
-          headline: item.headline || null,
-          email: item.email || null,
-          phone: item.phone || null,
-          location: item.location || item.geoLocation || null,
-          city: item.city || null,
-          state: item.state || null,
-          country: item.country || null,
-          linkedinUrl: item.profileUrl || item.linkedinUrl || item.url || null,
-          companyName: item.currentCompany || item.companyName || null,
-          companyWebsite: item.companyWebsite || null,
-          avatarUrl: item.profilePicture || item.avatarUrl || item.photo || null,
+          firstName: typeof item.firstName === "string" ? item.firstName : null,
+          lastName: typeof item.lastName === "string" ? item.lastName : null,
+          title: typeof item.headline === "string" ? item.headline : typeof item.title === "string" ? item.title : null,
+          headline: typeof item.headline === "string" ? item.headline : null,
+          email: typeof item.email === "string" ? item.email : null,
+          phone: typeof item.phone === "string" ? item.phone : null,
+          location: locationText,
+          city: cityVal,
+          state: stateVal,
+          country: countryVal,
+          linkedinUrl: typeof item.linkedinUrl === "string" ? item.linkedinUrl
+            : typeof item.profileUrl === "string" ? item.profileUrl
+            : typeof item.url === "string" ? item.url : null,
+          companyName: typeof item.currentCompany === "string" ? item.currentCompany
+            : typeof item.companyName === "string" ? item.companyName : null,
+          companyWebsite: typeof item.companyWebsite === "string" ? item.companyWebsite : null,
+          avatarUrl: typeof item.profilePicture === "string" ? item.profilePicture
+            : typeof item.avatarUrl === "string" ? item.avatarUrl : null,
         }
+      }
 
       case "LOCAL":
         // Google Maps output

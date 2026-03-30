@@ -11,6 +11,7 @@ import { ListSelector } from "@/components/search/list-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Separator } from "@/components/ui/separator"
 import {
   Select,
@@ -182,10 +183,16 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             </FormField>
 
             <FormField label="Location" error={errors.location?.message}>
-              <Input
-                placeholder="Type to search"
-                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
-                {...register("location")}
+              <Controller
+                control={control}
+                name="location"
+                render={({ field }) => (
+                  <LocationAutocomplete
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="City, State or ZIP..."
+                  />
+                )}
               />
             </FormField>
 
