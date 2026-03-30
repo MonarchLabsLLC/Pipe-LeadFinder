@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ensureUser } from "@/lib/ensure-user"
 import { createListSchema } from "@/lib/validators/list"
 
 // GET /api/lists — returns all lists for current user with lead counts
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  await ensureUser(session)
 
   const { searchParams } = req.nextUrl
   const type = searchParams.get("type")
@@ -63,6 +65,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  await ensureUser(session)
 
   const body = await req.json()
   const parsed = createListSchema.safeParse(body)

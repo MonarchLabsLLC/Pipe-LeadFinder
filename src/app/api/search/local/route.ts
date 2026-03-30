@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ensureUser } from "@/lib/ensure-user"
 import { executeSearch } from "@/services/search-service"
 import { localSearchSchema } from "@/lib/validators/search"
 
@@ -9,6 +10,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  await ensureUser(session)
 
   const body = await req.json()
   const parsed = localSearchSchema.safeParse(body)
@@ -17,6 +19,17 @@ export async function POST(req: NextRequest) {
   }
 
   const { listId, ...searchParams } = parsed.data
+
+  // Check if Apify actor is configured
+  if (!process.env.APIFY_ACTOR_LOCAL) {
+    return NextResponse.json(
+      {
+        error: "Local search is not configured yet. Set APIFY_ACTOR_LOCAL in your .env file.",
+        code: "ACTOR_NOT_CONFIGURED",
+      },
+      { status: 503 }
+    )
+  }
 
   const searchHistory = await prisma.searchHistory.create({
     data: {
@@ -73,8 +86,11 @@ export async function POST(req: NextRequest) {
       data: { status: "FAILED" },
     })
 
+    const message =
+      error instanceof Error ? error.message : "Search failed"
+
     return NextResponse.json(
-      { error: "Search failed", searchId: searchHistory.id },
+      { error: message, searchId: searchHistory.id },
       { status: 500 }
     )
   }
