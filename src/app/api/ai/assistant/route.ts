@@ -10,6 +10,7 @@ import {
   buildSystemPrompt,
   buildUserPrompt,
 } from "@/services/ai-service"
+import { consumeTokenCredits } from "@/services/credits-service"
 
 const VALID_ACTION_TYPES: AiActionType[] = [
   "SIMILAR_PEOPLE",
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     model: openai("gpt-4o-mini"),
     system: systemPrompt,
     prompt: userPrompt,
-    onFinish: async ({ text }) => {
+    onFinish: async ({ text, usage }) => {
       // 6. Save result to AiResult table
       try {
         await prisma.aiResult.create({
@@ -97,6 +98,16 @@ export async function POST(request: NextRequest) {
         })
       } catch (err) {
         console.error("Failed to save AI result:", err)
+      }
+
+      // 7. Consume token-based credits (fire-and-forget)
+      if (usage?.inputTokens || usage?.outputTokens) {
+        consumeTokenCredits(session.user.id, {
+          provider: "openai",
+          model: "gpt-4o-mini",
+          inputTokens: usage.inputTokens ?? 0,
+          outputTokens: usage.outputTokens ?? 0,
+        }, session.user.email).catch(() => {})
       }
     },
   })

@@ -5,6 +5,7 @@ import { ensureUser } from "@/lib/ensure-user"
 import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { executeSearch } from "@/services/search-service"
 import { domainSearchSchema } from "@/lib/validators/search"
+import { guardCredits, deductCredits } from "@/lib/credit-guard"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -12,6 +13,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   await ensureUser(session)
+
+  const blocked = await guardCredits(session.user.id, session.user.email)
+  if (blocked) return blocked
 
   const body = await req.json()
   const parsed = domainSearchSchema.safeParse(body)
@@ -73,6 +77,11 @@ export async function POST(req: NextRequest) {
     await prisma.searchHistory.update({
       where: { id: searchHistory.id },
       data: { status: "COMPLETED", resultCount: leads.length },
+    })
+
+    deductCredits(session.user.id, "search:domain", leads.length, {
+      listId: listId || undefined,
+      searchType: "DOMAIN",
     })
 
     return NextResponse.json({

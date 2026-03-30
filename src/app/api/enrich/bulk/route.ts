@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { enrichBulk } from "@/services/enrich-service"
+import { guardCredits, deductCredits } from "@/lib/credit-guard"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -28,8 +29,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  const blocked = await guardCredits(session.user.id, session.user.email)
+  if (blocked) return blocked
+
   try {
     const result = await enrichBulk(listId)
+
+    // Charge per lead that was actually enriched
+    if (result.enriched > 0) {
+      deductCredits(session.user.id, "enrich:email", result.enriched, {
+        listId,
+      })
+    }
+
     return NextResponse.json(result)
   } catch (error) {
     console.error("Bulk enrichment failed:", error)

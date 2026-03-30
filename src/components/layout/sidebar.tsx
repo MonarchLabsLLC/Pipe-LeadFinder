@@ -41,6 +41,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useCredits } from "@/contexts/credits-context"
 import {
   Collapsible,
   CollapsibleContent,
@@ -106,6 +107,7 @@ export function AppSidebar() {
   const { data: session } = useSession()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
+  const { balance, isLoading: creditsLoading, formatCredits, purchaseUrl } = useCredits()
 
   const userName = session?.user?.name ?? "Admin User"
   const userEmail = session?.user?.email ?? "admin@GrooveDigital.com"
@@ -151,9 +153,17 @@ export function AppSidebar() {
               <p className="text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/60">
                 Credits Remaining
               </p>
-              <p className="text-2xl font-bold text-sidebar-foreground">0</p>
+              <p className={`text-2xl font-bold ${
+                balance && balance.availableCredits < 0
+                  ? "text-destructive"
+                  : "text-sidebar-foreground"
+              }`}>
+                {creditsLoading
+                  ? "..."
+                  : formatCredits(balance?.availableCredits ?? 0)}
+              </p>
               <a
-                href="https://credits.scaleplus.gg/"
+                href={purchaseUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-semibold no-underline"

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { SessionProvider } from "@/components/providers/session-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
+import { CreditsProvider } from "@/contexts/credits-context"
 import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <QueryProvider>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <CreditsProvider>{children}</CreditsProvider>
+          </SessionProvider>
         </QueryProvider>
         <Toaster richColors position="top-right" />
       </body>
