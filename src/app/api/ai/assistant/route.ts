@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
   // 5. Stream with OpenAI
   const result = streamText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-5.4-nano"),
     system: systemPrompt,
     prompt: userPrompt,
     onFinish: async ({ text, usage }) => {
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
             actionType,
             prompt: customPrompt || userPrompt,
             result: text,
-            model: "gpt-4o-mini",
+            model: "gpt-5.4-nano",
           },
         })
       } catch (err) {
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       if (usage?.inputTokens || usage?.outputTokens) {
         consumeTokenCredits(session.user.id, {
           provider: "openai",
-          model: "gpt-4o-mini",
+          model: "gpt-5.4-nano",
           inputTokens: usage.inputTokens ?? 0,
           outputTokens: usage.outputTokens ?? 0,
         }, session.user.email).catch(() => {})

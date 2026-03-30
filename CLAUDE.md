@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important: Use Ref MCP for API Documentation
+
+**ALWAYS use the Ref MCP tool (`ref_search_documentation` / `ref_read_url`) when working with external API models, SDKs, or libraries.** This includes OpenAI, Vercel AI SDK, Apify, Prisma, NextAuth, and any other third-party API. Do not rely on memory alone — check the current docs to avoid using deprecated models, removed endpoints, or outdated patterns.
+
 ## Project
 
 **Pipe-LeadFinder** (package: `pipedrive-suite`) — a Scale.gg application built on an AI-agent-optimized Next.js starter. Requires **Node.js 24.x LTS**.
