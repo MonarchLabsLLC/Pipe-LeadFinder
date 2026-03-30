@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,15 @@ import {
   Bot,
   Clock,
   Download,
+  Loader2,
   Sparkles,
   Users,
 } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
+import { useEnrichBulk } from "@/hooks/useEnrich"
+import { toast } from "sonner"
 
 type EmailFilter = "ALL" | "FOUND" | "NOT_FOUND" | "POTENTIAL"
 
@@ -57,7 +60,11 @@ async function fetchListDetail(
 
 export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>()
+  const router = useRouter()
   const [emailFilter, setEmailFilter] = useState<EmailFilter>("ALL")
+  const [isExporting, setIsExporting] = useState(false)
+
+  const bulkEnrich = useEnrichBulk()
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["list-detail", listId, emailFilter],
@@ -136,7 +143,13 @@ export default function ListDetailPage() {
 
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            toast.info("Search history coming soon")
+          }}
+        >
           <Clock className="size-4" />
           History
         </Button>
@@ -165,21 +178,72 @@ export default function ListDetailPage() {
 
         <div className="h-6 w-px bg-border mx-1" />
 
-        <Button variant="outline" size="sm">
-          <Sparkles className="size-4" />
-          Data Enrichment
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={bulkEnrich.isPending}
+          onClick={() => {
+            bulkEnrich.mutate(
+              { listId },
+              {
+                onSuccess: () => {
+                  toast.success("Data enrichment started successfully")
+                  refetch()
+                },
+                onError: (err) => {
+                  toast.error(err.message || "Data enrichment failed")
+                },
+              }
+            )
+          }}
+        >
+          {bulkEnrich.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Sparkles className="size-4" />
+          )}
+          {bulkEnrich.isPending ? "Enriching..." : "Data Enrichment"}
         </Button>
-        <Button variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push("/ai/ai-agent")}
+        >
           <Bot className="size-4" />
           AI Agent
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => window.open(`/api/lists/${listId}/export`, "_blank")}
+          disabled={isExporting}
+          onClick={async () => {
+            setIsExporting(true)
+            try {
+              const res = await fetch(`/api/lists/${listId}/export`)
+              if (!res.ok) throw new Error("Export failed")
+              const blob = await res.blob()
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `${data?.list.name || "leads"}.csv`
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+              URL.revokeObjectURL(url)
+              toast.success("CSV exported successfully")
+            } catch {
+              toast.error("Failed to export CSV")
+            } finally {
+              setIsExporting(false)
+            }
+          }}
         >
-          <Download className="size-4" />
-          Export CSV
+          {isExporting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {isExporting ? "Exporting..." : "Export CSV"}
         </Button>
       </div>
 

@@ -61,3 +61,47 @@ export function useDeleteLabel() {
     },
   })
 }
+
+export function useApplyLabel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: { entryId: string; labelId: string }) => {
+      const res = await fetch("/api/labels/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Failed to apply label")
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] })
+    },
+  })
+}
+
+export function useRemoveLabel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: { entryId: string; labelId: string }) => {
+      const res = await fetch("/api/labels/apply", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Failed to remove label")
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] })
+    },
+  })
+}

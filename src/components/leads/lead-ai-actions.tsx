@@ -121,7 +121,7 @@ export function LeadAIActions({ leadId }: LeadAIActionsProps) {
   // Load templates when Library action is selected
   useEffect(() => {
     if (activeAction === "LIBRARY" && !templatesLoaded) {
-      fetch("/api/ai/templates")
+      fetch("/api/ai/prompts")
         .then((res) => (res.ok ? res.json() : []))
         .then((data: PromptTemplate[]) => {
           setTemplates(data)
