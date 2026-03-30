@@ -52,11 +52,16 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@groovedigital.com")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+
 const navSections = [
   {
     label: "AI Tools",
     icon: Lightbulb,
     defaultOpen: false,
+    adminOnly: false,
     items: [
       { label: "Knowledge Base", href: "/ai/knowledge-base", icon: BookOpen },
       { label: "AI Assistant", href: "/ai/ai-assistant", icon: Bot },
@@ -67,6 +72,7 @@ const navSections = [
     label: "Lead Search",
     icon: Search,
     defaultOpen: true,
+    adminOnly: false,
     items: [
       { label: "New Search", href: "/lead-search/new-search", icon: ListPlus },
       { label: "Saved Lists", href: "/lead-search/saved-lists", icon: Bookmark },
@@ -77,6 +83,7 @@ const navSections = [
     label: "Admin",
     icon: Settings,
     defaultOpen: false,
+    adminOnly: true,
     items: [
       { label: "Business Account", href: "/admin/business-account", icon: Building2 },
       { label: "Packages", href: "/admin/packages", icon: Package },
@@ -94,10 +101,10 @@ const navSections = [
     label: "Resources",
     icon: HelpCircle,
     defaultOpen: false,
+    adminOnly: false,
     items: [
       { label: "Support", href: "/resources/support", icon: HelpCircle },
       { label: "Tutorials", href: "/resources/tutorials", icon: GraduationCap },
-      { label: "Documentation", href: "/resources/documentation", icon: FileText },
     ],
   },
 ]
@@ -184,7 +191,12 @@ export function AppSidebar() {
 
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {navSections.map((section) => {
+          {navSections
+            .filter((section) => {
+              if (!section.adminOnly) return true
+              return ADMIN_EMAILS.includes(userEmail.toLowerCase())
+            })
+            .map((section) => {
             const sectionActive = isSectionActive(section.items)
             return (
               <Collapsible
