@@ -62,3 +62,12 @@ next-env.d.ts
 
 # Playwright MCP debug logs/screenshots
 .playwright-mcp/
+
+# === secrets / env / snapshot ignore (managed) ===
+.env
+.env.*
+!.env.example
+!.env.template
+!.env.sample
+.backup/
+.lh/
