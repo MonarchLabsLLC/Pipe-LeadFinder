@@ -88,12 +88,13 @@ export function KeycloakProvider({ children }: { children: React.ReactNode }) {
           // Check if user IS authenticated but lacks the role.
           const tokenParsed = getTokenParsed()
           if (tokenParsed) {
-            // Authenticated but missing App_pipefinder role
+            // Authenticated but missing app_pipefinder role
             setIsKeycloakAuthenticated(true)
             setRoleCheckFailed(true)
             setHasRequiredRole(false)
           } else {
-            // Not authenticated at all — redirect to Keycloak login
+            // Not authenticated — redirect to Keycloak login (ScalePlus/Groove themed).
+            // redirect_uri is set to app.pipeleads.ai so user lands back here after login.
             setIsKeycloakAuthenticated(false)
             setHasRequiredRole(false)
             keycloakLogin()
@@ -137,25 +138,42 @@ export function KeycloakProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Authenticated but missing the required role
+  // Authenticated but missing the required role (no active subscription)
   if (roleCheckFailed) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="mx-auto max-w-md rounded-lg border bg-card p-8 text-center shadow-sm">
-          <h1 className="mb-2 text-xl font-semibold text-foreground">Access Denied</h1>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Your account does not have the <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{REQUIRED_ROLE}</code> role
-            required to access PipeLeads.
+        <div className="mx-auto max-w-lg rounded-xl border bg-card p-10 text-center shadow-lg">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+            <svg className="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </div>
+          <h1 className="mb-2 text-2xl font-bold text-foreground">Unlock PipeLeads</h1>
+          <p className="mb-2 text-base text-muted-foreground">
+            Your account doesn{"'"}t have an active PipeLeads subscription yet.
           </p>
           <p className="mb-6 text-sm text-muted-foreground">
-            Contact your administrator to request access.
+            PipeLeads is the AI-powered lead intelligence platform that helps you find, enrich, and
+            engage high-quality prospects in seconds. Get unlimited searches, email enrichment,
+            AI-written outreach, and more.
           </p>
-          <button
-            onClick={logout}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Sign out
-          </button>
+          <div className="flex flex-col gap-3">
+            <a
+              href="https://scaleplus.gg"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+            >
+              Get Started on ScalePlus
+              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+            <button
+              onClick={logout}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     )

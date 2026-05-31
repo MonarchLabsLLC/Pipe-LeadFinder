@@ -12,7 +12,7 @@ const KEYCLOAK_REALM =
 const KEYCLOAK_CLIENT_ID =
   process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || ""
 
-const REQUIRED_ROLE = "App_pipefinder"
+const REQUIRED_ROLE = "app_pipefinder"
 
 export interface KeycloakClaims extends JWTPayload {
   sub: string
@@ -84,7 +84,7 @@ export function decodeTokenUnsafe(token: string): KeycloakClaims {
 }
 
 /**
- * Verify a Keycloak JWT and check for the required App_pipefinder role.
+ * Verify a Keycloak JWT and check for the required app_pipefinder role.
  * In dev mode, falls back to decode-only if JWKS is unreachable.
  * Returns the verified claims or throws.
  */

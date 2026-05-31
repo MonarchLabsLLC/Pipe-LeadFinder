@@ -10,7 +10,7 @@ const keycloakConfig = {
 }
 
 // Required role for accessing the application
-const REQUIRED_ROLE = "App_pipefinder"
+const REQUIRED_ROLE = "app_pipefinder"
 
 // Create Keycloak instance
 const keycloak = new Keycloak(keycloakConfig)
