@@ -395,7 +395,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
-              People search will consume 1 credit per record returned.
+              People search will consume 3 credits per record returned.
             </p>
           </div>
 

@@ -12,6 +12,9 @@ import {
 } from "@/services/ai-service"
 import { consumeTokenCredits } from "@/services/credits-service"
 
+const ASSISTANT_AI_MODEL =
+  process.env.OPENAI_ASSISTANT_MODEL || process.env.OPENAI_MODEL || "gpt-5.4-nano"
+
 const VALID_ACTION_TYPES: AiActionType[] = [
   "SIMILAR_PEOPLE",
   "DIRECT_MESSAGE",
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
 
   // 5. Stream with OpenAI
   const result = streamText({
-    model: openai("gpt-5.4-nano"),
+    model: openai(ASSISTANT_AI_MODEL),
     system: systemPrompt,
     prompt: userPrompt,
     onFinish: async ({ text, usage }) => {
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
             actionType,
             prompt: customPrompt || userPrompt,
             result: text,
-            model: "gpt-5.4-nano",
+            model: ASSISTANT_AI_MODEL,
           },
         })
       } catch (err) {
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest) {
       if (usage?.inputTokens || usage?.outputTokens) {
         consumeTokenCredits(session.user.id, {
           provider: "openai",
-          model: "gpt-5.4-nano",
+          model: ASSISTANT_AI_MODEL,
           inputTokens: usage.inputTokens ?? 0,
           outputTokens: usage.outputTokens ?? 0,
         }, session.user.email).catch(() => {})

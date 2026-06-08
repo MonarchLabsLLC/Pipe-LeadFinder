@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation"
 import { Settings } from "lucide-react"
+import { auth } from "@/auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -51,11 +53,36 @@ const adminPages: Record<string, { title: string; description: string }> = {
   },
 }
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "admin@groovedigital.com")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean)
+const ADMIN_DOMAINS = (process.env.ADMIN_DOMAINS || "")
+  .split(",")
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean)
+
+function isAdminUser(email?: string | null, role?: string | null) {
+  if (role === "admin") return true
+  if (!email) return false
+
+  const normalized = email.toLowerCase()
+  return (
+    ADMIN_EMAILS.includes(normalized) ||
+    ADMIN_DOMAINS.some((domain) => normalized.endsWith(domain))
+  )
+}
+
 export default async function AdminCatchAllPage({
   params,
 }: {
   params: Promise<{ slug: string[] }>
 }) {
+  const session = await auth()
+  if (!isAdminUser(session?.user?.email, session?.user?.role)) {
+    notFound()
+  }
+
   const { slug } = await params
   const key = slug[0]
   const page = adminPages[key] ?? {

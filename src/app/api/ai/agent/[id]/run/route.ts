@@ -4,9 +4,14 @@ import { openai } from "@ai-sdk/openai"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
+import { guardCredits, deductCredits } from "@/lib/credit-guard"
 import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { executeSearch, getActorId } from "@/services/search-service"
 import { enrichEmail, enrichPhone } from "@/services/enrich-service"
+import {
+  consumeTokenCredits,
+  type CreditAction,
+} from "@/services/credits-service"
 import {
   getBusinessContext,
   getLeadContext,
@@ -14,8 +19,12 @@ import {
   buildUserPrompt,
 } from "@/services/ai-service"
 import type { SearchType } from "@/generated/prisma/enums"
+import type { Lead } from "@/generated/prisma/client"
 
 type RouteContext = { params: Promise<{ id: string }> }
+
+const AGENT_AI_MODEL =
+  process.env.OPENAI_AGENT_MODEL || process.env.OPENAI_MODEL || "gpt-5.4-nano"
 
 // Agent config shape stored in the JSON config field
 interface AgentConfig {
@@ -29,6 +38,28 @@ interface AgentConfig {
   resultsLimit?: number
   listId?: string
   leadCount?: number
+}
+
+function getSearchCreditAction(searchType: SearchType): CreditAction {
+  switch (searchType) {
+    case "PEOPLE":
+      return "search:people"
+    case "LOCAL":
+      return "search:local"
+    case "COMPANY":
+      return "search:company"
+    case "DOMAIN":
+      return "search:domain"
+    case "INFLUENCER":
+      return "search:influencer"
+  }
+}
+
+function countBillableSearchResults(searchType: SearchType, leads: Lead[]) {
+  if (searchType === "LOCAL") {
+    return leads.filter((lead) => Boolean(lead.email)).length
+  }
+  return leads.length
 }
 
 // POST /api/ai/agent/[id]/run — execute an agent run
@@ -74,6 +105,9 @@ export async function POST(_req: NextRequest, context: RouteContext) {
       { status: 503 }
     )
   }
+
+  const blocked = await guardCredits(session.user.id, session.user.email)
+  if (blocked) return blocked
 
   // ---------------------------------------------------------------------------
   // 1. Build search params from agent config
@@ -161,7 +195,10 @@ export async function POST(_req: NextRequest, context: RouteContext) {
       // Enrich email
       if (actions.includes("enrich_email")) {
         try {
-          await enrichEmail(lead.id)
+          const updated = await enrichEmail(lead.id)
+          if (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL") {
+            deductCredits(session.user.id, "enrich:email", 1, { leadId: lead.id })
+          }
         } catch (err) {
           actionErrors.push({
             leadId: lead.id,
@@ -174,7 +211,10 @@ export async function POST(_req: NextRequest, context: RouteContext) {
       // Enrich phone
       if (actions.includes("enrich_phone")) {
         try {
-          await enrichPhone(lead.id)
+          const updated = await enrichPhone(lead.id)
+          if (updated.phoneStatus === "FOUND") {
+            deductCredits(session.user.id, "enrich:phone", 1, { leadId: lead.id })
+          }
         } catch (err) {
           actionErrors.push({
             leadId: lead.id,
@@ -194,8 +234,8 @@ export async function POST(_req: NextRequest, context: RouteContext) {
           const systemPrompt = buildSystemPrompt("SUMMARY", businessContext)
           const userPrompt = buildUserPrompt("SUMMARY", leadContext)
 
-          const { text } = await generateText({
-            model: openai("gpt-4o-mini"),
+          const { text, usage } = await generateText({
+            model: openai(AGENT_AI_MODEL),
             system: systemPrompt,
             prompt: userPrompt,
           })
@@ -206,9 +246,17 @@ export async function POST(_req: NextRequest, context: RouteContext) {
               actionType: "SUMMARY",
               prompt: userPrompt,
               result: text,
-              model: "gpt-4o-mini",
+              model: AGENT_AI_MODEL,
             },
           })
+          if (usage?.inputTokens || usage?.outputTokens) {
+            consumeTokenCredits(session.user.id, {
+              provider: "openai",
+              model: AGENT_AI_MODEL,
+              inputTokens: usage.inputTokens ?? 0,
+              outputTokens: usage.outputTokens ?? 0,
+            }, session.user.email).catch(() => {})
+          }
         } catch (err) {
           actionErrors.push({
             leadId: lead.id,
@@ -228,8 +276,8 @@ export async function POST(_req: NextRequest, context: RouteContext) {
           const systemPrompt = buildSystemPrompt("DIRECT_MESSAGE", businessContext)
           const userPrompt = buildUserPrompt("DIRECT_MESSAGE", leadContext)
 
-          const { text } = await generateText({
-            model: openai("gpt-4o-mini"),
+          const { text, usage } = await generateText({
+            model: openai(AGENT_AI_MODEL),
             system: systemPrompt,
             prompt: userPrompt,
           })
@@ -240,9 +288,17 @@ export async function POST(_req: NextRequest, context: RouteContext) {
               actionType: "DIRECT_MESSAGE",
               prompt: userPrompt,
               result: text,
-              model: "gpt-4o-mini",
+              model: AGENT_AI_MODEL,
             },
           })
+          if (usage?.inputTokens || usage?.outputTokens) {
+            consumeTokenCredits(session.user.id, {
+              provider: "openai",
+              model: AGENT_AI_MODEL,
+              inputTokens: usage.inputTokens ?? 0,
+              outputTokens: usage.outputTokens ?? 0,
+            }, session.user.email).catch(() => {})
+          }
         } catch (err) {
           actionErrors.push({
             leadId: lead.id,
@@ -302,6 +358,14 @@ export async function POST(_req: NextRequest, context: RouteContext) {
       where: { id: searchHistory.id },
       data: { status: "COMPLETED", resultCount: leads.length, listId },
     })
+
+    const billableSearchResults = countBillableSearchResults(config.searchType, leads)
+    deductCredits(
+      session.user.id,
+      getSearchCreditAction(config.searchType),
+      billableSearchResults,
+      { listId, searchType: config.searchType }
+    )
 
     const updatedLeadCount = (config.leadCount ?? 0) + leads.length
     await prisma.aiAgent.update({

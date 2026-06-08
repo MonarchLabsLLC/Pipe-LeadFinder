@@ -103,7 +103,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">
-              <p>Company search will consume 1 credit per record returned.</p>
+              <p>Local search will consume 1 credit per record returned.</p>
               <p>No credits will be consumed if email addresses are not found.</p>
             </div>
           </div>
