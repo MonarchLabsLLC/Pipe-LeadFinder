@@ -12,7 +12,17 @@ const KEYCLOAK_REALM =
 const KEYCLOAK_CLIENT_ID =
   process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || ""
 
-const REQUIRED_ROLE = "App_pipefinder"
+const configuredRequiredRole =
+  process.env.NEXT_PUBLIC_KEYCLOAK_REQUIRED_ROLE?.trim()
+const REQUIRED_ROLE =
+  configuredRequiredRole || KEYCLOAK_CLIENT_ID.replace(/-/g, "_") || "app_pipefinder"
+const ACCEPTED_ROLES = Array.from(
+  new Set(
+    configuredRequiredRole
+      ? [configuredRequiredRole]
+      : [REQUIRED_ROLE, "App_pipefinder"]
+  )
+)
 
 export interface KeycloakClaims extends JWTPayload {
   sub: string
@@ -26,6 +36,7 @@ export interface KeycloakClaims extends JWTPayload {
   realm_access?: {
     roles: string[]
   }
+  resource_access?: Record<string, { roles?: string[] }>
 }
 
 // Create JWKS (JSON Web Key Set) fetcher — caches keys and handles rotation
@@ -84,7 +95,7 @@ export function decodeTokenUnsafe(token: string): KeycloakClaims {
 }
 
 /**
- * Verify a Keycloak JWT and check for the required App_pipefinder role.
+ * Verify a Keycloak JWT and check for the required Pipe-LeadFinder role.
  * In dev mode, falls back to decode-only if JWKS is unreachable.
  * Returns the verified claims or throws.
  */
@@ -105,9 +116,16 @@ export async function verifyKeycloakToken(token: string): Promise<KeycloakClaims
     }
   }
 
-  // Check for required role
   const roles = claims.realm_access?.roles || []
-  if (!roles.includes(REQUIRED_ROLE)) {
+  const resourceRoles =
+    (KEYCLOAK_CLIENT_ID && claims.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles) ||
+    []
+
+  const hasRequiredRole = ACCEPTED_ROLES.some(
+    (role) => roles.includes(role) || resourceRoles.includes(role)
+  )
+
+  if (!hasRequiredRole) {
     throw new Error(`Forbidden — missing required role: ${REQUIRED_ROLE}`)
   }
 
