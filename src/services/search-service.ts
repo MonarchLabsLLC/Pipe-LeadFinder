@@ -40,34 +40,62 @@ function buildActorInput(
 
     case "LOCAL":
       // Google Maps Search actor
-      return {
-        keywords: `${params.description || ""} ${params.location || ""}`.trim(),
-        maxItems: Number(params.resultsLimit) || 10,
+      {
+        const keyword = [params.businessType, params.description, params.location]
+          .filter(Boolean)
+          .join(" ")
+          .trim()
+
+        return {
+          keywords: keyword,
+          maxItems: Number(params.resultsLimit) || 10,
+        }
       }
 
     case "COMPANY":
       // LinkedIn Companies Search Scraper actor
       return {
-        keyword: params.description || params.companyName || undefined,
+        keyword: params.keyword || params.description || params.companyName || params.domain || undefined,
         location: params.location || undefined,
         maxResults: Number(params.resultsLimit) || 10,
+        industry: params.industry || undefined,
+        companyName: params.companyName || undefined,
+        domain: params.domain || undefined,
+        technologies: params.technologies || undefined,
+        employeeCount: params.employeeCount || undefined,
+        revenue: params.revenue || undefined,
+        radius: params.radius || undefined,
       }
 
     case "DOMAIN":
       // Company Enrichment API actor
-      return {
-        domains: params.domain ? [String(params.domain)] : undefined,
-        domain: params.domain || undefined,
+      {
+        const domainOrCompany = String(params.domain ?? params.companyNameOrWebsite ?? "").trim()
+
+        return {
+          domains: domainOrCompany ? [domainOrCompany] : undefined,
+          domain: domainOrCompany || undefined,
+          companyName: domainOrCompany || undefined,
+          query: domainOrCompany || undefined,
+        }
       }
 
     case "INFLUENCER":
       // Influencer Discovery actor
-      return {
-        keyword: params.description || params.niche || undefined,
-        platform: params.platform || undefined,
-        minFollowers: params.minFollowers ? Number(params.minFollowers) : undefined,
-        maxFollowers: params.maxFollowers ? Number(params.maxFollowers) : undefined,
-        maxItems: Number(params.resultsLimit) || 10,
+      {
+        const hashtags = Array.isArray(params.hashtags)
+          ? params.hashtags.filter(Boolean).join(" ")
+          : undefined
+        const minFollowers = params.minFollowers ?? params.followersFrom
+        const maxFollowers = params.maxFollowers ?? params.followersTo
+
+        return {
+          keyword: params.description || hashtags || params.username || params.category || undefined,
+          platform: params.platform || undefined,
+          minFollowers: minFollowers ? Number(minFollowers) : undefined,
+          maxFollowers: maxFollowers ? Number(maxFollowers) : undefined,
+          maxItems: Number(params.resultsLimit) || 10,
+        }
       }
 
     default:

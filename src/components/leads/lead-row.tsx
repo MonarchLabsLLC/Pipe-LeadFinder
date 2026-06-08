@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -93,7 +93,12 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
   // Manual phone input state
   const [showPhoneInput, setShowPhoneInput] = useState(false)
   const [phoneValue, setPhoneValue] = useState("")
+  const [manualPhone, setManualPhone] = useState<string | null>(lead.phone)
   const phoneInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (lead.phone) setManualPhone(lead.phone)
+  }, [lead.phone])
 
   // Label popover state
   const [labelPopoverOpen, setLabelPopoverOpen] = useState(false)
@@ -144,6 +149,7 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
         throw new Error(err.error || "Failed to save phone")
       }
       toast.success("Phone number saved")
+      setManualPhone(trimmed)
       setShowPhoneInput(false)
       setPhoneValue("")
     } catch (error) {
@@ -282,8 +288,8 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
           )}
 
           {/* Phone section */}
-          {lead.phone ? (
-            <span className="text-sm text-foreground block">{lead.phone}</span>
+          {manualPhone ? (
+            <span className="text-sm text-foreground block">{manualPhone}</span>
           ) : showPhoneInput ? (
             <div className="flex gap-1 items-center">
               <Input

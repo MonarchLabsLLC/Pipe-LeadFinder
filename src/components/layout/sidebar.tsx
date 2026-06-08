@@ -48,13 +48,25 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@groovedigital.com")
   .split(",")
   .map((e) => e.trim().toLowerCase())
+  .filter(Boolean)
+const ADMIN_DOMAINS = (process.env.NEXT_PUBLIC_ADMIN_DOMAINS || "")
+  .split(",")
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean)
+
+function isAdminEmail(email: string) {
+  const normalized = email.toLowerCase()
+  return (
+    ADMIN_EMAILS.includes(normalized) ||
+    ADMIN_DOMAINS.some((domain) => normalized.endsWith(domain))
+  )
+}
 
 const navSections = [
   {
@@ -194,7 +206,7 @@ export function AppSidebar() {
           {navSections
             .filter((section) => {
               if (!section.adminOnly) return true
-              return ADMIN_EMAILS.includes(userEmail.toLowerCase())
+              return isAdminEmail(userEmail)
             })
             .map((section) => {
             const sectionActive = isSectionActive(section.items)

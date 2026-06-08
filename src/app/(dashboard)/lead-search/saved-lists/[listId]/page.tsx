@@ -314,8 +314,9 @@ function SearchHistorySheet({ listId }: { listId: string }) {
     return parts.join(" · ") || "—"
   }
 
-  const timeAgo = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime()
+  const timeAgo = (dateStr: string, now: number) => {
+    if (!now) return ""
+    const diff = now - new Date(dateStr).getTime()
     const mins = Math.floor(diff / 60000)
     if (mins < 1) return "just now"
     if (mins < 60) return `${mins}m ago`
@@ -361,7 +362,7 @@ function SearchHistorySheet({ listId }: { listId: string }) {
                     {entry.searchType}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {timeAgo(entry.createdAt)}
+                    {timeAgo(entry.createdAt, historyQuery.dataUpdatedAt)}
                   </span>
                 </div>
                 <p className="text-sm mt-1 truncate">

@@ -88,7 +88,7 @@ function parseAgentConfig(agent: AgentSummary): AgentConfig {
       searchLocation: (c.searchLocation as string) || "",
       actions: Array.isArray(c.actions) ? (c.actions as string[]) : [],
       connections: Array.isArray(c.connections) ? (c.connections as string[]) : [],
-      schedule: (c.schedule as string) || "manual",
+      schedule: "manual",
     }
   }
   return defaultConfig
@@ -366,8 +366,8 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         </div>
       </StepCard>
 
-      {/* Step 4 - Schedule */}
-      <StepCard number={4} title="Schedule" isLast>
+      {/* Step 4 - Run Mode */}
+      <StepCard number={4} title="Run Mode" isLast>
         <RadioGroup
           value={config.schedule}
           onValueChange={(val) =>
@@ -379,18 +379,6 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
             <RadioGroupItem value="manual" id="schedule-manual" />
             <Label htmlFor="schedule-manual" className="text-sm cursor-pointer">
               Manual
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="daily" id="schedule-daily" />
-            <Label htmlFor="schedule-daily" className="text-sm cursor-pointer">
-              Daily
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="weekly" id="schedule-weekly" />
-            <Label htmlFor="schedule-weekly" className="text-sm cursor-pointer">
-              Weekly
             </Label>
           </div>
         </RadioGroup>

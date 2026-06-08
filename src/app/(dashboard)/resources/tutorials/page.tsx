@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable react/no-unescaped-entities */
+
 import { useState } from "react"
 import Link from "next/link"
 import {
@@ -1401,7 +1403,7 @@ export default function TutorialsPage() {
                     AI Agents
                   </CardTitle>
                   <CardDescription>
-                    Set up automated prospecting workflows that run on their own
+                    Set up reusable prospecting workflows that you can run manually
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
@@ -1409,8 +1411,8 @@ export default function TutorialsPage() {
                     An AI Agent is like a mini-employee you create once. You tell it who to look
                     for, what to do when it finds them (enrich their data, generate outreach
                     content), and where to send the results (a webhook, a CRM, or just a list
-                    in PipeLeads). Then you set it to run on a schedule — and it handles that
-                    entire workflow automatically.
+                    in PipeLeads). Then you run that workflow from the agent dashboard when
+                    you need a fresh batch of leads.
                   </p>
 
                   <div className="space-y-4">
@@ -1435,16 +1437,16 @@ export default function TutorialsPage() {
                         <li><strong>Send to webhook</strong> — push leads to your CRM or automation tool</li>
                       </ul>
                     </Step>
-                    <Step number={5} title="Set a Schedule (optional)">
-                      Set the agent to run daily, weekly, or monthly. Or leave it as manual and
-                      trigger it yourself from the dashboard.
+                    <Step number={5} title="Run the Agent">
+                      Save the agent, then trigger it from the dashboard whenever you want it
+                      to search, enrich, generate content, and send results.
                     </Step>
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3 pt-2">
                     {[
                       { icon: FileText, label: "Draft", desc: "Agent is being built, not running yet" },
-                      { icon: Zap, label: "Active", desc: "Running on its schedule automatically" },
+                      { icon: Zap, label: "Active", desc: "Ready to run from the dashboard" },
                       { icon: Target, label: "Paused", desc: "Temporarily stopped, can be resumed" },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg border p-3 text-center space-y-1">
