@@ -14,7 +14,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }
 
   // In production, KeycloakProvider initializes keycloak-js (check-sso + silent SSO),
-  // verifies App_pipefinder role, then bridges to NextAuth session via signIn().
+  // verifies the app Keycloak role, then bridges to NextAuth session via signIn().
   return (
     <NextAuthSessionProvider>
       <KeycloakProvider>{children}</KeycloakProvider>

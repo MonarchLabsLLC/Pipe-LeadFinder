@@ -88,7 +88,7 @@ export function KeycloakProvider({ children }: { children: React.ReactNode }) {
           // Check if user IS authenticated but lacks the role.
           const tokenParsed = getTokenParsed()
           if (tokenParsed) {
-            // Authenticated but missing App_pipefinder role
+            // Authenticated but missing the Pipe-LeadFinder app role.
             setIsKeycloakAuthenticated(true)
             setRoleCheckFailed(true)
             setHasRequiredRole(false)

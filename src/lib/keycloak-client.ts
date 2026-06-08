@@ -1,19 +1,39 @@
 import Keycloak from "keycloak-js"
 
 // Keycloak configuration from environment variables
+const KEYCLOAK_CLIENT_ID =
+  process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "app-pipefinder"
+
 const keycloakConfig = {
   url:
     process.env.NEXT_PUBLIC_KEYCLOAK_URL || "https://auth.groovetech.io/auth",
   realm: process.env.NEXT_PUBLIC_KEYCLOAK_REALM || "gd-apis-live",
-  clientId:
-    process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "app-pipefinder",
+  clientId: KEYCLOAK_CLIENT_ID,
 }
 
-// Required role for accessing the application
-const REQUIRED_ROLE = "App_pipefinder"
+// Required role for accessing the application.
+// By default this follows the Scale app convention: app-pipefinder -> app_pipefinder.
+const configuredRequiredRole =
+  process.env.NEXT_PUBLIC_KEYCLOAK_REQUIRED_ROLE?.trim()
+const REQUIRED_ROLE =
+  configuredRequiredRole || KEYCLOAK_CLIENT_ID.replace(/-/g, "_")
+const ACCEPTED_ROLES = Array.from(
+  new Set(
+    configuredRequiredRole
+      ? [configuredRequiredRole]
+      : [REQUIRED_ROLE, "App_pipefinder"]
+  )
+)
 
 // Create Keycloak instance
 const keycloak = new Keycloak(keycloakConfig)
+
+type KeycloakTokenRoles = {
+  realm_access?: {
+    roles?: string[]
+  }
+  resource_access?: Record<string, { roles?: string[] }>
+}
 
 // Token caching to prevent loss during SSO checks
 let cachedToken: string | undefined
@@ -61,8 +81,14 @@ export async function initKeycloak(): Promise<boolean> {
 
 // Check if user has the required role
 function hasRequiredRole(): boolean {
-  const roles = keycloak.tokenParsed?.realm_access?.roles || []
-  return roles.includes(REQUIRED_ROLE)
+  const parsedToken = keycloak.tokenParsed as KeycloakTokenRoles | undefined
+  const realmRoles = parsedToken?.realm_access?.roles || []
+  const resourceRoles =
+    parsedToken?.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles || []
+
+  return ACCEPTED_ROLES.some(
+    (role) => realmRoles.includes(role) || resourceRoles.includes(role)
+  )
 }
 
 // Set up automatic token refresh
