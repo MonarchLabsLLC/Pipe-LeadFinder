@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Save, Loader2, Trash2, Globe, FileText, HelpCircle, File, Plus, Building2, Database } from "lucide-react"
 
@@ -70,6 +70,21 @@ async function addSource(body: Record<string, unknown>): Promise<DataSource> {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error ?? "Failed to add data source")
+  }
+  return res.json()
+}
+
+async function uploadPdfSource(file: File): Promise<{ source: DataSource }> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const res = await fetch("/api/ai/knowledge-base/sources/pdf", {
+    method: "POST",
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error ?? "Failed to upload PDF")
   }
   return res.json()
 }
@@ -291,6 +306,15 @@ function DataSourcesSection() {
     onError: (err: Error) => toast.error(err.message),
   })
 
+  const pdfMutation = useMutation({
+    mutationFn: uploadPdfSource,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge-base-sources"] })
+      toast.success("PDF data source added.")
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
   const deleteMutation = useMutation({
     mutationFn: deleteSource,
     onSuccess: () => {
@@ -354,7 +378,10 @@ function DataSourcesSection() {
           </TabsContent>
 
           <TabsContent value="pdf">
-            <PDFTab />
+            <PDFTab
+              onUpload={(file) => pdfMutation.mutateAsync(file)}
+              isLoading={pdfMutation.isPending}
+            />
           </TabsContent>
         </Tabs>
 
@@ -592,27 +619,40 @@ function QATab({
 // Tab: PDF
 // ---------------------------------------------------------------------------
 
-function PDFTab() {
-  const [fileName, setFileName] = useState("")
+function PDFTab({
+  onUpload,
+  isLoading,
+}: {
+  onUpload: (file: File) => Promise<unknown>
+  isLoading: boolean
+}) {
+  const [file, setFile] = useState<File | null>(null)
+
+  async function handleUpload() {
+    if (!file) return
+    await onUpload(file)
+    setFile(null)
+  }
 
   return (
     <div className="space-y-3 pt-4">
       <Label>Upload PDF</Label>
       <Input
+        key={file?.name ?? "empty"}
         type="file"
         accept=".pdf"
         onChange={(e) => {
-          const file = e.target.files?.[0]
-          setFileName(file?.name ?? "")
+          setFile(e.target.files?.[0] ?? null)
         }}
       />
-      {fileName && (
+      {file && (
         <p className="text-sm text-muted-foreground">
-          Selected: {fileName} (upload functionality coming soon)
+          Selected: {file.name}
         </p>
       )}
-      <Button variant="secondary" disabled>
-        Upload (coming soon)
+      <Button variant="secondary" disabled={isLoading || !file} onClick={handleUpload}>
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <File className="mr-2 h-4 w-4" />}
+        {isLoading ? "Uploading..." : "Upload PDF"}
       </Button>
     </div>
   )

@@ -1403,7 +1403,7 @@ export default function TutorialsPage() {
                     AI Agents
                   </CardTitle>
                   <CardDescription>
-                    Set up reusable prospecting workflows that you can run manually
+                    Set up reusable prospecting workflows that can run on a schedule
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
@@ -1411,8 +1411,8 @@ export default function TutorialsPage() {
                     An AI Agent is like a mini-employee you create once. You tell it who to look
                     for, what to do when it finds them (enrich their data, generate outreach
                     content), and where to send the results (a webhook, a CRM, or just a list
-                    in PipeLeads). Then you run that workflow from the agent dashboard when
-                    you need a fresh batch of leads.
+                    in PipeLeads). Then you run that workflow manually or schedule it for a
+                    fresh batch of leads.
                   </p>
 
                   <div className="space-y-4">
@@ -1437,16 +1437,16 @@ export default function TutorialsPage() {
                         <li><strong>Send to webhook</strong> — push leads to your CRM or automation tool</li>
                       </ul>
                     </Step>
-                    <Step number={5} title="Run the Agent">
-                      Save the agent, then trigger it from the dashboard whenever you want it
-                      to search, enrich, generate content, and send results.
+                    <Step number={5} title="Set a Schedule">
+                      Choose manual, daily, weekly, or monthly. Active scheduled agents run
+                      through the scheduler.
                     </Step>
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3 pt-2">
                     {[
                       { icon: FileText, label: "Draft", desc: "Agent is being built, not running yet" },
-                      { icon: Zap, label: "Active", desc: "Ready to run from the dashboard" },
+                      { icon: Zap, label: "Active", desc: "Ready for manual or scheduled runs" },
                       { icon: Target, label: "Paused", desc: "Temporarily stopped, can be resumed" },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg border p-3 text-center space-y-1">
