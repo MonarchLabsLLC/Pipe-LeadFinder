@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import {
@@ -64,11 +63,12 @@ function statusLabel(status: AgentStatus) {
 }
 
 function parseConfigCounts(config: Record<string, unknown> | null) {
-  if (!config) return { actions: 0, connections: 0, leads: 0 }
+  if (!config) return { actions: 0, connections: 0, leads: 0, schedule: "manual" }
   const actions = Array.isArray(config.actions) ? config.actions.length : 0
   const connections = Array.isArray(config.connections) ? config.connections.length : 0
-  const leads = typeof config.leadsCount === "number" ? config.leadsCount : 0
-  return { actions, connections, leads }
+  const leads = typeof config.leadCount === "number" ? config.leadCount : 0
+  const schedule = typeof config.schedule === "string" ? config.schedule : "manual"
+  return { actions, connections, leads, schedule }
 }
 
 export default function AiAgentPage() {
@@ -201,6 +201,10 @@ export default function AiAgentPage() {
 
                   <p className="text-xs text-muted-foreground">
                     {counts.actions} action{counts.actions !== 1 ? "s" : ""} · {counts.connections} connection{counts.connections !== 1 ? "s" : ""} · {counts.leads} lead{counts.leads !== 1 ? "s" : ""}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {counts.schedule} schedule
                   </p>
 
                   <p className="text-xs text-muted-foreground">
