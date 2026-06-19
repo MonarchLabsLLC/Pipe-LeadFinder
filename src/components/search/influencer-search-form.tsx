@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Lightbulb, Coins } from "lucide-react"
 
@@ -119,6 +119,12 @@ const AUDIENCE_AGE_OPTIONS = [
 const selectTriggerClass = "h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
 const inputClass = "h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
 
+function optionalNumberValue(value: string) {
+  if (value === "") return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 // ─── Component ─────────────────────────────────────────
 
 interface InfluencerSearchFormProps {
@@ -143,7 +149,6 @@ export function InfluencerSearchForm({
     handleSubmit,
     control,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<InfluencerSearchInput>({
     resolver: zodResolver(influencerSearchSchema) as AnyResolver,
@@ -152,6 +157,7 @@ export function InfluencerSearchForm({
       resultsLimit: 10,
       hashtags: [],
       description: "",
+      location: "",
       verified: false,
       hasSponsoredPosts: false,
       audience: {
@@ -165,7 +171,7 @@ export function InfluencerSearchForm({
     },
   })
 
-  const platform = watch("platform")
+  const platform = useWatch({ control, name: "platform" })
 
   const platforms = [
     { value: "instagram", label: "Instagram" },
@@ -246,10 +252,13 @@ export function InfluencerSearchForm({
               </Label>
               <Input
                 id="description"
-                placeholder="Eg: music"
+                placeholder="Eg: music producers, fitness coaches, SaaS creators"
                 className={inputClass}
                 {...register("description")}
               />
+              {errors.description && (
+                <p className="text-xs text-destructive">{errors.description.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -299,6 +308,9 @@ export function InfluencerSearchForm({
                 />
               )}
             />
+            {errors.location && (
+              <p className="text-xs text-destructive">{errors.location.message}</p>
+            )}
           </div>
 
           {/* Metrics Grid */}
@@ -311,14 +323,14 @@ export function InfluencerSearchForm({
                   type="number"
                   placeholder="From"
                   className={inputClass}
-                  {...register("followersFrom", { valueAsNumber: true })}
+                  {...register("followersFrom", { setValueAs: optionalNumberValue })}
                 />
                 <span className="text-sm text-muted-foreground">&ndash;</span>
                 <Input
                   type="number"
                   placeholder="To"
                   className={inputClass}
-                  {...register("followersTo", { valueAsNumber: true })}
+                  {...register("followersTo", { setValueAs: optionalNumberValue })}
                 />
               </div>
             </div>
@@ -381,14 +393,14 @@ export function InfluencerSearchForm({
                   type="number"
                   placeholder="From"
                   className={inputClass}
-                  {...register("reelsPlaysFrom", { valueAsNumber: true })}
+                  {...register("reelsPlaysFrom", { setValueAs: optionalNumberValue })}
                 />
                 <span className="text-sm text-muted-foreground">&ndash;</span>
                 <Input
                   type="number"
                   placeholder="To"
                   className={inputClass}
-                  {...register("reelsPlaysTo", { valueAsNumber: true })}
+                  {...register("reelsPlaysTo", { setValueAs: optionalNumberValue })}
                 />
               </div>
             </div>
@@ -401,14 +413,14 @@ export function InfluencerSearchForm({
                   type="number"
                   placeholder="From"
                   className={inputClass}
-                  {...register("engagementsFrom", { valueAsNumber: true })}
+                  {...register("engagementsFrom", { setValueAs: optionalNumberValue })}
                 />
                 <span className="text-sm text-muted-foreground">&ndash;</span>
                 <Input
                   type="number"
                   placeholder="To"
                   className={inputClass}
-                  {...register("engagementsTo", { valueAsNumber: true })}
+                  {...register("engagementsTo", { setValueAs: optionalNumberValue })}
                 />
               </div>
             </div>
@@ -424,7 +436,7 @@ export function InfluencerSearchForm({
                 step="0.01"
                 placeholder="Eg: 0.8"
                 className={inputClass}
-                {...register("engagementRate", { valueAsNumber: true })}
+                {...register("engagementRate", { setValueAs: optionalNumberValue })}
               />
             </div>
 
@@ -489,7 +501,7 @@ export function InfluencerSearchForm({
                 type="number"
                 placeholder="Eg: 40"
                 className={inputClass}
-                {...register("lastPostDays", { valueAsNumber: true })}
+                {...register("lastPostDays", { setValueAs: optionalNumberValue })}
               />
             </div>
 
@@ -637,7 +649,7 @@ export function InfluencerSearchForm({
                 type="number"
                 placeholder="Eg: 10"
                 className={inputClass}
-                {...register("followersGrowthValue", { valueAsNumber: true })}
+                {...register("followersGrowthValue", { setValueAs: optionalNumberValue })}
               />
             </div>
           </div>
@@ -724,7 +736,7 @@ export function InfluencerSearchForm({
                   step="0.01"
                   placeholder="Eg: 0.8"
                   className={inputClass}
-                  {...register("audience.credibility", { valueAsNumber: true })}
+                  {...register("audience.credibility", { setValueAs: optionalNumberValue })}
                 />
               </div>
 
