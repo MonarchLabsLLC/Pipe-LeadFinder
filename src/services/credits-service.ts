@@ -14,16 +14,30 @@ import type {
   ConsumeCreditsResponse,
   TokenUsagePayload,
 } from "@/types/credits"
+import { prisma } from "@/lib/prisma"
 
 const MICRO_SERVICE_BASE =
   process.env.MICRO_SERVICE_BASE || "http://localhost:3002/api"
 const APP_NAME = "pipe-leadfinder"
 const SCALECREDITS_URL =
   process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg"
+const CREDIT_DISPLAY_SCALE = 10
+const TARGET_PEOPLE_SEARCH_USD = 0.8
+const DISPLAY_CREDITS_PER_USD = 200
+const PEOPLE_SEARCH_BASE_CREDITS = 3
+const DEFAULT_FIXED_CREDIT_PRICE_MULTIPLIER =
+  (TARGET_PEOPLE_SEARCH_USD * DISPLAY_CREDITS_PER_USD) /
+  PEOPLE_SEARCH_BASE_CREDITS
+const FIXED_CREDIT_PRICE_MULTIPLIER = Number(
+  process.env.PIPELEADS_FIXED_CREDIT_MULTIPLIER ||
+    DEFAULT_FIXED_CREDIT_PRICE_MULTIPLIER
+)
 
 const DEFAULT_TIMEOUT_MS = 10_000
 const MAX_RETRIES = 3
 const RETRY_BASE_DELAY_MS = 1_000
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 // ---------------------------------------------------------------------------
 // Fetch helpers
@@ -72,17 +86,35 @@ async function fetchWithRetry(
 
 /** Build internal service-to-service headers for the microservice */
 function internalHeaders(
-  userId: string,
+  creditUserId: string,
   email?: string | null
 ): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "x-internal-webhook": "true",
-    "x-user-id": userId,
+    "x-user-id": creditUserId,
     "x-app-name": APP_NAME,
   }
   if (email) headers["x-user-email"] = email
   return headers
+}
+
+async function resolveCreditUserId(userId: string): Promise<string | null> {
+  if (UUID_PATTERN.test(userId)) return userId
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { keycloakSubId: true },
+  })
+
+  const keycloakSubId = user?.keycloakSubId
+  if (keycloakSubId && UUID_PATTERN.test(keycloakSubId)) return keycloakSubId
+
+  console.warn("[Credits] User is missing a Keycloak UUID for billing", {
+    userId,
+    hasKeycloakSubId: Boolean(keycloakSubId),
+  })
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -95,9 +127,12 @@ export async function getBalance(
   email?: string | null
 ): Promise<CreditBalance | null> {
   if (!MICRO_SERVICE_BASE) return null
+  const creditUserId = await resolveCreditUserId(userId)
+  if (!creditUserId) return null
+
   try {
     const res = await fetchWithRetry(`${MICRO_SERVICE_BASE}/credits/me`, {
-      headers: internalHeaders(userId, email),
+      headers: internalHeaders(creditUserId, email),
     })
     if (!res.ok) return null
     return (await res.json()) as CreditBalance
@@ -126,9 +161,30 @@ export async function ensureCreditsAvailable(
     }
   }
 
+  const creditUserId = await resolveCreditUserId(userId)
+  if (!creditUserId) {
+    if (process.env.NODE_ENV !== "production" || process.env.DEV_AUTO_LOGIN === "true") {
+      return {
+        ok: true,
+        balance: {
+          userId,
+          availableCredits: Infinity,
+          consumedCredits: 0,
+          updatedAt: null,
+        },
+      }
+    }
+
+    return {
+      ok: false,
+      status: 500,
+      message: "Your account is not linked to a ScaleCredits billing identity. Please sign out and back in, then try again.",
+    }
+  }
+
   try {
     const res = await fetchWithRetry(`${MICRO_SERVICE_BASE}/credits/me`, {
-      headers: internalHeaders(userId, email),
+      headers: internalHeaders(creditUserId, email),
     })
 
     if (!res.ok) {
@@ -171,17 +227,22 @@ export async function consumeCredits(
   email?: string | null
 ): Promise<ConsumeCreditsResponse | null> {
   if (!MICRO_SERVICE_BASE) return null
+  const creditUserId = await resolveCreditUserId(userId)
+  if (!creditUserId) return null
+
+  const displayAmount = usage.amount
+  const backendAmount =
+    displayAmount * CREDIT_DISPLAY_SCALE * FIXED_CREDIT_PRICE_MULTIPLIER
 
   try {
     const res = await fetchWithRetry(
-      `${MICRO_SERVICE_BASE}/credits/consume`,
+      `${MICRO_SERVICE_BASE}/credits/adjust`,
       {
         method: "POST",
-        headers: internalHeaders(userId, email),
+        headers: internalHeaders(creditUserId, email),
         body: JSON.stringify({
-          amount: usage.amount,
-          description: usage.description,
-          metadata: { ...usage.metadata, appName: APP_NAME },
+          amount: -backendAmount,
+          reason: `${usage.description} (${displayAmount} credits x ${FIXED_CREDIT_PRICE_MULTIPLIER})`,
         }),
       },
       MAX_RETRIES,
@@ -199,12 +260,17 @@ export async function consumeCredits(
       }
     }
 
-    const result = (await res.json()) as ConsumeCreditsResponse
+    const balance = (await res.json()) as CreditBalance
     console.log("[Credits] Consumed:", {
-      debited: result.debited,
-      remaining: result.availableCredits,
+      debited: displayAmount * FIXED_CREDIT_PRICE_MULTIPLIER,
+      remaining: balance.availableCredits,
     })
-    return { ...result, success: true }
+    return {
+      success: true,
+      debited: displayAmount * FIXED_CREDIT_PRICE_MULTIPLIER,
+      availableCredits: balance.availableCredits,
+      consumedCredits: balance.consumedCredits,
+    }
   } catch (error) {
     console.error("[Credits] Consume error:", (error as Error).message)
     return null
@@ -221,13 +287,15 @@ export async function consumeTokenCredits(
   email?: string | null
 ): Promise<ConsumeCreditsResponse | null> {
   if (!MICRO_SERVICE_BASE) return null
+  const creditUserId = await resolveCreditUserId(userId)
+  if (!creditUserId) return null
 
   try {
     const res = await fetchWithRetry(
       `${MICRO_SERVICE_BASE}/credits/consume`,
       {
         method: "POST",
-        headers: internalHeaders(userId, email),
+        headers: internalHeaders(creditUserId, email),
         body: JSON.stringify({
           ...usage,
           appName: APP_NAME,
