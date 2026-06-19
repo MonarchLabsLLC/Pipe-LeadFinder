@@ -54,6 +54,7 @@ export function ResultsTable({ leads }: ResultsTableProps) {
               />
             </TableHead>
             <TableHead className="min-w-[220px]">Name</TableHead>
+            <TableHead className="min-w-[190px]">Lead Score</TableHead>
             <TableHead className="min-w-[160px]">AI Assistant</TableHead>
             <TableHead className="min-w-[200px]">Contact Info</TableHead>
             <TableHead className="min-w-[160px]">Company</TableHead>

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { updateListSchema } from "@/lib/validators/list"
+import {
+  buildLeadScorePromptTag,
+  parseLeadScoreResult,
+} from "@/lib/lead-score"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -35,11 +39,24 @@ export async function GET(req: NextRequest, context: RouteContext) {
     leadWhere.lead = { emailStatus: emailFilter }
   }
 
+  const scorePromptTag = buildLeadScorePromptTag(id)
+
   const [entries, total] = await Promise.all([
     prisma.leadListEntry.findMany({
       where: leadWhere,
       include: {
-        lead: true,
+        lead: {
+          include: {
+            aiResults: {
+              where: {
+                actionType: "CUSTOM",
+                prompt: scorePromptTag,
+              },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
+        },
         labels: {
           include: { label: true },
         },
@@ -61,12 +78,25 @@ export async function GET(req: NextRequest, context: RouteContext) {
       updatedAt: list.updatedAt,
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    leads: entries.map((entry: any) => ({
-      entryId: entry.id,
-      ...entry.lead,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      labels: entry.labels.map((l: any) => l.label),
-    })),
+    leads: entries.map((entry: any) => {
+      const [latestScore] = entry.lead.aiResults
+      const leadScore = parseLeadScoreResult(latestScore?.result)
+
+      return {
+        entryId: entry.id,
+        ...entry.lead,
+        aiResults: undefined,
+        leadScore: leadScore
+          ? {
+              ...leadScore,
+              scoredAt: latestScore.createdAt,
+              model: latestScore.model,
+            }
+          : null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        labels: entry.labels.map((l: any) => l.label),
+      }
+    }),
     pagination: {
       page,
       limit,

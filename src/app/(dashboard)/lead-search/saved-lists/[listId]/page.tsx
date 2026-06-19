@@ -21,11 +21,13 @@ import {
   XCircle,
   AlertCircle,
   Search,
+  WandSparkles,
 } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { useEnrichBulk } from "@/hooks/useEnrich"
+import { useScoreLeads } from "@/hooks/useLeadScoring"
 import { toast } from "sonner"
 import {
   Sheet,
@@ -76,6 +78,7 @@ export default function ListDetailPage() {
   const [isExporting, setIsExporting] = useState(false)
 
   const bulkEnrich = useEnrichBulk()
+  const scoreLeads = useScoreLeads()
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["list-detail", listId, emailFilter],
@@ -100,6 +103,17 @@ export default function ListDetailPage() {
       POTENTIAL: leads.filter((l) => l.emailStatus === "POTENTIAL").length,
     }
   }, [allData])
+
+  const displayLeads = useMemo(() => {
+    const leads = data?.leads ?? []
+    if (!leads.some((lead) => lead.leadScore)) return leads
+
+    return [...leads].sort((a, b) => {
+      const aScore = a.leadScore?.score ?? -1
+      const bScore = b.leadScore?.score ?? -1
+      return bScore - aScore
+    })
+  }, [data])
 
   const filterTabs: { value: EmailFilter; label: string }[] = [
     { value: "ALL", label: "All" },
@@ -209,6 +223,36 @@ export default function ListDetailPage() {
         <Button
           variant="outline"
           size="sm"
+          disabled={scoreLeads.isPending || !data?.leads.length}
+          onClick={() => {
+            scoreLeads.mutate(
+              { listId },
+              {
+                onSuccess: (result) => {
+                  toast.success(
+                    result.scoredCount > 0
+                      ? `Scored ${result.scoredCount} leads`
+                      : result.message || "No leads to score"
+                  )
+                  refetch()
+                },
+                onError: (err) => {
+                  toast.error(err.message || "Lead scoring failed")
+                },
+              }
+            )
+          }}
+        >
+          {scoreLeads.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <WandSparkles className="size-4" />
+          )}
+          {scoreLeads.isPending ? "Scoring..." : "Score Leads"}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => router.push("/ai/ai-agent")}
         >
           <Bot className="size-4" />
@@ -252,8 +296,8 @@ export default function ListDetailPage() {
       {/* Table or states */}
       {isLoading ? (
         <TableSkeleton rows={5} />
-      ) : data && data.leads.length > 0 ? (
-        <ResultsTable leads={data.leads} />
+      ) : displayLeads.length > 0 ? (
+        <ResultsTable leads={displayLeads} />
       ) : emailFilter !== "ALL" ? (
         <EmptyState
           icon={Users}

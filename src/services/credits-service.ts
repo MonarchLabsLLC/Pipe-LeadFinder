@@ -18,7 +18,6 @@ import { prisma } from "@/lib/prisma"
 import {
   CREDIT_COSTS,
   CREDIT_DISPLAY_SCALE,
-  getFixedCreditPriceMultiplier,
 } from "@/lib/pipeleads-credit-pricing"
 
 const MICRO_SERVICE_BASE =
@@ -26,7 +25,6 @@ const MICRO_SERVICE_BASE =
 const APP_NAME = "pipe-leadfinder"
 const SCALECREDITS_URL =
   process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg"
-const FIXED_CREDIT_PRICE_MULTIPLIER = getFixedCreditPriceMultiplier()
 
 const DEFAULT_TIMEOUT_MS = 10_000
 const MAX_RETRIES = 3
@@ -226,8 +224,7 @@ export async function consumeCredits(
   if (!creditUserId) return null
 
   const displayAmount = usage.amount
-  const backendAmount =
-    displayAmount * CREDIT_DISPLAY_SCALE * FIXED_CREDIT_PRICE_MULTIPLIER
+  const backendAmount = displayAmount * CREDIT_DISPLAY_SCALE
 
   try {
     const res = await fetchWithRetry(
@@ -237,7 +234,7 @@ export async function consumeCredits(
         headers: internalHeaders(creditUserId, email),
         body: JSON.stringify({
           amount: -backendAmount,
-          reason: `${usage.description} (${displayAmount} credits x ${FIXED_CREDIT_PRICE_MULTIPLIER})`,
+          reason: `${usage.description} (${displayAmount} credits)`,
         }),
       },
       MAX_RETRIES,
@@ -257,12 +254,12 @@ export async function consumeCredits(
 
     const balance = (await res.json()) as CreditBalance
     console.log("[Credits] Consumed:", {
-      debited: displayAmount * FIXED_CREDIT_PRICE_MULTIPLIER,
+      debited: displayAmount,
       remaining: balance.availableCredits,
     })
     return {
       success: true,
-      debited: displayAmount * FIXED_CREDIT_PRICE_MULTIPLIER,
+      debited: displayAmount,
       availableCredits: balance.availableCredits,
       consumedCredits: balance.consumedCredits,
     }
