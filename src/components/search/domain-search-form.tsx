@@ -5,6 +5,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 import { domainSearchSchema, type DomainSearchInput } from "@/lib/validators/search"
+import {
+  CREDIT_COSTS,
+  formatDisplayCredits,
+  formatScaledCreditText,
+  getScaledDisplayCredits,
+} from "@/lib/pipeleads-credit-pricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
 import { Input } from "@/components/ui/input"
@@ -17,6 +23,12 @@ interface DomainSearchFormProps {
   onCancel: () => void
   isLoading?: boolean
 }
+
+const DOMAIN_SEARCH_CREDITS = getScaledDisplayCredits(CREDIT_COSTS["search:domain"])
+const DOMAIN_SEARCH_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["search:domain"],
+  "individual result"
+)
 
 export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearchFormProps) {
   const [listId, setListId] = useState<string | undefined>(undefined)
@@ -72,8 +84,11 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">
-              <p>1 credit will be consumed per individual result.</p>
-              <p>Example: 7 staff with emails = 7 credits consumed.</p>
+              <p>Domain search will consume {DOMAIN_SEARCH_CREDIT_TEXT}.</p>
+              <p>
+                Example: 7 staff with emails ={" "}
+                {formatDisplayCredits(DOMAIN_SEARCH_CREDITS * 7)} credits consumed.
+              </p>
             </div>
           </div>
 

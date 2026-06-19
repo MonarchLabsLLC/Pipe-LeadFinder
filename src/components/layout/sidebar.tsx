@@ -24,7 +24,6 @@ import {
   Webhook,
   FileText,
   GraduationCap,
-  Users,
   Wallet,
 } from "lucide-react"
 
@@ -106,7 +105,6 @@ const navSections = [
       { label: "Webhooks", href: "/admin/webhooks", icon: Webhook },
       { label: "Email Templates", href: "/admin/email-templates", icon: FileText },
       { label: "Training Content", href: "/admin/training-content", icon: GraduationCap },
-      { label: "Partners", href: "/admin/partners", icon: Users },
     ],
   },
   {
