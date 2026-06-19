@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { AiActionType } from "@/generated/prisma/enums"
@@ -10,10 +9,13 @@ import {
   buildSystemPrompt,
   buildUserPrompt,
 } from "@/services/ai-service"
+import {
+  getAiLanguageModel,
+  getAiRuntimeConfig,
+} from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
 
-const ASSISTANT_AI_MODEL =
-  process.env.OPENAI_ASSISTANT_MODEL || process.env.OPENAI_MODEL || "gpt-5.4-nano"
+const ASSISTANT_AI_CONFIG = getAiRuntimeConfig("assistant")
 
 const VALID_ACTION_TYPES: AiActionType[] = [
   "SIMILAR_PEOPLE",
@@ -82,9 +84,9 @@ export async function POST(request: NextRequest) {
   const systemPrompt = buildSystemPrompt(actionType, businessContext)
   const userPrompt = buildUserPrompt(actionType, leadContext, customPrompt)
 
-  // 5. Stream with OpenAI
+  // 5. Stream with the configured AI provider
   const result = streamText({
-    model: openai(ASSISTANT_AI_MODEL),
+    model: getAiLanguageModel(ASSISTANT_AI_CONFIG),
     system: systemPrompt,
     prompt: userPrompt,
     onFinish: async ({ text, usage }) => {
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
             actionType,
             prompt: customPrompt || userPrompt,
             result: text,
-            model: ASSISTANT_AI_MODEL,
+            model: ASSISTANT_AI_CONFIG.model,
           },
         })
       } catch (err) {
@@ -105,12 +107,16 @@ export async function POST(request: NextRequest) {
 
       // 7. Consume token-based credits (fire-and-forget)
       if (usage?.inputTokens || usage?.outputTokens) {
-        consumeTokenCredits(session.user.id, {
-          provider: "openai",
-          model: ASSISTANT_AI_MODEL,
-          inputTokens: usage.inputTokens ?? 0,
-          outputTokens: usage.outputTokens ?? 0,
-        }, session.user.email).catch(() => {})
+        consumeTokenCredits(
+          session.user.id,
+          {
+            provider: ASSISTANT_AI_CONFIG.provider,
+            model: ASSISTANT_AI_CONFIG.model,
+            inputTokens: usage.inputTokens ?? 0,
+            outputTokens: usage.outputTokens ?? 0,
+          },
+          session.user.email
+        ).catch(() => {})
       }
     },
   })

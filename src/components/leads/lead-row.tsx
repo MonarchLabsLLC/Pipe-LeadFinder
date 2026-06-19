@@ -16,17 +16,23 @@ import { formatRelativeTime, getInitials } from "@/lib/format"
 import {
   ExternalLink,
   Facebook,
+  Flame,
   Linkedin,
   Loader2,
   Mail,
+  MessageSquareText,
   MapPin,
   Phone,
   PhoneCall,
   Plus,
+  Radar,
+  Sparkles,
+  Target,
 } from "lucide-react"
 import { LeadAIActions } from "@/components/leads/lead-ai-actions"
 import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
 import { useLabels, useApplyLabel } from "@/hooks/useLabels"
+import type { LeadScoreSummary } from "@/lib/lead-score"
 import { toast } from "sonner"
 
 export interface LeadData {
@@ -57,6 +63,7 @@ export interface LeadData {
   companyIndustry: string | null
   sourceType: string
   createdAt: string
+  leadScore: LeadScoreSummary | null
   labels: { id: string; name: string }[]
 }
 
@@ -76,6 +83,126 @@ function locationText(lead: LeadData): string | null {
   if (lead.location) return lead.location
   const parts = [lead.city, lead.state, lead.country].filter(Boolean)
   return parts.length > 0 ? parts.join(", ") : null
+}
+
+function scoreTone(score: number) {
+  if (score >= 80) {
+    return {
+      icon: Flame,
+      labelClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+      barClass: "bg-emerald-500",
+    }
+  }
+  if (score >= 60) {
+    return {
+      icon: Target,
+      labelClass: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+      barClass: "bg-blue-500",
+    }
+  }
+  if (score >= 40) {
+    return {
+      icon: Radar,
+      labelClass: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+      barClass: "bg-amber-500",
+    }
+  }
+  return {
+    icon: Sparkles,
+    labelClass: "bg-muted text-muted-foreground border-border",
+    barClass: "bg-muted-foreground",
+  }
+}
+
+function LeadScoreCell({ score }: { score: LeadScoreSummary | null }) {
+  if (!score) {
+    return (
+      <div className="space-y-1">
+        <Badge variant="outline" className="text-[11px]">
+          Not scored
+        </Badge>
+        <p className="text-xs text-muted-foreground">Run Score Leads</p>
+      </div>
+    )
+  }
+
+  const tone = scoreTone(score.score)
+  const Icon = tone.icon
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="w-full max-w-[190px] rounded-md border border-transparent p-1.5 text-left transition-colors hover:border-border hover:bg-muted/40">
+          <div className="flex items-center gap-2">
+            <Badge className={tone.labelClass}>
+              <Icon className="mr-1 size-3" />
+              {score.score}
+            </Badge>
+            <span className="text-xs font-medium text-foreground">
+              {score.label}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className={`h-full rounded-full ${tone.barClass}`}
+              style={{ width: `${score.score}%` }}
+            />
+          </div>
+          {score.bestAngle && (
+            <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
+              {score.bestAngle}
+            </p>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="start">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Lead fit score</p>
+              <p className="text-xs text-muted-foreground">
+                {score.model ? `Scored with ${score.model}` : "AI-ranked lead"}
+              </p>
+            </div>
+            <Badge className={tone.labelClass}>{score.score}/100</Badge>
+          </div>
+
+          {score.why.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Why this lead
+              </p>
+              <ul className="space-y-1 text-sm text-foreground">
+                {score.why.map((reason, index) => (
+                  <li key={`${reason}-${index}`} className="flex gap-2">
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {score.suggestedOpener && (
+            <div className="rounded-md border bg-muted/30 p-3">
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <MessageSquareText className="size-3.5" />
+                Suggested opener
+              </div>
+              <p className="text-sm text-foreground">{score.suggestedOpener}</p>
+            </div>
+          )}
+
+          {score.nextAction && (
+            <div className="flex items-start gap-2 text-sm">
+              <Target className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>{score.nextAction}</span>
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
@@ -241,6 +368,11 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
             </div>
           </div>
         </div>
+      </TableCell>
+
+      {/* Lead Score */}
+      <TableCell>
+        <LeadScoreCell score={lead.leadScore} />
       </TableCell>
 
       {/* AI Assistant */}

@@ -1,5 +1,4 @@
 import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { prisma } from "@/lib/prisma"
 import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { executeSearch, getActorId } from "@/services/search-service"
@@ -17,11 +16,14 @@ import {
   buildSystemPrompt,
   buildUserPrompt,
 } from "@/services/ai-service"
+import {
+  getAiLanguageModel,
+  getAiRuntimeConfig,
+} from "@/services/ai-runtime"
 import type { AiAgent, Lead } from "@/generated/prisma/client"
 import type { SearchType } from "@/generated/prisma/enums"
 
-const AGENT_AI_MODEL =
-  process.env.OPENAI_AGENT_MODEL || process.env.OPENAI_MODEL || "gpt-5.4-nano"
+const AGENT_AI_CONFIG = getAiRuntimeConfig("agent")
 
 export type AgentSchedule = "manual" | "daily" | "weekly" | "monthly"
 
@@ -157,7 +159,7 @@ async function saveAiResult(
   const userPrompt = buildUserPrompt(actionType, leadContext)
 
   const { text, usage } = await generateText({
-    model: openai(AGENT_AI_MODEL),
+    model: getAiLanguageModel(AGENT_AI_CONFIG),
     system: systemPrompt,
     prompt: userPrompt,
   })
@@ -168,17 +170,21 @@ async function saveAiResult(
       actionType,
       prompt: userPrompt,
       result: text,
-      model: AGENT_AI_MODEL,
+      model: AGENT_AI_CONFIG.model,
     },
   })
 
   if (usage?.inputTokens || usage?.outputTokens) {
-    consumeTokenCredits(user.id, {
-      provider: "openai",
-      model: AGENT_AI_MODEL,
-      inputTokens: usage.inputTokens ?? 0,
-      outputTokens: usage.outputTokens ?? 0,
-    }, user.email).catch(() => {})
+    consumeTokenCredits(
+      user.id,
+      {
+        provider: AGENT_AI_CONFIG.provider,
+        model: AGENT_AI_CONFIG.model,
+        inputTokens: usage.inputTokens ?? 0,
+        outputTokens: usage.outputTokens ?? 0,
+      },
+      user.email
+    ).catch(() => {})
   }
 }
 
