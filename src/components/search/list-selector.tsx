@@ -23,11 +23,19 @@ interface ListSelectorProps {
 
 const CREATE_NEW_VALUE = "__create_new__"
 
+const SEARCH_TYPE_LABELS: Record<SearchType, string> = {
+  PEOPLE: "People",
+  LOCAL: "Local",
+  COMPANY: "Company",
+  DOMAIN: "Domain",
+  INFLUENCER: "Influencer",
+}
+
 export function ListSelector({ value, onChange, searchType }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [newListName, setNewListName] = useState("")
 
-  const { data: lists, isLoading: listsLoading } = useLists(searchType)
+  const { data: lists, isLoading: listsLoading } = useLists()
   const createList = useCreateList()
 
   function handleSelectChange(val: string) {
@@ -67,7 +75,7 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
         <SelectContent>
           {lists?.map((list) => (
             <SelectItem key={list.id} value={list.id}>
-              {list.name} ({list.leadCount} leads)
+              {list.name} ({list.leadCount} leads) - {SEARCH_TYPE_LABELS[list.type]}
             </SelectItem>
           ))}
           <SelectItem value={CREATE_NEW_VALUE}>
