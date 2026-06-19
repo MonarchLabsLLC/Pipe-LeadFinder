@@ -202,10 +202,12 @@ export default function ListDetailPage() {
             bulkEnrich.mutate(
               { listId },
               {
-                onSuccess: () => {
+                onSuccess: (result) => {
                   appToast.success(
-                    "Enrichment started",
-                    "We’ll update this list as contact data comes back."
+                    "Data enrichment complete",
+                    result.enriched > 0
+                      ? `${result.enriched} email${result.enriched === 1 ? "" : "s"} found from ${result.attempted ?? result.total} checked.`
+                      : `No new emails found from ${result.attempted ?? result.total} checked.`
                   )
                   refetch()
                 },

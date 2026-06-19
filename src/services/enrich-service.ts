@@ -1,5 +1,7 @@
 import { apifyClient } from "@/lib/apify"
 import { prisma } from "@/lib/prisma"
+import { extractPrimaryEmail } from "@/lib/contact-info"
+import { findWebsiteEmails, normalizeDomain } from "@/lib/website-email-discovery"
 import type { Lead } from "@/generated/prisma/client"
 
 // ---------------------------------------------------------------------------
@@ -24,19 +26,28 @@ function getPhoneActorId(): string {
 // Build actor input from lead data
 // ---------------------------------------------------------------------------
 
-function buildEmailActorInput(lead: Lead): Record<string, unknown> {
-  // code_crafter/personal-email-finder takes linkedin_url array
+function cleanDomain(value: string | null): string | undefined {
+  return normalizeDomain(value) ?? undefined
+}
+
+function buildEmailActorInputs(lead: Lead): Record<string, unknown>[] {
+  const inputs: Record<string, unknown>[] = []
+
   if (lead.linkedinUrl) {
-    return { linkedin_url: [lead.linkedinUrl] }
+    inputs.push({ linkedin_url: [lead.linkedinUrl] })
   }
-  // Fallback: try name-based lookup if no LinkedIn URL
-  return {
+
+  inputs.push({
     firstName: lead.firstName ?? undefined,
     lastName: lead.lastName ?? undefined,
     fullName: lead.fullName ?? undefined,
     company: lead.companyName ?? undefined,
-    domain: lead.companyWebsite ?? undefined,
-  }
+    domain: cleanDomain(lead.companyWebsite),
+  })
+
+  return inputs.filter((input) =>
+    Object.values(input).some((value) => value !== undefined && value !== null)
+  )
 }
 
 function buildPhoneActorInput(lead: Lead): Record<string, unknown> {
@@ -65,15 +76,15 @@ function parseEmailResult(
     return { email: null, emailStatus: "NOT_FOUND" }
   }
 
-  const item = items[0]
-  const email = (item.email || item.emailAddress || item.contact_email || null) as string | null
+  const matchedItem = items.find((candidate) => extractPrimaryEmail(candidate))
+  const email = matchedItem ? extractPrimaryEmail(matchedItem) : null
 
   if (!email) {
     return { email: null, emailStatus: "NOT_FOUND" }
   }
 
   // Some actors indicate confidence/verification status
-  const verified = item.verified ?? item.isVerified ?? item.status
+  const verified = matchedItem?.verified ?? matchedItem?.isVerified ?? matchedItem?.status
   const status = verified === true || verified === "verified" ? "FOUND" : "POTENTIAL"
 
   return { email, emailStatus: status }
@@ -105,16 +116,35 @@ export async function enrichEmail(leadId: string) {
   if (!lead) throw new Error(`Lead not found: ${leadId}`)
 
   const actorId = getEmailActorId()
-  const input = buildEmailActorInput(lead)
+  const inputs = buildEmailActorInputs(lead)
+  let email: string | null = null
+  let emailStatus: "FOUND" | "NOT_FOUND" | "POTENTIAL" = "NOT_FOUND"
 
-  const run = await apifyClient.actor(actorId).call(input)
-  const { items } = await apifyClient
-    .dataset(run.defaultDatasetId)
-    .listItems()
+  for (const input of inputs) {
+    try {
+      const run = await apifyClient.actor(actorId).call(input)
+      const { items } = await apifyClient
+        .dataset(run.defaultDatasetId)
+        .listItems()
 
-  const { email, emailStatus } = parseEmailResult(
-    items as Record<string, unknown>[]
-  )
+      const parsed = parseEmailResult(items as Record<string, unknown>[])
+      if (parsed.email) {
+        email = parsed.email
+        emailStatus = parsed.emailStatus
+        break
+      }
+    } catch (error) {
+      console.error("Email enrichment actor attempt failed:", error)
+    }
+  }
+
+  if (!email) {
+    const websiteEmails = await findWebsiteEmails(lead.companyWebsite, 1)
+    if (websiteEmails[0]) {
+      email = websiteEmails[0]
+      emailStatus = "POTENTIAL"
+    }
+  }
 
   const updated = await prisma.lead.update({
     where: { id: leadId },
@@ -175,16 +205,34 @@ export async function enrichBulk(listId: string) {
   })
 
   let enriched = 0
+  let attempted = 0
+  const batchSize = 3
 
-  for (const entry of entries) {
-    try {
-      await enrichEmail(entry.leadId)
-      enriched++
-    } catch {
-      // Continue with next lead if one fails
-      console.error(`Failed to enrich lead ${entry.leadId}`)
+  for (let index = 0; index < entries.length; index += batchSize) {
+    const batch = entries.slice(index, index + batchSize)
+    const results = await Promise.all(
+      batch.map(async (entry) => {
+        try {
+          const updated = await enrichEmail(entry.leadId)
+          return Boolean(
+            updated.email &&
+              (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL")
+          )
+        } catch {
+          // Continue with next lead if one fails
+          console.error(`Failed to enrich lead ${entry.leadId}`)
+          return false
+        }
+      })
+    )
+
+    attempted += batch.length
+    for (const didEnrich of results) {
+      if (didEnrich) {
+        enriched += 1
+      }
     }
   }
 
-  return { enriched, total: entries.length }
+  return { enriched, attempted, total: entries.length }
 }

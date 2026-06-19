@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
 
   const { listId, ...searchParams } = parsed.data
 
-  // Check if Apify actor is configured
-  if (!process.env.APIFY_ACTOR_DOMAIN) {
+  // Domain Search resolves the company first, then searches people at that company.
+  if (!process.env.APIFY_ACTOR_COMPANY || !process.env.APIFY_ACTOR_PEOPLE) {
     return NextResponse.json(
       {
-        error: "Domain search is not configured yet. Set APIFY_ACTOR_DOMAIN in your .env file.",
+        error: "Domain search is not configured yet. Set APIFY_ACTOR_COMPANY and APIFY_ACTOR_PEOPLE in your .env file.",
         code: "ACTOR_NOT_CONFIGURED",
       },
       { status: 503 }

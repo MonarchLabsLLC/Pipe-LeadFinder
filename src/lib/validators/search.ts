@@ -1,5 +1,13 @@
 import { z } from "zod"
 
+const optionalNumber = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) return undefined
+  if (typeof value === "number" && Number.isNaN(value)) return undefined
+
+  const parsed = typeof value === "string" ? Number(value) : value
+  return typeof parsed === "number" && Number.isNaN(parsed) ? undefined : parsed
+}, z.number().optional())
+
 // ─── People Search ──────────────────────────────────────
 
 export const peopleSearchSchema = z.object({
@@ -74,7 +82,7 @@ export type DomainSearchInput = z.infer<typeof domainSearchSchema>
 
 const audienceSchema = z.object({
   age: z.string().optional(),
-  credibility: z.number().optional(),
+  credibility: optionalNumber,
   gender: z.string().optional(),
   language: z.string().optional(),
   interests: z.string().optional(),
@@ -85,31 +93,31 @@ export const influencerSearchSchema = z.object({
   platform: z.enum(["instagram", "tiktok", "youtube"]).default("instagram"),
   resultsLimit: z.number().int().min(10).max(50).default(10),
   hashtags: z.array(z.string()).optional(),
-  description: z.string().optional(),
-  followersFrom: z.number().optional(),
-  followersTo: z.number().optional(),
+  description: z.string().trim().min(1, "Description is required"),
+  followersFrom: optionalNumber,
+  followersTo: optionalNumber,
   ageFrom: z.string().optional(),
   ageTo: z.string().optional(),
-  reelsPlaysFrom: z.number().optional(),
-  reelsPlaysTo: z.number().optional(),
-  engagementsFrom: z.number().optional(),
-  engagementsTo: z.number().optional(),
-  engagementRate: z.number().optional(),
+  reelsPlaysFrom: optionalNumber,
+  reelsPlaysTo: optionalNumber,
+  engagementsFrom: optionalNumber,
+  engagementsTo: optionalNumber,
+  engagementRate: optionalNumber,
   language: z.string().optional(),
   gender: z.string().optional(),
-  lastPostDays: z.number().optional(),
+  lastPostDays: optionalNumber,
   contactDetails: z.string().optional(),
   partnership: z.string().optional(),
   category: z.string().optional(),
   accountType: z.string().optional(),
   followersGrowthInterval: z.string().optional(),
   followersGrowthOperator: z.string().optional(),
-  followersGrowthValue: z.number().optional(),
+  followersGrowthValue: optionalNumber,
   verified: z.boolean().optional(),
   hasSponsoredPosts: z.boolean().optional(),
   audience: audienceSchema.optional(),
   username: z.string().optional(),
-  location: z.string().optional(),
+  location: z.string().trim().min(1, "Location is required"),
   listId: z.string().optional(),
 })
 

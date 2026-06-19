@@ -60,8 +60,9 @@ export function useEnrichBulk() {
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["lists"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail", variables.listId] })
     },
   })
 }
