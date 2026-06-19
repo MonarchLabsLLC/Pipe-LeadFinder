@@ -149,6 +149,7 @@ export function InfluencerSearchForm({
     resolver: zodResolver(influencerSearchSchema) as AnyResolver,
     defaultValues: {
       platform: "instagram",
+      resultsLimit: 10,
       hashtags: [],
       description: "",
       verified: false,
@@ -218,7 +219,7 @@ export function InfluencerSearchForm({
           </h3>
           <Separator className="mt-2 mb-4" />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="hashtags" className="text-sm font-medium text-foreground">
                 Hashtags (without #)
@@ -249,6 +250,36 @@ export function InfluencerSearchForm({
                 className={inputClass}
                 {...register("description")}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="resultsLimit" className="text-sm font-medium text-foreground">
+                Results Limit
+              </Label>
+              <Controller
+                name="resultsLimit"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value?.toString() ?? "10"}
+                    onValueChange={(val) => field.onChange(Number(val))}
+                  >
+                    <SelectTrigger className={selectTriggerClass}>
+                      <SelectValue placeholder="Select limit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 25, 50].map((val) => (
+                        <SelectItem key={val} value={val.toString()}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.resultsLimit && (
+                <p className="text-xs text-destructive">{errors.resultsLimit.message}</p>
+              )}
             </div>
           </div>
 

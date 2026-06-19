@@ -63,7 +63,7 @@ const ADMIN_DOMAINS = (process.env.ADMIN_DOMAINS || "")
   .filter(Boolean)
 
 function isAdminUser(email?: string | null, role?: string | null) {
-  if (role === "admin") return true
+  if (role?.toLowerCase() === "admin") return true
   if (!email) return false
 
   const normalized = email.toLowerCase()

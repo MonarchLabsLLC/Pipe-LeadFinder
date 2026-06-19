@@ -80,7 +80,8 @@ export async function POST(req: NextRequest) {
       data: { status: "COMPLETED", resultCount: leads.length },
     })
 
-    deductCredits(session.user.id, "search:domain", leads.length, {
+    const leadsWithEmail = leads.filter((l) => l.email).length
+    deductCredits(session.user.id, "search:domain", leadsWithEmail, {
       listId: listId || undefined,
       searchType: "DOMAIN",
     })

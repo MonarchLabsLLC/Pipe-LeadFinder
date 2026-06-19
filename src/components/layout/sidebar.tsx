@@ -59,12 +59,17 @@ const ADMIN_DOMAINS = (process.env.NEXT_PUBLIC_ADMIN_DOMAINS || "")
   .map((d) => d.trim().toLowerCase())
   .filter(Boolean)
 
-function isAdminEmail(email: string) {
+function isAdminEmail(email?: string | null) {
+  if (!email) return false
   const normalized = email.toLowerCase()
   return (
     ADMIN_EMAILS.includes(normalized) ||
     ADMIN_DOMAINS.some((domain) => normalized.endsWith(domain))
   )
+}
+
+function isAdminUser(email?: string | null, role?: string | null) {
+  return role?.toLowerCase() === "admin" || isAdminEmail(email)
 }
 
 const navSections = [
@@ -126,8 +131,8 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed"
   const { balance, isLoading: creditsLoading, formatCredits, purchaseUrl } = useCredits()
 
-  const userName = session?.user?.name ?? "Admin User"
-  const userEmail = session?.user?.email ?? "admin@GrooveDigital.com"
+  const userName = session?.user?.name ?? "User"
+  const userEmail = session?.user?.email ?? ""
   const initials = userName
     .split(" ")
     .map((n) => n[0])
@@ -204,7 +209,7 @@ export function AppSidebar() {
           {navSections
             .filter((section) => {
               if (!section.adminOnly) return true
-              return isAdminEmail(userEmail)
+              return isAdminUser(userEmail, session?.user?.role)
             })
             .map((section) => {
             const sectionActive = isSectionActive(section.items)

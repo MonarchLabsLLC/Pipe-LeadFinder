@@ -145,7 +145,7 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
                       <SelectValue placeholder="Select limit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[10, 25, 50, 100].map((val) => (
+                      {[10, 25, 50].map((val) => (
                         <SelectItem key={val} value={val.toString()}>
                           {val}
                         </SelectItem>

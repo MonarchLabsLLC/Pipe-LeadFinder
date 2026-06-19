@@ -11,6 +11,28 @@ const DEV_USER = {
   role: "admin",
 } as const
 
+const ADMIN_ROLE_NAMES = new Set([
+  "admin",
+  "pipeleads_admin",
+  "app_pipefinder_admin",
+])
+
+function resolveSessionRole(
+  claims: Awaited<ReturnType<typeof verifyKeycloakToken>>,
+  storedRole?: string | null
+) {
+  const realmRoles = claims.realm_access?.roles || []
+  const resourceRoles = Object.values(claims.resource_access || {}).flatMap(
+    (access) => access.roles || []
+  )
+
+  const hasAdminRole = [...realmRoles, ...resourceRoles].some((role) =>
+    ADMIN_ROLE_NAMES.has(role.toLowerCase())
+  )
+
+  return hasAdminRole ? "admin" : storedRole || "user"
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -78,7 +100,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: user.id,
             email: user.email,
             name: user.name || "",
-            role: user.role,
+            role: resolveSessionRole(claims, user.role),
           }
         } catch (error) {
           console.error("[Auth] Keycloak token verification failed:", error)

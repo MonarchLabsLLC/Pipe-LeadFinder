@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 
@@ -18,6 +18,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface LocalSearchFormProps {
   onSubmit: (data: LocalSearchInput & { listId?: string }) => void
@@ -38,10 +45,11 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
     control,
     formState: { errors },
   } = useForm<LocalSearchInput>({
-    resolver: zodResolver(localSearchSchema),
+    resolver: zodResolver(localSearchSchema) as Resolver<LocalSearchInput>,
     defaultValues: {
       businessType: "",
       location: "",
+      resultsLimit: 10,
     },
   })
 
@@ -55,7 +63,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
             Search Criteria
           </h3>
           <Separator className="mt-2 mb-4" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="businessType" className="text-sm font-medium text-foreground">
                 Business Type
@@ -93,6 +101,36 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
                 <p className="text-xs text-destructive">
                   {errors.location.message ?? "Location is required"}
                 </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="resultsLimit" className="text-sm font-medium text-foreground">
+                Results Limit
+              </Label>
+              <Controller
+                name="resultsLimit"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value?.toString() ?? "10"}
+                    onValueChange={(val) => field.onChange(Number(val))}
+                  >
+                    <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
+                      <SelectValue placeholder="Select limit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 25, 50].map((val) => (
+                        <SelectItem key={val} value={val.toString()}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.resultsLimit && (
+                <p className="text-xs text-destructive">{errors.resultsLimit.message}</p>
               )}
             </div>
           </div>
