@@ -229,6 +229,8 @@ export async function getPipeLeadsPricing(): Promise<
       {
         headers: {
           "Content-Type": "application/json",
+          "x-internal-webhook": "true",
+          "x-user-id": "pipeleads-pricing",
           "x-app-name": APP_NAME,
         },
       },
