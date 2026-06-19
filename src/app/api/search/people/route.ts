@@ -6,6 +6,7 @@ import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { executeSearch } from "@/services/search-service"
 import { peopleSearchSchema } from "@/lib/validators/search"
 import { guardCredits, deductCredits } from "@/lib/credit-guard"
+import { searchErrorResponse } from "@/lib/search-error-response"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -99,12 +100,6 @@ export async function POST(req: NextRequest) {
       data: { status: "FAILED" },
     })
 
-    const message =
-      error instanceof Error ? error.message : "Search failed"
-
-    return NextResponse.json(
-      { error: message, searchId: searchHistory.id },
-      { status: 500 }
-    )
+    return searchErrorResponse(error, searchHistory.id, "PEOPLE")
   }
 }
