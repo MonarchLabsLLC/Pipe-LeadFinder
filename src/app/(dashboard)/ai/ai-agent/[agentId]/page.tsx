@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { appToast } from "@/lib/app-toast"
 import { ArrowLeft, Save, Play, Plus, X } from "lucide-react"
-import { toast } from "sonner"
 
 interface AgentConfig {
   searchType: string
@@ -188,16 +188,24 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         config: config as unknown as Record<string, unknown>,
       },
       {
-        onSuccess: () => toast.success("Agent saved"),
-        onError: (err) => toast.error(err.message),
+        onSuccess: () =>
+          appToast.success(
+            "Agent saved",
+            "Your prospecting workflow is up to date."
+          ),
+        onError: (err) => appToast.error("agentSave", err),
       }
     )
   }, [agent.id, name, config, updateAgent])
 
   const handleRun = () => {
     runAgent.mutate(agent.id, {
-      onSuccess: (data) => toast.success(data.message || "Agent triggered"),
-      onError: (err) => toast.error(err.message),
+      onSuccess: (data) =>
+        appToast.success(
+          data.message || "Agent started",
+          "We’ll save new leads and actions as the run completes."
+        ),
+      onError: (err) => appToast.error("agentRun", err),
     })
   }
 

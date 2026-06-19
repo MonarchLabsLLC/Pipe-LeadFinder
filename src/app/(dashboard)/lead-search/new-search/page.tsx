@@ -10,7 +10,7 @@ import { CompanySearchForm } from "@/components/search/company-search-form"
 import { DomainSearchForm } from "@/components/search/domain-search-form"
 import { InfluencerSearchForm } from "@/components/search/influencer-search-form"
 import { useSearchMutation } from "@/hooks/useSearch"
-import { toast } from "sonner"
+import { appToast } from "@/lib/app-toast"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,14 +30,17 @@ export default function NewSearchPage() {
         type,
         params: { ...params, listId },
       })
-      toast.success(`Search completed — ${result.resultCount} results found!`)
+      appToast.success(
+        "Search completed",
+        `${result.resultCount} results were added to your saved list.`
+      )
       if (result.listId) {
         router.push(`/lead-search/saved-lists/${result.listId}`)
       } else {
         router.push("/lead-search/saved-lists")
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Search failed. Please try again.")
+      appToast.error("search", err)
     }
   }
 
