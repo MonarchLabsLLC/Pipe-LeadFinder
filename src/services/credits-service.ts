@@ -18,11 +18,14 @@ import { prisma } from "@/lib/prisma"
 import {
   CREDIT_COSTS,
   CREDIT_DISPLAY_SCALE,
+  PIPELEADS_PRICING_MODELS,
+  type PipeLeadsCreditAction,
+  type PipeLeadsPricingItem,
 } from "@/lib/pipeleads-credit-pricing"
 
 const MICRO_SERVICE_BASE =
   process.env.MICRO_SERVICE_BASE || "http://localhost:3002/api"
-const APP_NAME = "pipe-leadfinder"
+const APP_NAME = process.env.SCALECREDITS_APP_NAME || "PipeLeads"
 const SCALECREDITS_URL =
   process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg"
 
@@ -108,6 +111,10 @@ async function resolveCreditUserId(userId: string): Promise<string | null> {
     hasKeycloakSubId: Boolean(keycloakSubId),
   })
   return null
+}
+
+function isCreditAction(value: unknown): value is PipeLeadsCreditAction {
+  return typeof value === "string" && value in PIPELEADS_PRICING_MODELS
 }
 
 // ---------------------------------------------------------------------------
@@ -210,6 +217,36 @@ export async function ensureCreditsAvailable(
   }
 }
 
+/** Get PipeLeads per-hit pricing from the microservice. */
+export async function getPipeLeadsPricing(): Promise<
+  PipeLeadsPricingItem[] | null
+> {
+  if (!MICRO_SERVICE_BASE) return null
+
+  try {
+    const res = await fetchWithRetry(
+      `${MICRO_SERVICE_BASE}/pricing/pipeleads`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-app-name": APP_NAME,
+        },
+      },
+      1,
+      5_000
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as { items?: PipeLeadsPricingItem[] }
+    return Array.isArray(data.items) ? data.items : null
+  } catch (error) {
+    console.warn(
+      "[Credits] Failed to load PipeLeads pricing:",
+      (error as Error).message
+    )
+    return null
+  }
+}
+
 /**
  * Consume credits after a successful operation.
  * Fire-and-forget — logs errors but never throws.
@@ -224,18 +261,39 @@ export async function consumeCredits(
   if (!creditUserId) return null
 
   const displayAmount = usage.amount
-  const backendAmount = displayAmount * CREDIT_DISPLAY_SCALE
+  const action = isCreditAction(usage.metadata?.action)
+    ? usage.metadata.action
+    : null
+  const resultCount = Math.max(Number(usage.metadata?.resultCount ?? 1), 1)
+  const usageBody = action
+    ? {
+        provider: "pipeleads",
+        model: PIPELEADS_PRICING_MODELS[action],
+        hitCount: resultCount,
+        description: usage.description,
+        metadata: {
+          ...usage.metadata,
+          fallbackDisplayCredits: displayAmount,
+        },
+      }
+    : {
+        provider: "pipeleads",
+        model: "pipeleads.fixed-usage",
+        fixedCredits: displayAmount * CREDIT_DISPLAY_SCALE,
+        description: usage.description,
+        metadata: {
+          ...usage.metadata,
+          displayCredits: displayAmount,
+        },
+      }
 
   try {
     const res = await fetchWithRetry(
-      `${MICRO_SERVICE_BASE}/credits/adjust`,
+      `${MICRO_SERVICE_BASE}/credits/consume`,
       {
         method: "POST",
         headers: internalHeaders(creditUserId, email),
-        body: JSON.stringify({
-          amount: -backendAmount,
-          reason: `${usage.description} (${displayAmount} credits)`,
-        }),
+        body: JSON.stringify(usageBody),
       },
       MAX_RETRIES,
       15_000
@@ -252,16 +310,20 @@ export async function consumeCredits(
       }
     }
 
-    const balance = (await res.json()) as CreditBalance
+    const result = (await res.json()) as CreditBalance & {
+      debited?: number
+      consumedCredits?: number
+    }
+    const debited = typeof result.debited === "number" ? result.debited : displayAmount
     console.log("[Credits] Consumed:", {
-      debited: displayAmount,
-      remaining: balance.availableCredits,
+      debited,
+      remaining: result.availableCredits,
     })
     return {
       success: true,
-      debited: displayAmount,
-      availableCredits: balance.availableCredits,
-      consumedCredits: balance.consumedCredits,
+      debited,
+      availableCredits: result.availableCredits,
+      consumedCredits: result.consumedCredits,
     }
   } catch (error) {
     console.error("[Credits] Consume error:", (error as Error).message)
@@ -324,4 +386,4 @@ export async function consumeTokenCredits(
 
 export { CREDIT_COSTS }
 
-export type CreditAction = keyof typeof CREDIT_COSTS
+export type CreditAction = PipeLeadsCreditAction

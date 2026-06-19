@@ -9,7 +9,11 @@ import {
   influencerSearchSchema,
   type InfluencerSearchInput,
 } from "@/lib/validators/search"
-import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
+import {
+  formatScaledCreditText,
+  getPipeLeadsCreditCost,
+} from "@/lib/pipeleads-credit-pricing"
+import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
 
@@ -59,11 +63,6 @@ const CONTACT_OPTIONS = [
   { value: "whatsapp", label: "WhatsApp" },
   { value: "youtube", label: "YouTube" },
 ]
-
-const INFLUENCER_SEARCH_CREDIT_TEXT = formatScaledCreditText(
-  CREDIT_COSTS["search:influencer"],
-  "profile"
-)
 
 const CATEGORY_OPTIONS = [
   { value: "animals", label: "Animals" },
@@ -134,6 +133,11 @@ export function InfluencerSearchForm({
   isLoading,
 }: InfluencerSearchFormProps) {
   const [listId, setListId] = useState<string | undefined>(undefined)
+  const { pricingMap } = usePipeLeadsPricing()
+  const influencerSearchCreditText = formatScaledCreditText(
+    getPipeLeadsCreditCost("search:influencer", pricingMap),
+    "profile"
+  )
   const {
     register,
     handleSubmit,
@@ -800,7 +804,7 @@ export function InfluencerSearchForm({
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
-              Influencer search will consume {INFLUENCER_SEARCH_CREDIT_TEXT} returned.
+              Influencer search will consume {influencerSearchCreditText} returned.
             </p>
           </div>
 

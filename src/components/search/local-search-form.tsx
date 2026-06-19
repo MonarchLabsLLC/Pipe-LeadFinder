@@ -6,7 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 
 import { localSearchSchema, type LocalSearchInput } from "@/lib/validators/search"
-import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
+import {
+  formatScaledCreditText,
+  getPipeLeadsCreditCost,
+} from "@/lib/pipeleads-credit-pricing"
+import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
@@ -21,13 +25,13 @@ interface LocalSearchFormProps {
   isLoading?: boolean
 }
 
-const LOCAL_SEARCH_CREDIT_TEXT = formatScaledCreditText(
-  CREDIT_COSTS["search:local"],
-  "business"
-)
-
 export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFormProps) {
   const [listId, setListId] = useState<string | undefined>(undefined)
+  const { pricingMap } = usePipeLeadsPricing()
+  const localSearchCreditText = formatScaledCreditText(
+    getPipeLeadsCreditCost("search:local", pricingMap),
+    "business"
+  )
   const {
     register,
     handleSubmit,
@@ -109,7 +113,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">
-              <p>Local search will consume {LOCAL_SEARCH_CREDIT_TEXT} returned.</p>
+              <p>Local search will consume {localSearchCreditText} returned.</p>
               <p>No credits will be consumed if email addresses are not found.</p>
             </div>
           </div>

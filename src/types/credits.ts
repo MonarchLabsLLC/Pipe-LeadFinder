@@ -21,9 +21,9 @@ export interface CreditCheckResult {
 }
 
 /**
- * Flat credit usage payload for PipeLeads.
- * Unlike token-based apps (ClickCampaigns, PageBuilder), PipeLeads uses
- * fixed per-action displayed credit costs.
+ * Per-action credit usage payload for PipeLeads.
+ * The app sends action/result metadata and the microservice calculates the
+ * final charge from the ScaleCredits model pricing table.
  */
 export interface CreditUsagePayload {
   amount: number

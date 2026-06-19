@@ -32,8 +32,8 @@ import {
 import { LeadAIActions } from "@/components/leads/lead-ai-actions"
 import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
 import { useLabels, useApplyLabel } from "@/hooks/useLabels"
+import { appToast } from "@/lib/app-toast"
 import type { LeadScoreSummary } from "@/lib/lead-score"
-import { toast } from "sonner"
 
 export interface LeadData {
   id: string
@@ -235,10 +235,13 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
       { leadId: lead.id },
       {
         onSuccess: () => {
-          toast.success("Email enrichment started")
+          appToast.success(
+            "Email lookup started",
+            "We’ll update this lead when enrichment returns."
+          )
         },
         onError: (error) => {
-          toast.error(error.message || "Email enrichment failed")
+          appToast.error("emailEnrichment", error)
         },
       }
     )
@@ -249,10 +252,13 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
       { leadId: lead.id },
       {
         onSuccess: () => {
-          toast.success("Phone enrichment started")
+          appToast.success(
+            "Phone lookup started",
+            "We’ll update this lead when enrichment returns."
+          )
         },
         onError: (error) => {
-          toast.error(error.message || "Phone enrichment failed")
+          appToast.error("phoneEnrichment", error)
         },
       }
     )
@@ -275,14 +281,12 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
         const err = await res.json()
         throw new Error(err.error || "Failed to save phone")
       }
-      toast.success("Phone number saved")
+      appToast.success("Phone number saved", "This lead now has a saved phone.")
       setManualPhone(trimmed)
       setShowPhoneInput(false)
       setPhoneValue("")
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save phone"
-      )
+      appToast.error("savePhone", error)
     }
   }
 
@@ -291,11 +295,11 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
       { entryId: lead.entryId, labelId },
       {
         onSuccess: () => {
-          toast.success("Label applied")
+          appToast.success("Label applied", "This lead was updated.")
           setLabelPopoverOpen(false)
         },
         onError: (error) => {
-          toast.error(error.message || "Failed to apply label")
+          appToast.error("applyLabel", error)
         },
       }
     )

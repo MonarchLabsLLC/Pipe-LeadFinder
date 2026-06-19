@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card"
-import { toast } from "sonner"
+import { appToast } from "@/lib/app-toast"
 import { Save, Loader2, Trash2, Globe, FileText, HelpCircle, File, Plus, Building2, Database } from "lucide-react"
 
 // ---------------------------------------------------------------------------
@@ -164,9 +164,12 @@ function BusinessProfileForm({
     mutationFn: updateProfile,
     onSuccess: () => {
       onSaved()
-      toast.success("Business profile updated.")
+      appToast.success(
+        "Business profile updated",
+        "Future AI messages will use the latest context."
+      )
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => appToast.error("businessProfile", err),
   })
 
   function handleChange(field: string, value: string) {
@@ -301,27 +304,36 @@ function DataSourcesSection() {
     mutationFn: addSource,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["knowledge-base-sources"] })
-      toast.success("Data source added.")
+      appToast.success(
+        "Data source added",
+        "AI outreach can now use this context."
+      )
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => appToast.error("dataSource", err),
   })
 
   const pdfMutation = useMutation({
     mutationFn: uploadPdfSource,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["knowledge-base-sources"] })
-      toast.success("PDF data source added.")
+      appToast.success(
+        "PDF source added",
+        "AI outreach can now use the uploaded document."
+      )
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => appToast.error("pdfSource", err),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteSource,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["knowledge-base-sources"] })
-      toast.success("Data source deleted.")
+      appToast.success(
+        "Data source removed",
+        "Future AI messages will skip that context."
+      )
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => appToast.error("deleteDataSource", err),
   })
 
   return (

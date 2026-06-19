@@ -3,7 +3,7 @@ import "./globals.css"
 import { SessionProvider } from "@/components/providers/session-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { CreditsProvider } from "@/contexts/credits-context"
-import { Toaster } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "PipeLeads - LeadFinder AI",
@@ -26,7 +26,7 @@ export default function RootLayout({
             <CreditsProvider>{children}</CreditsProvider>
           </SessionProvider>
         </QueryProvider>
-        <Toaster richColors position="top-right" />
+        <Toaster />
       </body>
     </html>
   )

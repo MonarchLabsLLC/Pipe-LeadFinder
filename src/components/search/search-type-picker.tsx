@@ -3,14 +3,20 @@
 import { SearchType } from "@/generated/prisma/enums"
 import { Users, MapPin, Building2, Globe, Star, Check, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { CREDIT_COSTS, formatScaledCreditLabel } from "@/lib/pipeleads-credit-pricing"
+import {
+  formatScaledCreditLabel,
+  getPipeLeadsCreditCost,
+  type PipeLeadsCreditAction,
+} from "@/lib/pipeleads-credit-pricing"
+import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import type { LucideIcon } from "lucide-react"
 
 interface SearchTypeOption {
   type: SearchType
   title: string
   description: string
-  creditBadge: string
+  creditAction: PipeLeadsCreditAction
+  creditUnit: string
   icon: LucideIcon
   accentFrom: string
   accentTo: string
@@ -23,7 +29,8 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.PEOPLE,
     title: "People Search",
     description: "Find people in a specific industry and area.",
-    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:people"], "record"),
+    creditAction: "search:people",
+    creditUnit: "record",
     icon: Users,
     accentFrom: "oklch(0.769 0.188 70.08)",
     accentTo: "oklch(0.666 0.179 58.318)",
@@ -34,7 +41,8 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.LOCAL,
     title: "Local Search",
     description: "Find local businesses by type and location.",
-    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:local"], "business"),
+    creditAction: "search:local",
+    creditUnit: "business",
     icon: MapPin,
     accentFrom: "oklch(0.723 0.15 155)",
     accentTo: "oklch(0.600 0.14 155)",
@@ -45,7 +53,8 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.COMPANY,
     title: "Company Search",
     description: "Gather detailed intelligence on companies.",
-    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:company"], "company"),
+    creditAction: "search:company",
+    creditUnit: "company",
     icon: Building2,
     accentFrom: "oklch(0.7 0.15 240)",
     accentTo: "oklch(0.58 0.14 240)",
@@ -56,7 +65,8 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.DOMAIN,
     title: "Domain Search",
     description: "Find contacts at a company from its domain.",
-    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:domain"], "contact"),
+    creditAction: "search:domain",
+    creditUnit: "contact",
     icon: Globe,
     accentFrom: "oklch(0.7 0.15 295)",
     accentTo: "oklch(0.58 0.14 295)",
@@ -67,7 +77,8 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.INFLUENCER,
     title: "Influencer Search",
     description: "Find influencers by platform, niche, and engagement.",
-    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:influencer"], "profile"),
+    creditAction: "search:influencer",
+    creditUnit: "profile",
     icon: Star,
     accentFrom: "oklch(0.72 0.17 10)",
     accentTo: "oklch(0.62 0.16 350)",
@@ -82,28 +93,40 @@ interface SearchTypePickerProps {
 }
 
 export function SearchTypePicker({ selectedType, onSelect }: SearchTypePickerProps) {
+  const { pricingMap } = usePipeLeadsPricing()
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:gap-4">
-      {searchTypes.map((item) => (
-        <SearchTypeCard
-          key={item.type}
-          item={item}
-          isSelected={selectedType === item.type}
-          hasSelection={selectedType !== null}
-          onSelect={onSelect}
-        />
-      ))}
+      {searchTypes.map((item) => {
+        const creditBadge = formatScaledCreditLabel(
+          getPipeLeadsCreditCost(item.creditAction, pricingMap),
+          item.creditUnit
+        )
+
+        return (
+          <SearchTypeCard
+            key={item.type}
+            item={item}
+            creditBadge={creditBadge}
+            isSelected={selectedType === item.type}
+            hasSelection={selectedType !== null}
+            onSelect={onSelect}
+          />
+        )
+      })}
     </div>
   )
 }
 
 function SearchTypeCard({
   item,
+  creditBadge,
   isSelected,
   hasSelection,
   onSelect,
 }: {
   item: SearchTypeOption
+  creditBadge: string
   isSelected: boolean
   hasSelection: boolean
   onSelect: (type: SearchType) => void
@@ -178,7 +201,7 @@ function SearchTypeCard({
 
       {/* Credit badge */}
       <span className="mt-3 inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-        {item.creditBadge}
+        {creditBadge}
       </span>
 
       {/* Bottom chevron hint */}

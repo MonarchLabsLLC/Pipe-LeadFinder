@@ -28,7 +28,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { useEnrichBulk } from "@/hooks/useEnrich"
 import { useScoreLeads } from "@/hooks/useLeadScoring"
-import { toast } from "sonner"
+import { appToast } from "@/lib/app-toast"
 import {
   Sheet,
   SheetContent,
@@ -203,11 +203,14 @@ export default function ListDetailPage() {
               { listId },
               {
                 onSuccess: () => {
-                  toast.success("Data enrichment started successfully")
+                  appToast.success(
+                    "Enrichment started",
+                    "We’ll update this list as contact data comes back."
+                  )
                   refetch()
                 },
                 onError: (err) => {
-                  toast.error(err.message || "Data enrichment failed")
+                  appToast.error("bulkEnrichment", err)
                 },
               }
             )
@@ -229,15 +232,16 @@ export default function ListDetailPage() {
               { listId },
               {
                 onSuccess: (result) => {
-                  toast.success(
+                  appToast.success(
+                    result.scoredCount > 0 ? "Lead scoring complete" : "No leads scored",
                     result.scoredCount > 0
-                      ? `Scored ${result.scoredCount} leads`
+                      ? `${result.scoredCount} leads were ranked by fit.`
                       : result.message || "No leads to score"
                   )
                   refetch()
                 },
                 onError: (err) => {
-                  toast.error(err.message || "Lead scoring failed")
+                  appToast.error("leadScoring", err)
                 },
               }
             )
@@ -276,9 +280,12 @@ export default function ListDetailPage() {
               a.click()
               document.body.removeChild(a)
               URL.revokeObjectURL(url)
-              toast.success("CSV exported successfully")
-            } catch {
-              toast.error("Failed to export CSV")
+              appToast.success(
+                "CSV export ready",
+                "Your lead list download has started."
+              )
+            } catch (err) {
+              appToast.error("exportCsv", err)
             } finally {
               setIsExporting(false)
             }
