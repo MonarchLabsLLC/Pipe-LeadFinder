@@ -3,6 +3,7 @@
 import { SearchType } from "@/generated/prisma/enums"
 import { Users, MapPin, Building2, Globe, Star, Check, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CREDIT_COSTS, formatScaledCreditLabel } from "@/lib/pipeleads-credit-pricing"
 import type { LucideIcon } from "lucide-react"
 
 interface SearchTypeOption {
@@ -22,7 +23,7 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.PEOPLE,
     title: "People Search",
     description: "Find people in a specific industry and area.",
-    creditBadge: "3 credits / record",
+    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:people"], "record"),
     icon: Users,
     accentFrom: "oklch(0.769 0.188 70.08)",
     accentTo: "oklch(0.666 0.179 58.318)",
@@ -33,7 +34,7 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.LOCAL,
     title: "Local Search",
     description: "Find local businesses by type and location.",
-    creditBadge: "1 credit / company",
+    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:local"], "business"),
     icon: MapPin,
     accentFrom: "oklch(0.723 0.15 155)",
     accentTo: "oklch(0.600 0.14 155)",
@@ -44,7 +45,7 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.COMPANY,
     title: "Company Search",
     description: "Gather detailed intelligence on companies.",
-    creditBadge: "1 credit / company",
+    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:company"], "company"),
     icon: Building2,
     accentFrom: "oklch(0.7 0.15 240)",
     accentTo: "oklch(0.58 0.14 240)",
@@ -55,7 +56,7 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.DOMAIN,
     title: "Domain Search",
     description: "Find contacts at a company from its domain.",
-    creditBadge: "1 credit / result",
+    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:domain"], "contact"),
     icon: Globe,
     accentFrom: "oklch(0.7 0.15 295)",
     accentTo: "oklch(0.58 0.14 295)",
@@ -66,7 +67,7 @@ const searchTypes: SearchTypeOption[] = [
     type: SearchType.INFLUENCER,
     title: "Influencer Search",
     description: "Find influencers by platform, niche, and engagement.",
-    creditBadge: "2 credits / record",
+    creditBadge: formatScaledCreditLabel(CREDIT_COSTS["search:influencer"], "profile"),
     icon: Star,
     accentFrom: "oklch(0.72 0.17 10)",
     accentTo: "oklch(0.62 0.16 350)",

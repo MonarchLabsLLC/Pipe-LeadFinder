@@ -50,6 +50,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
+import {
+  CREDIT_COSTS,
+  formatDisplayCredits,
+  formatScaledCreditLabel,
+  formatScaledCreditText,
+  getScaledDisplayCredits,
+} from "@/lib/pipeleads-credit-pricing"
 
 // ─── Tip / Note / Warning callout boxes ──────────────────────────────────────
 
@@ -108,6 +115,50 @@ function VideoPlaceholder({ title }: { title: string }) {
     </div>
   )
 }
+
+const PEOPLE_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["search:people"],
+  "contact"
+)
+const PEOPLE_SEARCH_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["search:people"],
+  "contact"
+)
+const LOCAL_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["search:local"],
+  "business"
+)
+const LOCAL_SEARCH_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["search:local"],
+  "business"
+)
+const COMPANY_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["search:company"],
+  "company"
+)
+const DOMAIN_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["search:domain"],
+  "contact"
+)
+const DOMAIN_SEVEN_CONTACTS_CREDITS = formatDisplayCredits(
+  getScaledDisplayCredits(CREDIT_COSTS["search:domain"]) * 7
+)
+const INFLUENCER_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["search:influencer"],
+  "profile"
+)
+const ENRICH_EMAIL_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["enrich:email"],
+  "profile"
+)
+const ENRICH_EMAIL_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["enrich:email"],
+  "lead"
+)
+const ENRICH_PHONE_CREDIT_LABEL = formatScaledCreditLabel(
+  CREDIT_COSTS["enrich:phone"],
+  "lead"
+)
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -401,14 +452,14 @@ export default function TutorialsPage() {
                       </thead>
                       <tbody className="divide-y">
                         {[
-                          ["People Search (per contact)", "3", "LinkedIn-sourced professional profiles"],
-                          ["Local Search (per business)", "1", "Free if no email found"],
-                          ["Company Search (per company)", "1", "Business profile data"],
-                          ["Domain Search (per contact)", "1", "All contacts at one company"],
-                          ["Influencer Search (per profile)", "2", "+5 if you enrich their email"],
-                          ["Email Enrichment", "varies", "Depends on actor result"],
-                          ["Phone Enrichment", "varies", "Depends on actor result"],
-                          ["AI Actions (messages, etc.)", "0", "Free — uses your AI keys"],
+                          ["People Search (per contact)", PEOPLE_SEARCH_CREDIT_LABEL, "LinkedIn-sourced professional profiles"],
+                          ["Local Search (per business)", LOCAL_SEARCH_CREDIT_LABEL, "Free if no email found"],
+                          ["Company Search (per company)", COMPANY_SEARCH_CREDIT_LABEL, "Business profile data"],
+                          ["Domain Search (per contact)", DOMAIN_SEARCH_CREDIT_LABEL, "All contacts at one company"],
+                          ["Influencer Search (per profile)", INFLUENCER_SEARCH_CREDIT_LABEL, `Email enrichment: ${ENRICH_EMAIL_CREDIT_TEXT} when found`],
+                          ["Email Enrichment", ENRICH_EMAIL_CREDIT_LABEL, "Charged only when contact info is found"],
+                          ["Phone Enrichment", ENRICH_PHONE_CREDIT_LABEL, "Charged only when contact info is found"],
+                          ["AI Actions (messages, etc.)", "usage-based", "Regular AI credits by token usage"],
                           ["CSV Export", "0", "Always free"],
                         ].map(([action, cost, note]) => (
                           <tr key={action}>
@@ -423,7 +474,7 @@ export default function TutorialsPage() {
 
                   <Tip>
                     <strong>Save credits:</strong> Run a Local Search first to validate your
-                    target market before spending 3 credits per contact on a People Search.
+                    target market before spending {PEOPLE_SEARCH_CREDIT_TEXT} on a People Search.
                     Local searches are the most affordable way to test a new niche or city.
                   </Tip>
 
@@ -501,36 +552,36 @@ export default function TutorialsPage() {
                       {
                         icon: Users,
                         label: "People Search",
-                        cost: "3 credits/contact",
+                        cost: PEOPLE_SEARCH_CREDIT_LABEL,
                         desc: "Find specific professionals on LinkedIn by role, industry, location, and 15+ advanced filters. Best when you know exactly who you're targeting (e.g., \"Marketing Directors at SaaS companies in Austin\").",
                         best: "B2B outreach, recruiting, partnership development",
                       },
                       {
                         icon: MapPin,
                         label: "Local Search",
-                        cost: "1 credit/business",
+                        cost: LOCAL_SEARCH_CREDIT_LABEL,
                         desc: "Find local businesses by type and city. Just type a business category (like \"Dentist\" or \"Hair Salon\") and a location. Free if no email is found for a business.",
                         best: "Local lead generation, service businesses, community marketing",
                       },
                       {
                         icon: Building2,
                         label: "Company Search",
-                        cost: "1 credit/company",
+                        cost: COMPANY_SEARCH_CREDIT_LABEL,
                         desc: "Find companies rather than individuals. Filter by industry, size, technology stack, revenue, and more. Good for building a target account list.",
                         best: "Account-based marketing, enterprise sales prospecting",
                       },
                       {
                         icon: Globe,
                         label: "Domain Search",
-                        cost: "1 credit/contact",
+                        cost: DOMAIN_SEARCH_CREDIT_LABEL,
                         desc: "Enter a company name or website (e.g., \"amazon.com\") and get all publicly available email contacts at that company. Great for when you already know which company you want to target.",
                         best: "Targeted outreach to a specific company",
                       },
                       {
                         icon: Instagram,
                         label: "Influencer Search",
-                        cost: "2 credits/profile",
-                        desc: "Find influencers on Instagram, TikTok, or YouTube. Filter by follower count, engagement rate, niche, language, and more. Add email enrichment for +5 credits.",
+                        cost: INFLUENCER_SEARCH_CREDIT_LABEL,
+                        desc: `Find influencers on Instagram, TikTok, or YouTube. Filter by follower count, engagement rate, niche, language, and more. Add email enrichment for ${ENRICH_EMAIL_CREDIT_TEXT} when found.`,
                         best: "Influencer marketing campaigns, partnership outreach",
                       },
                     ].map((item) => (
@@ -601,7 +652,7 @@ export default function TutorialsPage() {
                       </Step>
                       <Step number={4} title="Set Results Limit">
                         Choose how many contacts to return (up to 100 per search). Each contact
-                        costs 3 credits, so start with 10–20 to test the waters.
+                        costs {PEOPLE_SEARCH_CREDIT_TEXT}, so start with 10–20 to test the waters.
                       </Step>
                       <Step number={5} title="Use Advanced Filters (optional)">
                         Click <strong>Advanced filters</strong> to access 15+ extra fields:
@@ -665,7 +716,7 @@ export default function TutorialsPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Local Search finds brick-and-mortar businesses and local service providers
                     using Google Maps data. It's the easiest search to start with—just two
-                    fields—and it's the most affordable option at 1 credit per business (and
+                    fields—and it's the most affordable option at {LOCAL_SEARCH_CREDIT_TEXT} (and
                     free if no email is found).
                   </p>
 
@@ -696,8 +747,8 @@ export default function TutorialsPage() {
                   </Note>
 
                   <Tip>
-                    <strong>Local Search is great for testing:</strong> Before spending 3 credits
-                    each on People Search contacts, use Local Search to validate whether a
+                    <strong>Local Search is great for testing:</strong> Before spending {PEOPLE_SEARCH_CREDIT_TEXT}
+                    on People Search contacts, use Local Search to validate whether a
                     particular type of business in a city actually exists in large enough numbers
                     for your campaign.
                   </Tip>
@@ -783,7 +834,7 @@ export default function TutorialsPage() {
                       <Step number={3} title="Run the Search">
                         Pick a list, click <strong>→ Continue</strong>, and wait. Credits are
                         charged per contact found—so if 7 staff members have public emails,
-                        you'll use 7 credits.
+                        you'll use {DOMAIN_SEVEN_CONTACTS_CREDITS} credits.
                       </Step>
                     </div>
 
@@ -839,7 +890,7 @@ export default function TutorialsPage() {
                     <Step number={4} title="Add Email Enrichment (optional)">
                       Check the <strong>Include email enrichment</strong> option to
                       automatically try to find an email address for each influencer.
-                      This costs an additional 5 credits per profile but saves you from
+                      This costs {ENRICH_EMAIL_CREDIT_TEXT} when contact info is found but saves you from
                       hunting down contact info manually.
                     </Step>
                   </div>
@@ -1325,7 +1376,7 @@ export default function TutorialsPage() {
                     AI Assistant
                   </CardTitle>
                   <CardDescription>
-                    Generate personalized messages and content for each lead — for free
+                    Generate personalized messages and content for each lead
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
@@ -1336,8 +1387,8 @@ export default function TutorialsPage() {
                     they were written for that specific person.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    <strong>All AI actions are free</strong> — they use your AI API keys (set up
-                    in Settings), not your search credits.
+                    <strong>AI actions use regular AI credits</strong> based on token usage,
+                    using the AI API keys configured in Settings.
                   </p>
 
                   <div className="space-y-3">

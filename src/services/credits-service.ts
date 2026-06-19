@@ -15,23 +15,18 @@ import type {
   TokenUsagePayload,
 } from "@/types/credits"
 import { prisma } from "@/lib/prisma"
+import {
+  CREDIT_COSTS,
+  CREDIT_DISPLAY_SCALE,
+  getFixedCreditPriceMultiplier,
+} from "@/lib/pipeleads-credit-pricing"
 
 const MICRO_SERVICE_BASE =
   process.env.MICRO_SERVICE_BASE || "http://localhost:3002/api"
 const APP_NAME = "pipe-leadfinder"
 const SCALECREDITS_URL =
   process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg"
-const CREDIT_DISPLAY_SCALE = 10
-const TARGET_PEOPLE_SEARCH_USD = 0.8
-const DISPLAY_CREDITS_PER_USD = 200
-const PEOPLE_SEARCH_BASE_CREDITS = 3
-const DEFAULT_FIXED_CREDIT_PRICE_MULTIPLIER =
-  (TARGET_PEOPLE_SEARCH_USD * DISPLAY_CREDITS_PER_USD) /
-  PEOPLE_SEARCH_BASE_CREDITS
-const FIXED_CREDIT_PRICE_MULTIPLIER = Number(
-  process.env.PIPELEADS_FIXED_CREDIT_MULTIPLIER ||
-    DEFAULT_FIXED_CREDIT_PRICE_MULTIPLIER
-)
+const FIXED_CREDIT_PRICE_MULTIPLIER = getFixedCreditPriceMultiplier()
 
 const DEFAULT_TIMEOUT_MS = 10_000
 const MAX_RETRIES = 3
@@ -330,14 +325,6 @@ export async function consumeTokenCredits(
 // Credit cost constants for PipeLeads actions
 // ---------------------------------------------------------------------------
 
-export const CREDIT_COSTS = {
-  "search:people": 3, // per contact
-  "search:local": 1, // per business (free if no email)
-  "search:company": 1, // per company
-  "search:domain": 1, // per contact
-  "search:influencer": 2, // per profile
-  "enrich:email": 1, // per lead
-  "enrich:phone": 1, // per lead
-} as const
+export { CREDIT_COSTS }
 
 export type CreditAction = keyof typeof CREDIT_COSTS

@@ -17,7 +17,6 @@ import {
   Sparkles,
   PenLine,
   Lightbulb,
-  Workflow,
   ArrowRight,
   Zap,
   Send,
@@ -26,6 +25,16 @@ import {
   Star,
 } from "lucide-react"
 import Link from "next/link"
+import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
+
+const PEOPLE_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:people"], "lead")
+const LOCAL_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:local"], "business")
+const COMPANY_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:company"], "company")
+const DOMAIN_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:domain"], "contact")
+const INFLUENCER_SEARCH_PRICE = formatScaledCreditText(
+  CREDIT_COSTS["search:influencer"],
+  "profile"
+)
 
 export default function LandingPage() {
   return (
@@ -156,7 +165,8 @@ export default function LandingPage() {
                 revenue.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />1 credit per lead
+                <Zap className="h-3 w-3" />
+                {PEOPLE_SEARCH_PRICE}
               </div>
             </div>
 
@@ -172,7 +182,8 @@ export default function LandingPage() {
                 instantly.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />1 credit per lead
+                <Zap className="h-3 w-3" />
+                {LOCAL_SEARCH_PRICE}
               </div>
             </div>
 
@@ -188,7 +199,8 @@ export default function LandingPage() {
                 profiles, and employee counts.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />1 credit per lead
+                <Zap className="h-3 w-3" />
+                {COMPANY_SEARCH_PRICE}
               </div>
             </div>
 
@@ -204,7 +216,8 @@ export default function LandingPage() {
                 campaigns.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />1 credit per lead
+                <Zap className="h-3 w-3" />
+                {DOMAIN_SEARCH_PRICE}
               </div>
             </div>
 
@@ -219,7 +232,8 @@ export default function LandingPage() {
                 count, engagement rate, audience demographics, and hashtags.
               </p>
               <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />1 credit per lead
+                <Zap className="h-3 w-3" />
+                {INFLUENCER_SEARCH_PRICE}
               </div>
             </div>
 
@@ -353,7 +367,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
                 <Sparkles className="h-4 w-4" />
-                Zero credit cost for all AI features
+                Uses regular AI credits by token usage
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ArrowRight, Lightbulb, Coins } from "lucide-react"
 
 import { peopleSearchSchema, type PeopleSearchInput } from "@/lib/validators/search"
+import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,11 @@ import {
 } from "@/components/ui/collapsible"
 
 // ─── Select option constants ───────────────────────────────
+
+const PEOPLE_SEARCH_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["search:people"],
+  "record"
+)
 
 const RESULTS_LIMIT_OPTIONS = [
   { value: "10", label: "10" },
@@ -395,7 +401,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
-              People search will consume 3 credits per record returned.
+              People search will consume {PEOPLE_SEARCH_CREDIT_TEXT} returned.
             </p>
           </div>
 

@@ -23,7 +23,7 @@ export interface CreditCheckResult {
 /**
  * Flat credit usage payload for PipeLeads.
  * Unlike token-based apps (ClickCampaigns, PageBuilder), PipeLeads uses
- * fixed per-action credit costs (e.g. 3 credits per People Search lead).
+ * fixed per-action credit costs scaled through the app pricing multiplier.
  */
 export interface CreditUsagePayload {
   amount: number

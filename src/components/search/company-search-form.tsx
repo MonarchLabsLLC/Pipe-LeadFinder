@@ -5,6 +5,7 @@ import { useForm, Controller, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 import { companySearchSchema, type CompanySearchInput } from "@/lib/validators/search"
+import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
@@ -25,6 +26,11 @@ interface CompanySearchFormProps {
   onCancel: () => void
   isLoading?: boolean
 }
+
+const COMPANY_SEARCH_CREDIT_TEXT = formatScaledCreditText(
+  CREDIT_COSTS["search:company"],
+  "company"
+)
 
 export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySearchFormProps) {
   const [listId, setListId] = useState<string | undefined>(undefined)
@@ -297,7 +303,7 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
-              Company search will consume 1 credit per record returned.
+              Company search will consume {COMPANY_SEARCH_CREDIT_TEXT} returned.
             </p>
           </div>
 
