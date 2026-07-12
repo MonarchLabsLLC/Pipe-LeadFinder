@@ -142,7 +142,7 @@ export default function SupportPage() {
                   },
                   {
                     q: "Why did my search return zero results?",
-                    a: "Usually too many filters. Try removing advanced filters and double-check that your location was selected from the autocomplete dropdown (not typed manually).",
+                    a: "Usually there are too many filters. Start with a broader description and location, then add filters after you see the first results.",
                   },
                   {
                     q: "How do I find someone's email address?",
@@ -150,7 +150,7 @@ export default function SupportPage() {
                   },
                   {
                     q: "Can I export my leads?",
-                    a: "Yes — click \"Export CSV\" in the action bar above any lead list. Exports are always free, no credits charged. The CSV includes 22 columns and opens in Excel, Google Sheets, or your CRM.",
+                    a: "Yes — click \"Export CSV\" above any lead list. Exports are free and download the full list as a CSV you can open in Excel, Google Sheets, or import into a CRM.",
                   },
                 ].map((item) => (
                   <div key={item.q} className="flex gap-3">

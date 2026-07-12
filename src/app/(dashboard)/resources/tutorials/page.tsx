@@ -437,8 +437,8 @@ export default function TutorialsPage() {
                 <CardContent className="space-y-5">
                   <p className="text-sm text-muted-foreground">
                     Every time PipeLeads finds you a new lead or enriches contact data, it
-                    uses a small number of credits. Think of it like a pay-per-result system—
-                    you only spend credits when you actually get something back.
+                    uses a small number of credits. Your current price is shown in the app
+                    before you begin, and enrichment is charged only when contact data is found.
                   </p>
 
                   <div className="overflow-x-auto">
@@ -651,8 +651,8 @@ export default function TutorialsPage() {
                         right. This matters: LinkedIn search is location-sensitive.
                       </Step>
                       <Step number={4} title="Set Results Limit">
-                        Choose how many contacts to return (up to 100 per search). Each contact
-                        costs {PEOPLE_SEARCH_CREDIT_TEXT}, so start with 10–20 to test the waters.
+                        Choose how many contacts to return. Each contact costs {PEOPLE_SEARCH_CREDIT_TEXT},
+                        so start with a small test search before committing to a larger one.
                       </Step>
                       <Step number={5} title="Use Advanced Filters (optional)">
                         Click <strong>Advanced filters</strong> to access 15+ extra fields:
@@ -663,8 +663,7 @@ export default function TutorialsPage() {
                       <Step number={6} title="Pick a List and Search">
                         Choose an existing list from the dropdown, or type a name and click
                         <strong> Create new list</strong>. Then click <strong>→ Continue</strong>.
-                        Your search will run in the background—results appear in your list
-                        within 1–3 minutes.
+                        When the search completes, open the list to review the results.
                       </Step>
                     </div>
                   </div>
@@ -716,7 +715,7 @@ export default function TutorialsPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Local Search finds brick-and-mortar businesses and local service providers
                     using Google Maps data. It's the easiest search to start with—just two
-                    fields—and it's the most affordable option at {LOCAL_SEARCH_CREDIT_TEXT} (and
+                    fields—and it costs {LOCAL_SEARCH_CREDIT_TEXT} (and
                     free if no email is found).
                   </p>
 
@@ -735,15 +734,15 @@ export default function TutorialsPage() {
                       ensure the correct format.
                     </Step>
                     <Step number={4} title="Pick a List and Run">
-                      Select or create a list, then click <strong>→ Continue</strong>. Results
-                      typically arrive within 1–2 minutes.
+                      Select or create a list, then click <strong>→ Continue</strong>. When the
+                      search completes, open the list to review the results.
                     </Step>
                   </div>
 
                   <Note>
-                    Local Search results include the business name, address, phone number,
-                    website, and email (when available). You'll also see their Google Maps
-                    rating and review count, which is useful for qualifying prospects.
+                    Local Search results can include business and contact details when they are
+                    available. Treat the results as a starting point: review each business before
+                    you begin outreach.
                   </Note>
 
                   <Tip>
@@ -888,10 +887,9 @@ export default function TutorialsPage() {
                       <strong>Search by Username</strong> to look up their profile directly.
                     </Step>
                     <Step number={4} title="Add Email Enrichment (optional)">
-                      Check the <strong>Include email enrichment</strong> option to
-                      automatically try to find an email address for each influencer.
-                      This costs {ENRICH_EMAIL_CREDIT_TEXT} when contact info is found but saves you from
-                      hunting down contact info manually.
+                      Run the search first, then use <strong>Data Enrichment</strong> from the
+                      saved list if you want to look for missing email addresses. This costs{" "}
+                      {ENRICH_EMAIL_CREDIT_TEXT} when contact information is found.
                     </Step>
                   </div>
 
@@ -968,6 +966,7 @@ export default function TutorialsPage() {
                     {[
                       ["Name", "Photo, full name, job title, location, and social links"],
                       ["AI Assistant", "Quick-action buttons to generate messages, summaries, and more for this specific person"],
+                      ["Lead Score", "A fit score and recommended next step after you run Score Leads"],
                       ["Contact Info", "Email status, phone number, and buttons to add missing contact details"],
                       ["Company", "Company name and LinkedIn link"],
                       ["Labels", "Tags you've applied to track outreach status"],
@@ -1010,14 +1009,14 @@ export default function TutorialsPage() {
                         desc: "Filter leads by email status: All, Email found (verified address), Email not found, or Potential (unverified address). Useful for focusing on leads you can actually contact today.",
                       },
                       {
-                        icon: Search,
-                        label: "Search (add more leads)",
-                        desc: "Run another search and add its results directly into this list. Great for building a larger list over multiple search sessions.",
-                      },
-                      {
                         icon: Sparkles,
                         label: "Data Enrichment",
-                        desc: "Bulk-enrich all leads in the list that are missing email addresses. Runs in the background — refresh after a few minutes to see updated results.",
+                        desc: "Look for email addresses for eligible leads in this list. The completion notice tells you how many emails were found.",
+                      },
+                      {
+                        icon: WandSparkles,
+                        label: "Score Leads",
+                        desc: "Rank leads by how well they match the business information in your Knowledge Base. Scores, an outreach angle, and a suggested next action appear in the table.",
                       },
                       {
                         icon: BrainCircuit,
@@ -1197,9 +1196,8 @@ export default function TutorialsPage() {
                           button labelled <strong>Add Email</strong>. Click it.
                         </Step>
                         <Step number={3} title="Wait for the result">
-                          A loading spinner appears while the system searches. Within 30–60
-                          seconds, the email address (if found) will appear in the column with
-                          a status badge.
+                          A loading indicator appears while the system searches. When it finishes,
+                          an email address and status badge appear in the column if one was found.
                         </Step>
                       </div>
                     </div>
@@ -1211,13 +1209,14 @@ export default function TutorialsPage() {
                           Above your results table, click the <strong>Data Enrichment</strong>{" "}
                           button (the one with the sparkle icon).
                         </Step>
-                        <Step number={2} title="Confirm the action">
-                          The system starts enriching all leads with a "Not Found" or
-                          "Unknown" email status. You'll see a success notification.
+                        <Step number={2} title="Review the completion notice">
+                          PipeLeads checks eligible leads that do not already have an email. A
+                          completion notice tells you how many were checked and how many emails
+                          were found.
                         </Step>
-                        <Step number={3} title="Refresh after a few minutes">
-                          Bulk enrichment runs in the background. Come back in 3–5 minutes
-                          and refresh the page to see updated email addresses across your list.
+                        <Step number={3} title="Review your list">
+                          The list refreshes after enrichment. Use the Email found filter to
+                          focus on leads ready for email outreach.
                         </Step>
                       </div>
                     </div>
@@ -1252,14 +1251,14 @@ export default function TutorialsPage() {
                     <Step number={1} title="Find the lead in your list">
                       Open your list and find the lead you want a phone number for.
                     </Step>
-                    <Step number={2} title='Click "Get Phone Numbers"'>
+                    <Step number={2} title='Click "Get Phone"'>
                       In the <strong>Contact Info</strong> column, click the{" "}
-                      <strong>Get Phone Numbers</strong> button. A loading indicator appears.
+                      <strong>Get Phone</strong> button. A loading indicator appears.
                     </Step>
                     <Step number={3} title="See the result">
                       If a number is found, it appears directly in the column. If not found,
                       you'll see a "Not Found" status. You can also manually type in a phone
-                      number using the <strong>Add Phone Number</strong> option.
+                      number using the <strong>Add Phone</strong> option.
                     </Step>
                   </div>
 
@@ -1459,11 +1458,9 @@ export default function TutorialsPage() {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    An AI Agent is like a mini-employee you create once. You tell it who to look
-                    for, what to do when it finds them (enrich their data, generate outreach
-                    content), and where to send the results (a webhook, a CRM, or just a list
-                    in PipeLeads). Then you run that workflow manually or schedule it for a
-                    fresh batch of leads.
+                    An AI Agent is a reusable prospecting workflow. You choose who to search
+                    for, which follow-up actions to run, and optional webhook URLs for sending
+                    the results to another tool. You can run the workflow from the agent page.
                   </p>
 
                   <div className="space-y-4">
@@ -1477,27 +1474,29 @@ export default function TutorialsPage() {
                       "Monthly LinkedIn Outreach — SaaS Founders."
                     </Step>
                     <Step number={3} title="Configure the Search">
-                      Choose which search type to use and fill in the search parameters —
-                      exactly like setting up a regular search.
+                      Choose a search type, then enter a description and location. Keep the
+                      description simple and specific, such as "Web Designers" or "Dentists."
                     </Step>
                     <Step number={4} title="Add Actions">
                       Choose what happens after the leads are found:
                       <ul className="mt-1 space-y-1 list-disc list-inside text-xs">
                         <li><strong>Enrich emails</strong> — automatically find email addresses</li>
-                        <li><strong>Generate outreach content</strong> — create messages for each lead</li>
-                        <li><strong>Send to webhook</strong> — push leads to your CRM or automation tool</li>
+                        <li><strong>Enrich phone</strong> — look for phone numbers</li>
+                        <li><strong>AI Summary</strong> — save a prospect summary for each lead</li>
+                        <li><strong>AI Direct Message</strong> — save a personalized direct message for each lead</li>
                       </ul>
                     </Step>
-                    <Step number={5} title="Set a Schedule">
-                      Choose manual, daily, weekly, or monthly. Active scheduled agents run
-                      through the scheduler.
+                    <Step number={5} title="Save and run">
+                      Click <strong>Save</strong>, then <strong>Run</strong> when you are ready.
+                      You can also choose a Manual, Daily, Weekly, or Monthly schedule. Scheduled
+                      runs require the application scheduler to be configured by your administrator.
                     </Step>
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3 pt-2">
                     {[
                       { icon: FileText, label: "Draft", desc: "Agent is being built, not running yet" },
-                      { icon: Zap, label: "Active", desc: "Ready for manual or scheduled runs" },
+                      { icon: Zap, label: "Active", desc: "Available for runs; scheduled runs also need an administrator-configured scheduler" },
                       { icon: Target, label: "Paused", desc: "Temporarily stopped, can be resumed" },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg border p-3 text-center space-y-1">
@@ -1654,10 +1653,9 @@ export default function TutorialsPage() {
                   </div>
 
                   <Note>
-                    If you've applied an email filter (e.g., "Email found" only), the export
-                    will include only the leads visible in the current filtered view. To export
-                    everything, make sure the <strong>All</strong> filter tab is selected before
-                    clicking Export.
+                    Export CSV downloads the full list, not only the leads shown by the current
+                    email filter. Use a spreadsheet or your CRM after export if you need to work
+                    with only a subset.
                   </Note>
 
                   <Tip>
