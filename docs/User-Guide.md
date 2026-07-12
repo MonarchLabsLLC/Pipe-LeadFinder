@@ -2,7 +2,7 @@
 
 ## Pipe-LeadFinder — AI-Powered Lead Intelligence Platform
 
-**Last Updated:** March 2026 (rev 2)
+**Last Updated:** July 2026 (rev 3)
 
 ---
 
@@ -12,7 +12,7 @@
 
 In development mode, you're automatically signed in as `admin@GrooveDigital.com`. No credentials needed — visit any page and you're authenticated.
 
-In production, users will authenticate through the login page.
+In production, PipeLeads uses your Keycloak account. Sign in through the Keycloak prompt when it appears. Your account must have the PipeLeads app role; if you see **Access Denied**, contact your administrator to request access.
 
 ### Dashboard Overview
 
@@ -35,11 +35,11 @@ Navigate to **Lead Search → New Search**. You'll see five search type cards:
 
 | Search Type | What It Finds | Credits |
 |-------------|--------------|---------|
-| **People Search** | Individuals by role, industry, location | 3 per record |
-| **Local Search** | Local businesses by type and area | 1 per company (free if no email found) |
-| **Company Search** | Companies by industry, size, technology | 1 per company |
-| **Domain Search** | All contacts at a specific company/domain | 1 per individual |
-| **Influencer Search** | Social media influencers by platform/niche | 2 per record (+5 for enrichment) |
+| **People Search** | Individuals by role, industry, location | 50 credits per contact |
+| **Local Search** | Local businesses by type and area | 25 credits per business; no charge when no email is returned |
+| **Company Search** | Companies by industry, size, technology | 25 credits per company |
+| **Domain Search** | All contacts at a specific company/domain | 25 credits per contact |
+| **Influencer Search** | Social media influencers by platform/niche | 25 credits per profile |
 
 **To run a search:**
 1. Click a search type card (selected card shows a checkmark)
@@ -121,6 +121,10 @@ Click a list to open its results. The table shows all leads with these columns:
 **AI Assistant Column:**
 - One-click AI actions per lead (see AI Assistant section)
 
+**Lead Score Column:**
+- Shows an AI fit score when your list has been scored
+- Select the score to see the fit label, outreach angle, suggested opener, and next action
+
 **Contact Info Column:**
 - Email address with verification status (Found / Not Found / Potential)
 - "Get Phone Numbers" button — enrichment action
@@ -142,12 +146,10 @@ Click a list to open its results. The table shows all leads with these columns:
 Above the results table:
 - **History** — opens a side sheet showing all past searches run into this list (date, type, parameters, result count)
 - **Filter tabs** — All | Email found | Email not found | Potential
-- **Status filter** — filter by outreach status (Unsent, etc.)
-- **More Filters** — additional filtering options
-- **Search** — run another search into this list
 - **Data Enrichment** — bulk enrich all leads in this list that are missing emails (calls Apify `code_crafter/personal-email-finder` per lead)
+- **Score Leads** — rank the leads by fit using your Knowledge Base context
 - **AI Agent** — navigate to the AI Agent page to create an agent for this list
-- **List new search** — add more leads via new search
+- **Export CSV** — download the leads currently in the list
 
 ---
 
@@ -199,9 +201,11 @@ Your business profile powers all AI-generated content. Fill in:
 - **Q&A** — structured question/answer pairs
 - **PDF** — upload documents
 
-### AI Assistant
+### AI Assistant and Prompt Templates
 
-The AI Assistant generates personalized outreach content per lead. Access it from the AI Assistant column in any results table:
+The **AI Assistant** page is where you create and manage reusable prompt templates. A template can include `{name}`, `{company}`, and `{title}` so it adapts to each lead.
+
+To use AI with an individual lead, open a saved list and use the buttons in that lead's **AI Assistant** column:
 
 | Action | What It Does |
 |--------|-------------|
@@ -211,22 +215,34 @@ The AI Assistant generates personalized outreach content per lead. Access it fro
 | **Subject Line** | Generate email subject line options |
 | **Intro** | Generate an email opening paragraph |
 | **Custom** | Run any custom prompt against this lead's data |
-| **Library** | Use a saved prompt template |
+| **Library** | Choose and run a saved prompt template |
 
-All AI actions are **zero credit cost** — they use your AI API keys, not search credits.
+Generated content appears in a side panel, where you can copy it to your clipboard. AI Assistant responses use token-based credits.
+
+### Lead Scoring
+
+Use **Score Leads** from a saved list when you want to focus on the prospects most likely to fit your offer. PipeLeads compares the leads to the Business Profile and data sources in your Knowledge Base, then ranks them from 0 to 100.
+
+1. Open a saved list and click **Score Leads**.
+2. Wait for the completion notice. Lists with scores are automatically ordered from highest to lowest score.
+3. Select a score in the **Lead Score** column to review its fit label, reasons, suggested opener, and recommended next action.
+
+Lead scoring uses token-based credits.
 
 ### AI Agents
 
 Navigate to **AI Tools → AI Agent**.
 
-AI Agents automate your prospecting workflow:
+AI Agents automate a prospecting workflow:
 1. Click **New AI Agent**
-2. Give it a name and description
-3. Configure: search type, parameters, actions (enrich, research, content), and connections (webhook, CRM)
-4. Set schedule or trigger
-5. Monitor from the agent dashboard
+2. Give it a name, optional description, and optional auto-save setting.
+3. Open the agent and configure its search type, description, location, actions, webhook connections, and schedule.
+4. Select the actions to run on each result: email enrichment, phone enrichment, AI summary, or AI direct message.
+5. Click **Save**, then **Run** to execute it immediately. Set the agent to **Active** for scheduled runs.
 
 Agent statuses: **Draft** (building), **Active** (running), **Paused** (stopped)
+
+Schedules can be Manual, Daily, Weekly, or Monthly. Scheduled runs require the application scheduler to be configured by your administrator.
 
 ---
 
@@ -251,7 +267,7 @@ Enrich leads with additional contact data. All enrichment uses person-level Apif
 2. The system enriches all leads in the list where email status is `NOT_FOUND` or `UNKNOWN`
 3. A progress summary is returned showing how many leads were enriched out of the total eligible
 
-Enrichment actors are configured via environment variables (`APIFY_ACTOR_ENRICH_EMAIL`, `APIFY_ACTOR_ENRICH_PHONE`). Enrichment consumes credits based on the data found.
+Enrichment consumes 25 credits when a matching email or phone number is found. There is no enrichment charge when no result is found.
 
 ---
 
@@ -290,22 +306,25 @@ Your live credit balance is displayed in the sidebar under **Credits Remaining**
 
 ### Buying Credits
 
-Click **Credit Wallet** in the sidebar to open the ScaleCredits purchase portal at `credits.scaleplus.gg`. Purchase credits there and your balance updates in the app automatically.
+Click **Credit Wallet** in the sidebar to open the ScaleCredits purchase portal. Purchase credits there and your balance updates in the app automatically.
 
 ### Credit Checks
 
-Credits are checked **before every search and enrichment operation**. If your balance is negative or insufficient, the operation is blocked and you will be prompted to add credits before continuing.
+Credits are checked **before every search and enrichment operation**. If your balance is negative, the operation is blocked and you will be prompted to add credits before continuing.
 
 ### Credit Costs
 
 | Operation | Cost |
 |-----------|------|
-| People Search | 3 credits per contact |
-| Local Search | 1 credit per business (free if no email found) |
-| Company Search | 1 credit per company |
-| Domain Search | 1 credit per contact found |
-| Influencer Search | 2 credits per profile |
-| Email enrichment | 1 credit per lead |
-| Phone enrichment | 1 credit per lead |
+| People Search | 50 credits per contact |
+| Local Search | 25 credits per business (free if no email found) |
+| Company Search | 25 credits per company |
+| Domain Search | 25 credits per contact found |
+| Influencer Search | 25 credits per profile |
+| Email enrichment | 25 credits per lead when found |
+| Phone enrichment | 25 credits per lead when found |
 | AI Assistant | Token-based (charged per response) |
+| Lead scoring | Token-based (charged per scoring run) |
 | CSV Export | Free |
+
+The credit service can supply current per-hit pricing, so the amount shown in the app is the amount to rely on before you run an operation.

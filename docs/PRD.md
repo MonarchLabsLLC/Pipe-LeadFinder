@@ -3,7 +3,7 @@
 ## Pipe-LeadFinder — AI-Powered Lead Intelligence Platform
 
 **Status:** Active Development
-**Last Updated:** March 2026
+**Last Updated:** July 2026
 **Owner:** Mike Filsaime / GrooveDigital / Scale.gg
 
 ---
@@ -34,12 +34,14 @@ The current lead finding solution is a white-label service with limited customiz
 2. Direct Apify integration as the sole data engine — no third-party lead data middlemen
 3. AI-powered lead research and content generation via Vercel AI SDK
 4. Clean, responsive dashboard using the existing Next.js + shadcn/ui stack
+5. Score saved-list leads against the user's business context to prioritize outreach
 
 ### Success Metrics
 - All 5 search types return results via Apify actors
 - Leads can be saved, organized into lists, enriched, labeled, and exported
 - AI Assistant generates personalized outreach content per lead
-- AI Agents run automated search + enrich + action pipelines
+- Leads can be AI-scored with a fit score, recommended angle, opener, and next action
+- AI Agents run manual or scheduled search + enrich + action pipelines
 
 ---
 
@@ -64,7 +66,7 @@ The current lead finding solution is a white-label service with limited customiz
 
 All searches are backed by Apify actors. Each search type has a specific form, sends parameters to an Apify actor, and stores results in a Saved List.
 
-#### 5.1.1 People Search (3 credits/record)
+#### 5.1.1 People Search (50 credits/contact)
 Find individuals by role, industry, and location.
 
 **Form Fields:**
@@ -100,7 +102,7 @@ Find individuals by role, industry, and location.
 - Facebook profile URL (if available)
 - Company name, company website, company LinkedIn
 
-#### 5.1.2 Local Search (1 credit/company)
+#### 5.1.2 Local Search (25 credits/business)
 Find local businesses by type and location. No credits charged if no email found.
 
 **Form Fields:**
@@ -114,7 +116,7 @@ Find local businesses by type and location. No credits charged if no email found
 - Website URL
 - Business category/type
 
-#### 5.1.3 Company Search (1 credit/company)
+#### 5.1.3 Company Search (25 credits/company)
 Find and gather information about companies.
 
 **Form Fields:**
@@ -138,7 +140,7 @@ Find and gather information about companies.
 - Social profiles
 - Contact emails
 
-#### 5.1.4 Domain Search (1 credit/individual result)
+#### 5.1.4 Domain Search (25 credits/contact)
 Find contacts at a specific company from its domain or name.
 
 **Form Fields:**
@@ -150,7 +152,7 @@ Find contacts at a specific company from its domain or name.
 - Each person: name, title, email, LinkedIn
 - Example: 7 staff with emails = 7 credits
 
-#### 5.1.5 Influencer Search (2 credits/record, +5 for manual enrichment)
+#### 5.1.5 Influencer Search (25 credits/profile)
 Find social media influencers by platform, niche, and engagement metrics.
 
 **Platform Tabs:** Instagram | TikTok | YouTube
@@ -212,18 +214,17 @@ Lists are the primary organizational unit for leads. Each search saves results t
 **Action Bar:**
 - History button
 - Filter tabs: All | Email found | Email not found | Potential Emails Found (with counts)
-- Status filter dropdown (Unsent, etc.)
-- More Filters button
-- Search button (run additional search into this list)
 - Data Enrichment button
+- Score Leads button
 - AI Agent button
-- List new search button
+- Export CSV button
 
 **Table Columns:**
 | Column | Content |
 |--------|---------|
 | Checkbox | Bulk select for batch operations |
 | Name | Avatar, full name, job title, location, social links (LinkedIn, Facebook), Edit button |
+| Lead Score | AI fit score, fit label, best outreach angle, suggested opener, and next action |
 | AI Assistant | Similar People, Direct Message, Summary, Subject Line, Intro, Custom, Library buttons |
 | Contact Info | Email (with verified/not found/potential status), Get Phone Numbers, Add Phone Number, Add Email buttons |
 | Company | Company name (linked to website), company LinkedIn link |
@@ -248,7 +249,7 @@ One-click enrichment of existing leads to fill in missing contact data.
 - Enrichment uses Apify actors to find additional contact data
 - Enrichment consumes credits
 
-### 5.5 AI Assistant (Zero Credit Cost)
+### 5.5 AI Assistant and Prompt Templates
 
 Inline AI-powered actions available per lead in the results table. Uses Vercel AI SDK with OpenAI/Gemini.
 
@@ -263,7 +264,19 @@ Inline AI-powered actions available per lead in the results table. Uses Vercel A
 
 AI Assistant uses the Knowledge Base (Business Profile) to personalize all generated content.
 
-### 5.6 AI Agents
+The dedicated AI Assistant page provides CRUD for reusable prompt templates. Templates support `{name}`, `{company}`, and `{title}` variables. Assistant responses consume token-based credits.
+
+### 5.6 Lead Scoring
+
+Saved lists can be ranked against the user's Knowledge Base. The scoring action generates and stores, for each lead:
+
+- A fit score from 0 to 100 and a label: Hot, Warm, Research, or Low
+- A concise best outreach angle and 2–4 fit reasons
+- A suggested opener and recommended next action
+
+Results are shown in the list's Lead Score column and the list is displayed in descending score order after scoring. Scoring uses the configured AI provider and consumes token-based credits.
+
+### 5.7 AI Agents
 
 Automated prospecting pipelines that run search + enrichment + actions on a schedule or trigger.
 
@@ -272,20 +285,23 @@ Automated prospecting pipelines that run search + enrichment + actions on a sche
 - Description (optional) — text input
 - Auto-save changes — checkbox
 
-**Agent Builder (Future Detail):**
+**Agent Builder:**
 - Select search type
 - Configure search parameters
 - Add actions: enrichment, AI research, content generation
-- Add connections: webhook, CRM sync, email
-- Set schedule or trigger
+- Add outbound webhook connections
+- Set a Manual, Daily, Weekly, or Monthly schedule
 
 **Agent Dashboard:**
 - List of agents with status (Active, Paused, Draft)
 - Filter by status
 - Card view: name, created date, action count, connection count, lead count
 - Play/pause and delete controls
+- Manual **Run** control on the builder
 
-### 5.7 Knowledge Base (Business Profile)
+Scheduled execution is performed through a protected scheduler endpoint and requires deployment-level cron configuration.
+
+### 5.8 Knowledge Base (Business Profile)
 
 AI context that powers personalized outreach. Feeds into the AI Assistant.
 
@@ -304,15 +320,9 @@ AI context that powers personalized outreach. Feeds into the AI Assistant.
 - Q&A — structured question/answer pairs
 - PDF — upload documents
 
-### 5.8 Placeholders (Out of Scope for V1)
+### 5.9 Administration and future areas
 
-These features will have navigation entries and placeholder pages but no functional implementation:
-
-**Credits System:**
-- Credits Remaining display (sidebar)
-- Credit Wallet button
-- Credit consumption tracking
-- Handled by external billing portal
+The following administration areas have navigation entries but are not yet implemented:
 
 **Admin Section:**
 - Business Account
@@ -326,10 +336,9 @@ These features will have navigation entries and placeholder pages but no functio
 - Training Content
 - Partners
 
-**Resources Section:**
-- Support links
-- Tutorial content
-- Documentation
+**Current integrations:**
+- ScaleCredits balance, operation checks, pricing, and consumption
+- Support Center and in-app tutorial pages
 
 ---
 
@@ -372,7 +381,7 @@ User → Search Form → Next.js API Route → Apify Actor → Raw Results
 
 ## 7. Non-Functional Requirements
 
-- **Performance:** Search results should begin streaming within 5 seconds of submission
+- **Performance:** Search operations should provide clear loading, success, and failure feedback while external data providers run
 - **Responsiveness:** Full mobile and tablet support
 - **Data Privacy:** No lead data shared with third parties beyond Apify processing
 - **Export:** CSV export of any list (no credit charge for export)
@@ -400,7 +409,7 @@ Each search type maps to one or more Apify actors. Specific actor IDs will be co
 - **Apify** — all lead data sourcing and enrichment
 - **OpenAI / Gemini** — AI Assistant content generation via Vercel AI SDK
 - **Firecrawl** — Knowledge Base website crawling
-- **Webhooks** — outbound data to external CRMs (placeholder for V1)
+- **Webhooks** — AI Agents can POST completed-run lead payloads to configured URLs
 - **CSV Export** — download list data
 
 ---
@@ -422,13 +431,13 @@ Each search type maps to one or more Apify actors. Specific actor IDs will be co
 - Phone number lookup enrichment
 
 ### Phase 3: Agents & Automation
-- AI Agent builder
-- Agent scheduling and execution
-- Agent dashboard with status management
+- AI Agent builder, manual execution, and status management
+- Protected scheduled agent execution
+- Outbound webhook delivery for agent results
 
-### Phase 4: Polish & Placeholders
+### Phase 4: Polish & Administration
 - Admin section placeholder pages
-- Credits display (static/placeholder)
+- ScaleCredits display, pricing, and consumption
 - CSV export
 - Mobile responsive refinement
 - Theme selector integration

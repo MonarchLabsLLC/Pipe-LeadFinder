@@ -17,6 +17,7 @@ npm run dev      # Start dev server (Turbopack) - auto-login enabled
 npm run build    # Production build
 npm run start    # Start production server
 npm run lint     # ESLint
+npm run agents:scheduled # Trigger due AI-agent schedules
 ```
 
 ### Database (Prisma 7)
@@ -35,7 +36,7 @@ npx shadcn@latest add <component>    # Add component (button, card, etc.)
 ## Architecture
 
 ### Tech Stack
-- **Next.js 15** (App Router, Turbopack)
+- **Next.js 16** (App Router, Turbopack)
 - **React 19** with Server Components
 - **TypeScript 5**, **Tailwind 4**, **shadcn/ui**
 - **NextAuth 5** (Auth.js), **Prisma 7** (PostgreSQL)
@@ -45,14 +46,14 @@ npx shadcn@latest add <component>    # Add component (button, card, etc.)
 
 ### Authentication Pattern
 
-Development mode has automatic authentication bypass:
+Development mode has automatic authentication bypass. Production authentication is initiated by the client-side `KeycloakProvider`, which validates the required app role and bridges a Keycloak token into a NextAuth credentials session.
 
 1. `src/middleware.ts` - Intercepts requests, redirects unauthenticated users to `/api/auth/dev-login` in dev mode
 2. `src/app/api/auth/dev-login/route.ts` - Signs in automatically as `admin@GrooveDigital.com`
 3. `src/auth.ts` - NextAuth config with `DEV_USER` constant, type augmentation for `role` field
 
-**In development**: No login required. Visit any page → auto-redirected → auto-signed in.
-**In production**: Redirects to `/login` (needs implementation).
+**In development**: No login required. Visit any protected page → auto-redirected → auto-signed in.
+**In production**: Keycloak performs silent SSO or redirects the user to sign in. Pages and API routes still use the NextAuth session exposed by `auth()` / `useSession()`.
 
 Session is available via:
 - Server Components: `import { auth } from "@/auth"` → `const session = await auth()`
@@ -66,7 +67,7 @@ All authenticated pages live under the `(dashboard)` route group, which wraps co
 - `/lead-search/saved-lists` — list management with leads table
 - `/lead-search/custom-labels` — label CRUD for lead organization
 - `/ai/ai-assistant` — per-lead AI actions (DM, summary, subject lines, etc.)
-- `/ai/ai-agent` — automated prospecting pipeline builder
+- `/ai/ai-agent` — automated prospecting pipeline builder and scheduler
 - `/ai/knowledge-base` — business profile + data sources for AI personalization
 - `/admin/[...slug]` — admin pages (role-restricted)
 - `/resources/support` — support page
@@ -114,9 +115,10 @@ All five search types (`/api/search/people`, `/api/search/local`, `/api/search/c
 
 ### AI Service Architecture
 
-- **AI Assistant** (`/api/ai/assistant`): Uses Vercel AI SDK `streamText` with `openai()` provider. Builds prompts from lead context + business profile (Knowledge Base). Each `AiActionType` (DIRECT_MESSAGE, SUMMARY, SUBJECT_LINE, etc.) has a dedicated system prompt in `src/services/ai-service.ts`. Token costs charged via `consumeTokenCredits()` in `onFinish`.
+- **AI Assistant** (`/api/ai/assistant`): Uses Vercel AI SDK `streamText`. `src/services/ai-runtime.ts` selects OpenAI or Google from environment configuration. Prompts combine lead context with the Knowledge Base; token costs are charged in `onFinish`.
 - **Knowledge Base** (`/api/ai/knowledge-base`): CRUD for `BusinessProfile` + `DataSource` records. Data sources can be WEBSITE (crawled via Firecrawl), TEXT, QA, or PDF. The business context is injected into all AI prompts.
-- **AI Agents** (`/api/ai/agent`): CRUD + run endpoint for `AiAgent` model (automated prospecting pipelines).
+- **Lead scoring** (`/api/lists/[id]/score`): Scores all leads in a list against the user's business context, stores score results as `AiResult` records, and charges token usage.
+- **AI Agents** (`/api/ai/agent`): CRUD, manual run, and protected scheduled-run endpoint for `AiAgent` pipelines. The runner can search, enrich, generate summaries or DMs, and POST result payloads to configured webhooks.
 - **Prompt Templates** (`/api/ai/prompts`): CRUD for reusable `PromptTemplate` records.
 
 ### Environment Setup
@@ -126,6 +128,7 @@ Copy `.env.example` to `.env`. Key required variables:
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `AUTH_URL` — app URL (`http://localhost:3000` for dev)
 - `DEV_AUTO_LOGIN=true` — enables dev auto-login
+- `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production Keycloak configuration
 - `OPENAI_API_KEY` — for AI assistant features
 - `GOOGLE_GENERATIVE_AI_API_KEY` — for Gemini (also aliased as `GEMINI_API_KEY`, `GOOGLE_API_KEY`)
 - `APIFY_API_KEY` — Apify platform API key
@@ -137,6 +140,7 @@ Copy `.env.example` to `.env`. Key required variables:
 - `MICRO_SERVICE_BASE` — ScaleCredits microservice URL (default `http://localhost:3002/api`)
 - `SCALECREDITS_URL` — Credit purchase portal URL (e.g., `https://credits.scaleplus.gg`)
 - `NEXT_PUBLIC_SCALECREDITS_URL` — Client-side credit purchase URL (exposed to browser)
+- `PIPELEADS_AGENT_CRON_SECRET` — authorizes `/api/ai/agent/run-scheduled` and `npm run agents:scheduled`
 
 ### Key Directories
 
@@ -153,6 +157,8 @@ Copy `.env.example` to `.env`. Key required variables:
   - `ai-service.ts` — System prompts, business/lead context builders
   - `credits-service.ts` — ScaleCredits microservice proxy (retry + timeout logic)
   - `knowledge-base-service.ts` — Business profile + data source management
+  - `lead-scoring-service.ts` — AI fit scoring for saved-list leads
+  - `agent-runner.ts` — agent execution, webhook delivery, and schedule helpers
 - `src/lib/validators/` — Zod schemas: `search.ts`, `list.ts`, `label.ts`, `prompt.ts`
 - `src/lib/credit-guard.ts` — `guardCredits` pre-check + `deductCredits` fire-and-forget
 - `src/lib/pick-lead-fields.ts` — Whitelist valid Lead model fields from raw Apify output
@@ -190,7 +196,9 @@ Copy `.env.example` to `.env`. Key required variables:
 | `/api/leads` | GET | Query leads with filters |
 | `/api/lists/[id]/history` | GET | Fetch search history for a list (last 50) |
 | `/api/lists/[id]/export` | GET | Download CSV of all leads in a list |
+| `/api/lists/[id]/score` | POST | AI-score every lead in a list against the business context |
 | `/api/credits` | GET | Get user credit balance (or `?action=check` for pre-op availability) |
+| `/api/credits/pricing` | GET | Get current PipeLeads per-hit pricing |
 | `/api/location-search` | POST | Nominatim location autocomplete (`{ query }`) |
 
 ### ScaleCredits Integration
@@ -209,9 +217,9 @@ The app uses an external **ScaleCredits** microservice for metered billing. All 
 
 | Operation | Cost |
 |-----------|------|
-| People Search | 3 per contact |
-| Local Search | 1 per business (free if no email found) |
-| Company Search | 1 per company |
-| Domain Search | 1 per contact |
-| Influencer Search | 2 per profile |
-| Enrich email/phone | 1 per lead |
+| People Search | 50 per contact |
+| Local Search | 25 per business (free if no email found) |
+| Company Search | 25 per company |
+| Domain Search | 25 per contact |
+| Influencer Search | 25 per profile |
+| Enrich email/phone | 25 per successful lookup |

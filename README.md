@@ -9,18 +9,19 @@ Part of the [Scale.gg](https://scale.gg) ecosystem.
 - **5 Search Types** — People, Local Business, Company, Domain, and Influencer searches powered by Apify actors
 - **Saved Lists** — organize leads into lists with filtering, search, and bulk operations
 - **Data Enrichment** — one-click email and phone number discovery
-- **AI Assistant** — generate personalized DMs, subject lines, intros, and summaries per lead
-- **AI Agents** — automated prospecting pipelines (search → enrich → action → CRM)
+- **AI Assistant** — generate personalized DMs, subject lines, intros, summaries, and reusable prompt templates per lead
+- **Lead Scoring** — AI-rank each saved-list lead by fit, with a suggested angle and next step
+- **AI Agents** — build, run, and schedule prospecting pipelines (search → enrich → AI action → webhook)
 - **Knowledge Base** — business profile that powers AI personalization
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 15 (App Router, Turbopack) |
+| Framework | Next.js 16 (App Router, Turbopack) |
 | UI | React 19, Tailwind CSS 4, shadcn/ui |
 | Database | PostgreSQL + Prisma 7 |
-| Auth | NextAuth 5 (Auth.js) |
+| Auth | Keycloak (OIDC) bridged to NextAuth 5 (Auth.js) |
 | Data Engine | Apify (lead sourcing + enrichment) |
 | AI | Vercel AI SDK 6 (OpenAI + Gemini) |
 | Scraping | Firecrawl (Knowledge Base website crawling) |
@@ -48,6 +49,8 @@ Required environment variables:
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `APIFY_API_KEY` — your Apify API token
 - `OPENAI_API_KEY` — for AI Assistant features
+- `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production authentication
+- `PIPELEADS_AGENT_CRON_SECRET` — required to trigger scheduled AI agents
 
 ### 3. Database
 
@@ -71,6 +74,7 @@ Visit [http://localhost:3000](http://localhost:3000) — auto-logged in as `admi
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run agents:scheduled` | Trigger due AI-agent schedules (requires app URL and cron secret) |
 
 ## Database
 
