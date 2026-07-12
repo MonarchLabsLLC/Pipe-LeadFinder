@@ -71,3 +71,5 @@ next-env.d.ts
 !.env.sample
 .backup/
 .lh/
+
+.codegraph/
