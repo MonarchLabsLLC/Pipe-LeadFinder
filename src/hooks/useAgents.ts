@@ -122,6 +122,7 @@ export function useRunAgent() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/ai/agent/${id}/run`, {
         method: "POST",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
       })
       if (!res.ok) {
         const err = await res.json()

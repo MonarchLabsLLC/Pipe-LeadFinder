@@ -65,6 +65,41 @@ enum AgentStatus {
   PAUSED
 }
 
+enum LeadIdentityType {
+  EMAIL
+  LINKEDIN
+  SOCIAL_USERNAME
+  COMPANY_DOMAIN
+}
+
+enum JobKind {
+  SEARCH
+  AGENT_RUN
+  BULK_ENRICH_EMAIL
+  BULK_ENRICH_PHONE
+  BULK_SCORE
+  INTEGRATION_DELIVERY
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum IntegrationType {
+  GENERIC_WEBHOOK
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERING
+  DELIVERED
+  FAILED
+}
+
 // ─── Models ──────────────────────────────────────────────
 
 model User {
@@ -79,6 +114,10 @@ model User {
   lists           LeadList[]
   labels          CustomLabel[]
   agents          AiAgent[]
+  leads           Lead[]
+  leadIdentities  LeadIdentity[]
+  jobs            JobRun[]
+  integrations    IntegrationConnection[]
   businessProfile BusinessProfile?
   searches        SearchHistory[]
 }
@@ -95,13 +134,16 @@ model LeadList {
 
   leads    LeadListEntry[]
   searches SearchHistory[]
+  jobs     JobRun[]
 
   @@index([userId])
   @@index([status])
 }
 
 model Lead {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Identity
   firstName String?
@@ -154,9 +196,25 @@ model Lead {
 
   listEntries LeadListEntry[]
   aiResults   AiResult[]
+  identities  LeadIdentity[]
 
+  @@index([userId])
   @@index([email])
   @@index([sourceType])
+}
+
+model LeadIdentity {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId    String
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      LeadIdentityType
+  value     String
+  createdAt DateTime         @default(now())
+
+  @@unique([userId, type, value])
+  @@index([leadId])
 }
 
 model LeadListEntry {
@@ -210,6 +268,7 @@ model SearchHistory {
   status      SearchStatus @default(PENDING)
   apifyRunId  String?
   createdAt   DateTime     @default(now())
+  job         JobRun?
 
   @@index([userId])
   @@index([listId, createdAt])
@@ -273,8 +332,103 @@ model AiAgent {
   schedulerLockAt DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  jobs            JobRun[]
 
   @@index([userId])
+  @@index([status])
+}
+
+model JobRun {
+  id              String                @id @default(cuid())
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind            JobKind
+  status          JobStatus             @default(QUEUED)
+  idempotencyKey  String
+  queueJobId      String?               @unique
+  stage           String?
+  progressCurrent Int                   @default(0)
+  progressTotal   Int                   @default(0)
+  payload         Json?
+  result          Json?
+  errorCode       String?
+  errorMessage    String?
+  listId          String?
+  list            LeadList?             @relation(fields: [listId], references: [id], onDelete: SetNull)
+  searchId        String?               @unique
+  search          SearchHistory?        @relation(fields: [searchId], references: [id], onDelete: SetNull)
+  agentId         String?
+  agent           AiAgent?              @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  providerRunId   String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  items           JobItem[]
+  deliveries      IntegrationDelivery[]
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, status, createdAt])
+  @@index([kind, status])
+  @@index([listId])
+  @@index([agentId])
+}
+
+model JobItem {
+  id            String    @id @default(cuid())
+  jobRunId      String
+  jobRun        JobRun    @relation(fields: [jobRunId], references: [id], onDelete: Cascade)
+  subjectType   String
+  subjectId     String
+  action        String
+  status        JobStatus @default(QUEUED)
+  providerRunId String?
+  result        Json?
+  errorMessage  String?
+  billedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([jobRunId, subjectType, subjectId, action])
+  @@index([jobRunId, status])
+}
+
+model IntegrationConnection {
+  id               String                @id @default(cuid())
+  userId           String
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  type             IntegrationType       @default(GENERIC_WEBHOOK)
+  url              String
+  secretCiphertext String
+  secretIv         String
+  secretTag        String
+  enabled          Boolean               @default(true)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  deliveries       IntegrationDelivery[]
+
+  @@unique([userId, name])
+  @@index([userId, enabled])
+}
+
+model IntegrationDelivery {
+  id             String                @id @default(cuid())
+  deliveryId     String                @unique
+  connectionId   String
+  connection     IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  jobRunId       String?
+  jobRun         JobRun?               @relation(fields: [jobRunId], references: [id], onDelete: SetNull)
+  status         DeliveryStatus        @default(PENDING)
+  attemptCount   Int                   @default(0)
+  responseStatus Int?
+  errorMessage   String?
+  deliveredAt    DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([connectionId, createdAt])
+  @@index([jobRunId])
   @@index([status])
 }
 

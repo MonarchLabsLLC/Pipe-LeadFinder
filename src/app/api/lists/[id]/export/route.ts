@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
+async function authorizedList(id: string, userId: string) {
+  return prisma.leadList.findFirst({ where: { id, userId } })
+}
+
 function escapeCsvField(value: string | null | undefined): string {
   if (value == null || value === "") return ""
   const str = String(value)
@@ -27,16 +31,10 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   const { id } = await context.params
 
-  const list = await prisma.leadList.findUnique({
-    where: { id },
-  })
+  const list = await authorizedList(id, session.user.id)
 
   if (!list) {
     return new Response("List not found", { status: 404 })
-  }
-
-  if (list.userId !== session.user.id) {
-    return new Response("Forbidden", { status: 403 })
   }
 
   const entries = await prisma.leadListEntry.findMany({
@@ -120,6 +118,53 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       "X-Content-Type-Options": "nosniff",
       "Cache-Control": "private, no-store",
       "Content-Disposition": `attachment; filename="${filename}"`,
+    },
+  })
+}
+
+// POST /api/lists/[id]/export — export only selected leads in ScaleMail's
+// contact-import column format.
+export async function POST(req: NextRequest, context: RouteContext) {
+  const session = await auth()
+  if (!session?.user?.id) return new Response("Unauthorized", { status: 401 })
+  const { id } = await context.params
+  const list = await authorizedList(id, session.user.id)
+  if (!list) return new Response("List not found", { status: 404 })
+  const body = await req.json().catch(() => null)
+  const rawEntryIds: unknown[] = Array.isArray(body?.entryIds) ? body.entryIds : []
+  const entryIds: string[] = [
+    ...new Set(rawEntryIds.filter((value): value is string => typeof value === "string")),
+  ]
+  if (!entryIds.length || entryIds.length > 100) {
+    return new Response("Select between 1 and 100 leads", { status: 400 })
+  }
+  const entries = await prisma.leadListEntry.findMany({
+    where: { id: { in: entryIds }, listId: id },
+    include: { lead: true },
+    orderBy: { createdAt: "desc" },
+  })
+  if (entries.length !== entryIds.length) return new Response("Invalid lead selection", { status: 400 })
+
+  const headers = ["email", "first_name", "last_name", "full_name", "phone", "company", "job_title", "website", "linkedin_url"]
+  const rows = entries.map(({ lead }) => [
+    lead.email,
+    lead.firstName,
+    lead.lastName,
+    lead.fullName,
+    lead.phone,
+    lead.companyName,
+    lead.title,
+    lead.companyWebsite,
+    lead.linkedinUrl,
+  ].map(escapeCsvField))
+  const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join("\r\n")
+  const safeName = list.name.replace(/[^a-zA-Z0-9_\- ]/g, "").trim() || "leads"
+  return new Response(csv, {
+    headers: {
+      "Content-Type": "text/csv",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "private, no-store",
+      "Content-Disposition": `attachment; filename="${safeName}-scalemail.csv"`,
     },
   })
 }

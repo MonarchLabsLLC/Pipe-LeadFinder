@@ -2,8 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { LeadScoreSummary } from "@/lib/lead-score"
 
 export interface ScoreLeadsResponse {
-  scoredCount: number
-  leadScores: Array<LeadScoreSummary & { leadId: string }>
+  jobId?: string
+  status?: string
+  scoredCount?: number
+  leadScores?: Array<LeadScoreSummary & { leadId: string }>
   model?: string
   message?: string
 }
@@ -15,7 +17,10 @@ export function useScoreLeads() {
     mutationFn: async ({ listId }: { listId: string }) => {
       const res = await fetch(`/api/lists/${listId}/score`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
         body: JSON.stringify({}),
       })
       if (!res.ok) {

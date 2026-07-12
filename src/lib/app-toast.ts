@@ -2,9 +2,11 @@ import { toast } from "sonner"
 
 type AppErrorToast =
   | "search"
+  | "searchHistory"
   | "emailEnrichment"
   | "phoneEnrichment"
   | "bulkEnrichment"
+  | "bulkAction"
   | "savePhone"
   | "applyLabel"
   | "agentSave"
@@ -38,6 +40,10 @@ const ERROR_COPY: Record<AppErrorToast, ToastCopy> = {
     description:
       "No leads were saved from this run. Check the search details and try again in a minute.",
   },
+  searchHistory: {
+    title: "Saved search action could not be completed",
+    description: "The original search is unchanged. Refresh the history and try again.",
+  },
   emailEnrichment: {
     title: "Email lookup needs another try",
     description:
@@ -52,6 +58,11 @@ const ERROR_COPY: Record<AppErrorToast, ToastCopy> = {
     title: "Enrichment could not start",
     description:
       "The list was left unchanged. Try again shortly, or enrich individual leads from the table.",
+  },
+  bulkAction: {
+    title: "Bulk action could not be completed",
+    description:
+      "The selected leads were left unchanged. Review the selection and try again.",
   },
   savePhone: {
     title: "Phone number was not saved",

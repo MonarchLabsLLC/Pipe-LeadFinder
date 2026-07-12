@@ -2,78 +2,56 @@ import { NextRequest, NextResponse } from "next/server"
 import { timingSafeEqual } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 import {
-  AgentRunError,
-  clearSchedulerLock,
-  getNextScheduledRunAt,
   isScheduledAgentDue,
-  runAgent,
   serializeAgentConfig,
   type AgentConfig,
 } from "@/services/agent-runner"
+import { enqueueAgentJob } from "@/services/agent-job"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-function getBearerToken(req: NextRequest) {
+function suppliedSecret(req: NextRequest) {
+  const direct = req.headers.get("x-cron-secret")
+  if (direct) return direct
   const authorization = req.headers.get("authorization")
-  if (!authorization?.toLowerCase().startsWith("bearer ")) return null
-  return authorization.slice("bearer ".length).trim()
+  return authorization?.toLowerCase().startsWith("bearer ")
+    ? authorization.slice("bearer ".length).trim()
+    : null
 }
 
 function isAuthorized(req: NextRequest) {
-  const secret = process.env.PIPELEADS_AGENT_CRON_SECRET
-  if (!secret) return false
-
-  const supplied =
-    req.headers.get("x-cron-secret") ||
-    getBearerToken(req)
-
-  if (!supplied) return false
-  const expectedBuffer = Buffer.from(secret)
+  const expected = process.env.PIPELEADS_AGENT_CRON_SECRET
+  const supplied = suppliedSecret(req)
+  if (!expected || !supplied) return false
+  const expectedBuffer = Buffer.from(expected)
   const suppliedBuffer = Buffer.from(supplied)
-  return (
-    expectedBuffer.length === suppliedBuffer.length &&
+  return expectedBuffer.length === suppliedBuffer.length &&
     timingSafeEqual(expectedBuffer, suppliedBuffer)
-  )
 }
 
-async function updateAgentScheduleConfig(agentId: string, config: AgentConfig) {
-  await prisma.aiAgent.update({
-    where: { id: agentId },
-    data: {
-      config: serializeAgentConfig(config),
-      schedulerLockAt: null,
-    },
-  })
-}
-
-async function runScheduled(req: NextRequest) {
+export async function POST(req: NextRequest) {
   if (!process.env.PIPELEADS_AGENT_CRON_SECRET) {
     return NextResponse.json(
       { error: "PIPELEADS_AGENT_CRON_SECRET is not configured" },
       { status: 503 }
     )
   }
-
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const now = new Date()
-  const nowIso = now.toISOString()
   const staleLockBefore = new Date(now.getTime() - 60 * 60 * 1000)
   const agents = await prisma.aiAgent.findMany({
     where: { status: "ACTIVE" },
     include: { user: { select: { id: true, email: true } } },
     orderBy: { updatedAt: "asc" },
   })
-
   const results: Array<{
     agentId: string
-    status: "completed" | "failed" | "skipped"
-    searchId?: string
-    leadCount?: number
-    nextScheduledRunAt?: string | null
+    status: "queued" | "skipped" | "failed"
+    jobId?: string
     error?: string
   }> = []
 
@@ -82,12 +60,6 @@ async function runScheduled(req: NextRequest) {
     if (!isScheduledAgentDue(config, now)) {
       results.push({ agentId: agent.id, status: "skipped" })
       continue
-    }
-
-    const lockedConfig: AgentConfig = {
-      ...config,
-      lastScheduledStatus: "running",
-      lastScheduledError: null,
     }
 
     const lock = await prisma.aiAgent.updateMany({
@@ -100,8 +72,12 @@ async function runScheduled(req: NextRequest) {
         ],
       },
       data: {
-        config: serializeAgentConfig(lockedConfig),
         schedulerLockAt: now,
+        config: serializeAgentConfig({
+          ...config,
+          lastScheduledStatus: "running",
+          lastScheduledError: null,
+        }),
       },
     })
     if (lock.count === 0) {
@@ -109,79 +85,32 @@ async function runScheduled(req: NextRequest) {
       continue
     }
 
-    const lockedAgent = await prisma.aiAgent.findUnique({ where: { id: agent.id } })
-    if (!lockedAgent) {
-      results.push({ agentId: agent.id, status: "failed", error: "Agent disappeared after locking" })
-      continue
-    }
-
     try {
-      const run = await runAgent(lockedAgent, {
-        id: agent.user.id,
-        email: agent.user.email,
-      })
-      const latestAgent = await prisma.aiAgent.findUnique({ where: { id: agent.id } })
-      const latestConfig = clearSchedulerLock(
-        ((latestAgent?.config ?? lockedConfig) as AgentConfig)
-      )
-      const nextScheduledRunAt = getNextScheduledRunAt(
-        latestConfig.schedule ?? config.schedule,
-        now
-      )
-
-      await updateAgentScheduleConfig(agent.id, {
-        ...latestConfig,
-        lastScheduledRunAt: nowIso,
-        lastScheduledStatus: "completed",
-        lastScheduledError: null,
-        nextScheduledRunAt,
-      })
-
-      results.push({
+      const job = await enqueueAgentJob({
         agentId: agent.id,
-        status: "completed",
-        searchId: run.searchId,
-        leadCount: run.leadCount,
-        nextScheduledRunAt,
+        userId: agent.user.id,
+        userEmail: agent.user.email,
+        idempotencyKey: `scheduled:${agent.id}:${now.toISOString()}`,
+        scheduled: true,
+        scheduledAt: now,
+        alreadyLockedAt: now,
       })
+      results.push({ agentId: agent.id, status: "queued", jobId: job.id })
     } catch (error) {
-      const latestAgent = await prisma.aiAgent.findUnique({ where: { id: agent.id } })
-      const latestConfig = clearSchedulerLock(
-        ((latestAgent?.config ?? lockedConfig) as AgentConfig)
-      )
-      const message =
-        error instanceof AgentRunError || error instanceof Error
-          ? error.message
-          : "Scheduled agent run failed"
-      const nextScheduledRunAt = getNextScheduledRunAt(
-        latestConfig.schedule ?? config.schedule,
-        now
-      )
-
-      await updateAgentScheduleConfig(agent.id, {
-        ...latestConfig,
-        lastScheduledRunAt: nowIso,
-        lastScheduledStatus: "failed",
-        lastScheduledError: message,
-        nextScheduledRunAt,
-      })
-
       results.push({
         agentId: agent.id,
         status: "failed",
-        error: message,
-        nextScheduledRunAt,
+        error: error instanceof Error ? error.message : "Failed to queue agent",
       })
     }
   }
 
-  return NextResponse.json({
-    checked: agents.length,
-    ran: results.filter((result) => result.status !== "skipped").length,
-    results,
-  }, { headers: { "Cache-Control": "no-store" } })
-}
-
-export async function POST(req: NextRequest) {
-  return runScheduled(req)
+  return NextResponse.json(
+    {
+      checked: agents.length,
+      queued: results.filter((result) => result.status === "queued").length,
+      results,
+    },
+    { status: 202, headers: { "Cache-Control": "no-store" } }
+  )
 }

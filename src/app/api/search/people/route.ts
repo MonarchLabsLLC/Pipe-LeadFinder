@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
-import { assertSearchConfigured, executeSearch } from "@/services/search-service"
-import {
-  markSearchFailed,
-  persistSearchResults,
-} from "@/services/search-persistence"
+import { assertSearchConfigured } from "@/services/search-service"
 import { peopleSearchSchema } from "@/lib/validators/search"
-import { guardCredits, deductCredits } from "@/lib/credit-guard"
-import { searchErrorResponse } from "@/lib/search-error-response"
+import { guardCredits } from "@/lib/credit-guard"
 import { validateSearchTarget } from "@/lib/search-target"
+import { enqueueSearchJob } from "@/services/search-job"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -29,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { listId, ...searchParams } = parsed.data
+  const { listId, duplicatePolicy, ...searchParams } = parsed.data
 
   const invalidTarget = await validateSearchTarget(
     session.user.id,
@@ -51,46 +46,27 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const searchHistory = await prisma.searchHistory.create({
-    data: {
-      userId: session.user.id,
-      listId,
-      searchType: "PEOPLE",
-      parameters: JSON.parse(JSON.stringify(searchParams)),
-      status: "PENDING",
-    },
-  })
-
   try {
-    await prisma.searchHistory.update({
-      where: { id: searchHistory.id },
-      data: { status: "RUNNING" },
-    })
-
-    const results = await executeSearch("PEOPLE", searchParams as Record<string, unknown>)
-
-    const leads = await persistSearchResults({
-      searchId: searchHistory.id,
-      listId,
+    const { search, job } = await enqueueSearchJob({
+      userId: session.user.id,
+      userEmail: session.user.email,
       searchType: "PEOPLE",
-      results,
-    })
-
-    // Await billing so serverless execution cannot end before it is recorded.
-    await deductCredits(session.user.id, "search:people", leads.length, {
       listId,
-      searchType: "PEOPLE",
-    }, session.user.email)
-
+      searchParams,
+      duplicatePolicy,
+      idempotencyKey: req.headers.get("idempotency-key"),
+    })
     return NextResponse.json({
-      searchId: searchHistory.id,
+      jobId: job.id,
+      searchId: search.id,
       listId,
-      status: "COMPLETED",
-      resultCount: leads.length,
-    })
+      status: "QUEUED",
+      statusUrl: `/api/jobs/${job.id}`,
+    }, { status: 202 })
   } catch (error) {
-    await markSearchFailed(searchHistory.id)
-
-    return searchErrorResponse(error, searchHistory.id, "PEOPLE")
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to queue search" },
+      { status: 500 }
+    )
   }
 }

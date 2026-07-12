@@ -20,7 +20,10 @@ export function useSearchMutation() {
     }) => {
       const res = await fetch(SEARCH_ENDPOINTS[type], {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
         body: JSON.stringify(params),
       })
       if (!res.ok) {

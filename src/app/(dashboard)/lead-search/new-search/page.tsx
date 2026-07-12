@@ -31,11 +31,11 @@ export default function NewSearchPage() {
         params: { ...params, listId },
       })
       appToast.success(
-        "Search completed",
-        `${result.resultCount} results were added to your saved list.`
+        "Search queued",
+        "You can leave this page while PipeLeads finds and saves your results."
       )
       if (result.listId) {
-        router.push(`/lead-search/saved-lists/${result.listId}`)
+        router.push(`/lead-search/saved-lists/${result.listId}?jobId=${result.jobId}`)
       } else {
         router.push("/lead-search/saved-lists")
       }

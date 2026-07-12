@@ -287,6 +287,13 @@ export async function consumeCredits(
     ? usage.metadata.action
     : null
   const resultCount = Math.max(Number(usage.metadata?.resultCount ?? 1), 1)
+  const metadataKey = typeof usage.metadata?.idempotencyKey === "string"
+    ? usage.metadata.idempotencyKey
+    : typeof usage.metadata?.jobRunId === "string"
+      ? [APP_NAME, usage.metadata.jobRunId, action, usage.metadata.leadId]
+          .filter(Boolean)
+          .join(":")
+      : undefined
   const usageBody = action
     ? {
         provider: "pipeleads",
@@ -297,6 +304,7 @@ export async function consumeCredits(
           ...usage.metadata,
           fallbackDisplayCredits: displayAmount,
         },
+        idempotencyKey: metadataKey,
       }
     : {
         provider: "pipeleads",
@@ -307,6 +315,7 @@ export async function consumeCredits(
           ...usage.metadata,
           displayCredits: displayAmount,
         },
+        idempotencyKey: metadataKey,
       }
 
   try {
@@ -374,6 +383,7 @@ export async function consumeTokenCredits(
         body: JSON.stringify({
           ...usage,
           appName: APP_NAME,
+          idempotencyKey: usage.idempotencyKey,
         }),
       },
       MAX_RETRIES,

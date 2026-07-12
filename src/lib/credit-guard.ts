@@ -44,7 +44,13 @@ export async function deductCredits(
   userId: string,
   action: CreditAction,
   resultCount: number,
-  meta?: { listId?: string; leadId?: string; searchType?: string },
+  meta?: {
+    listId?: string
+    leadId?: string
+    searchId?: string
+    jobRunId?: string
+    searchType?: string
+  },
   email?: string | null
 ) {
   const perUnit = CREDIT_COSTS[action]

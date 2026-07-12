@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,6 +22,8 @@ import {
   AlertCircle,
   Search,
   WandSparkles,
+  RotateCcw,
+  CalendarClock,
 } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -29,6 +31,7 @@ import { ErrorState } from "@/components/ui/error-state"
 import { useEnrichBulk } from "@/hooks/useEnrich"
 import { useScoreLeads } from "@/hooks/useLeadScoring"
 import { appToast } from "@/lib/app-toast"
+import { JobProgressBanner } from "@/components/jobs/job-progress-banner"
 import {
   Sheet,
   SheetContent,
@@ -77,9 +80,13 @@ async function fetchListDetail(
 export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
+  const jobId = searchParams.get("jobId")
   const [emailFilter, setEmailFilter] = useState<EmailFilter>("ALL")
   const [page, setPage] = useState(1)
   const [isExporting, setIsExporting] = useState(false)
+  const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
   const bulkEnrich = useEnrichBulk()
   const scoreLeads = useScoreLeads()
@@ -145,6 +152,13 @@ export default function ListDetailPage() {
 
   return (
     <div className="space-y-6">
+      <JobProgressBanner
+        jobId={jobId || activeJobId}
+        onComplete={() => {
+          void queryClient.invalidateQueries({ queryKey: ["list-detail", listId] })
+          void queryClient.invalidateQueries({ queryKey: ["lists"] })
+        }}
+      />
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/lead-search/saved-lists">
@@ -163,7 +177,10 @@ export default function ListDetailPage() {
 
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <SearchHistorySheet listId={listId as string} />
+        <SearchHistorySheet
+          listId={listId as string}
+          onJobQueued={setActiveJobId}
+        />
 
         <div className="h-6 w-px bg-border mx-1" />
 
@@ -201,6 +218,14 @@ export default function ListDetailPage() {
               { listId },
               {
                 onSuccess: (result) => {
+                  if (result.jobId) {
+                    setActiveJobId(result.jobId)
+                    appToast.success(
+                      "Enrichment queued",
+                      "Progress will continue safely in the background."
+                    )
+                    return
+                  }
                   appToast.success(
                     "Data enrichment complete",
                     result.enriched > 0
@@ -232,10 +257,19 @@ export default function ListDetailPage() {
               { listId },
               {
                 onSuccess: (result) => {
+                  if (result.jobId) {
+                    setActiveJobId(result.jobId)
+                    appToast.success(
+                      "Lead scoring queued",
+                      "Progress will continue safely in the background."
+                    )
+                    return
+                  }
+                  const scoredCount = result.scoredCount ?? 0
                   appToast.success(
-                    result.scoredCount > 0 ? "Lead scoring complete" : "No leads scored",
-                    result.scoredCount > 0
-                      ? `${result.scoredCount} leads were ranked by fit.`
+                    scoredCount > 0 ? "Lead scoring complete" : "No leads scored",
+                    scoredCount > 0
+                      ? `${scoredCount} leads were ranked by fit.`
                       : result.message || "No leads to score"
                   )
                   refetch()
@@ -304,7 +338,12 @@ export default function ListDetailPage() {
       {isLoading ? (
         <TableSkeleton rows={5} />
       ) : displayLeads.length > 0 ? (
-        <ResultsTable leads={displayLeads} />
+        <ResultsTable
+          leads={displayLeads}
+          listId={listId}
+          listType={data!.list.type as import("@/generated/prisma/enums").SearchType}
+          onJobQueued={setActiveJobId}
+        />
       ) : emailFilter !== "ALL" ? (
         <EmptyState
           icon={Users}
@@ -360,8 +399,15 @@ interface HistoryEntry {
   createdAt: string
 }
 
-function SearchHistorySheet({ listId }: { listId: string }) {
+function SearchHistorySheet({
+  listId,
+  onJobQueued,
+}: {
+  listId: string
+  onJobQueued: (jobId: string) => void
+}) {
   const [open, setOpen] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
   const historyQuery = useQuery({
     queryKey: ["history", listId, open],
     queryFn: async (): Promise<HistoryEntry[]> => {
@@ -402,6 +448,43 @@ function SearchHistorySheet({ listId }: { listId: string }) {
     if (hrs < 24) return `${hrs}h ago`
     const days = Math.floor(hrs / 24)
     return `${days}d ago`
+  }
+
+  async function rerun(entry: HistoryEntry) {
+    setBusyId(entry.id)
+    try {
+      const response = await fetch(`/api/search/${entry.id}/rerun`, {
+        method: "POST",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Saved search could not be rerun")
+      onJobQueued(result.jobId)
+      setOpen(false)
+      appToast.success("Search queued", "The saved criteria are running again in the background.")
+    } catch (error) {
+      appToast.error("searchHistory", error)
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function schedule(entry: HistoryEntry) {
+    setBusyId(entry.id)
+    try {
+      const response = await fetch(`/api/search/${entry.id}/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schedule: "weekly" }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Schedule could not be created")
+      appToast.success("Weekly search scheduled", "You can adjust or pause it from AI Agents.")
+    } catch (error) {
+      appToast.error("searchHistory", error)
+    } finally {
+      setBusyId(null)
+    }
   }
 
   return (
@@ -457,6 +540,28 @@ function SearchHistorySheet({ listId }: { listId: string }) {
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {entry.resultCount} result{entry.resultCount !== 1 ? "s" : ""}
                 </p>
+                {entry.status === "COMPLETED" && (
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={busyId === entry.id}
+                      onClick={() => rerun(entry)}
+                    >
+                      {busyId === entry.id ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCcw className="size-3.5" />}
+                      Run again
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={busyId === entry.id}
+                      onClick={() => schedule(entry)}
+                    >
+                      <CalendarClock className="size-3.5" />
+                      Weekly
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

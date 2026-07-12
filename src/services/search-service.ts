@@ -895,7 +895,11 @@ function dedupeResults(leads: Array<Record<string, unknown>>) {
 // Main search execution function
 export async function executeSearch(
   type: SearchType,
-  params: Record<string, unknown>
+  params: Record<string, unknown>,
+  runOptions: {
+    existingRunId?: string | null
+    onRunStarted?: (runId: string) => Promise<void>
+  } = {}
 ) {
   assertSearchConfigured(type, params)
   const limit = getResultLimit(params.resultsLimit, type === "PEOPLE" ? 100 : 50)
@@ -916,7 +920,15 @@ export async function executeSearch(
   const input = buildActorInput(type, params)
 
   try {
-    const run = await apifyClient.actor(actorId).call(input)
+    const run = runOptions.existingRunId
+      ? await apifyClient.run(runOptions.existingRunId).waitForFinish()
+      : await apifyClient.actor(actorId).start(input).then(async (started) => {
+          await runOptions.onRunStarted?.(started.id)
+          return apifyClient.run(started.id).waitForFinish()
+        })
+    if (run.status !== "SUCCEEDED") {
+      throw new Error(`Search provider run ended with status ${run.status}`)
+    }
     const { items } = await apifyClient
       .dataset(run.defaultDatasetId)
       .listItems({ limit })

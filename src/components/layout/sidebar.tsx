@@ -118,6 +118,7 @@ const navSections = [
     defaultOpen: false,
     adminOnly: false,
     items: [
+      { label: "Integrations", href: "/resources/integrations", icon: Webhook },
       { label: "Support", href: "/resources/support", icon: HelpCircle },
       { label: "Tutorials", href: "/resources/tutorials", icon: GraduationCap },
     ],

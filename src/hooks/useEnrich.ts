@@ -53,7 +53,10 @@ export function useEnrichBulk() {
     mutationFn: async ({ listId }: { listId: string }) => {
       const res = await fetch("/api/enrich/bulk", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
         body: JSON.stringify({ listId }),
       })
       if (!res.ok) {

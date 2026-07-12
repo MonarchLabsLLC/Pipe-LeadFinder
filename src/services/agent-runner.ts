@@ -230,7 +230,11 @@ export async function runAgent(
       { status: 400, code: "INVALID_SEARCH_CONFIG" }
     )
   }
-  const { listId: _validationListId, ...searchParams } = parsedSearch.data
+  const {
+    listId: _validationListId,
+    duplicatePolicy,
+    ...searchParams
+  } = parsedSearch.data
   void _validationListId
 
   try {
@@ -293,9 +297,11 @@ export async function runAgent(
     const results = await executeSearch(searchType, searchParams)
     const leads = await persistSearchResults({
       searchId: searchHistory.id,
+      userId: user.id,
       listId,
       searchType,
       results,
+      duplicatePolicy,
       markCompleted: false,
     })
 

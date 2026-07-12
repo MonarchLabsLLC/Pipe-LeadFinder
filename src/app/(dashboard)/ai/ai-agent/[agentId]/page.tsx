@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { appToast } from "@/lib/app-toast"
+import { JobProgressBanner } from "@/components/jobs/job-progress-banner"
+import { useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, Save, Play, Plus, X } from "lucide-react"
 
 interface AgentConfig {
@@ -207,6 +209,7 @@ function StepCard({
 
 function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const updateAgent = useUpdateAgent()
   const runAgent = useRunAgent()
   const updateAgentMutate = updateAgent.mutate
@@ -214,6 +217,7 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
   const [name, setName] = useState(agent.name)
   const [config, setConfig] = useState<AgentConfig>(() => parseAgentConfig(agent))
   const [newWebhook, setNewWebhook] = useState("")
+  const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const savedSignatureRef = useRef(
     JSON.stringify({ name: agent.name, config: parseAgentConfig(agent) })
   )
@@ -275,9 +279,10 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
       })
       savedSignatureRef.current = JSON.stringify({ name: name.trim(), config })
       const data = await runAgent.mutateAsync(agent.id)
+      setActiveJobId(data.jobId)
       appToast.success(
-        data.message || "Agent run completed",
-        `Saved ${data.leadCount ?? 0} lead${data.leadCount === 1 ? "" : "s"}.`
+        "Agent queued",
+        "The workflow will continue safely in the background."
       )
     } catch (err) {
       appToast.error("agentRun", err)
@@ -355,6 +360,14 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
           {runAgent.isPending ? "Running..." : "Run"}
         </Button>
       </div>
+
+      <JobProgressBanner
+        jobId={activeJobId}
+        onComplete={() => {
+          void queryClient.invalidateQueries({ queryKey: ["agents", agent.id] })
+          void queryClient.invalidateQueries({ queryKey: ["lists"] })
+        }}
+      />
 
       {/* Step 1 - Search */}
       <StepCard number={1} title="Search">

@@ -1,72 +1,48 @@
+import type { Prisma } from "@/generated/prisma/client"
 import type { SearchType } from "@/generated/prisma/enums"
+import { normalizeLeadIdentities } from "@/lib/lead-identity"
 import { pickLeadFields } from "@/lib/pick-lead-fields"
 import { prisma } from "@/lib/prisma"
-import type { LeadWhereInput } from "@/generated/prisma/models/Lead"
 
-function text(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : null
+export type DuplicatePolicy = "ONLY_NEW" | "ADD_EXISTING" | "RETURN_ALL"
+
+function missingLeadFields(
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>
+) {
+  const update: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(incoming)) {
+    if (value == null || value === "") continue
+    if (existing[key] == null || existing[key] === "") update[key] = value
+  }
+  if (typeof update.email === "string") update.emailStatus = "FOUND"
+  if (typeof update.phone === "string") update.phoneStatus = "FOUND"
+  return update
 }
 
-function insensitive(value: string) {
-  return { equals: value, mode: "insensitive" as const }
-}
-
-function identityFilters(
-  fields: Record<string, unknown>,
-  searchType: SearchType
-): LeadWhereInput[] {
-  const filters: LeadWhereInput[] = []
-  const email = text(fields.email)
-  const linkedinUrl = text(fields.linkedinUrl)
-  const platform = text(fields.platform)
-  const username = text(fields.username)
-  const companyWebsite = text(fields.companyWebsite)
-  const companyName = text(fields.companyName)
-  const location = text(fields.location)
-  const fullName = text(fields.fullName)
-
-  if (email) filters.push({ email: insensitive(email) })
-  if (linkedinUrl) filters.push({ linkedinUrl: insensitive(linkedinUrl) })
-  if (platform && username) {
-    filters.push({
-      platform: insensitive(platform),
-      username: insensitive(username),
-    })
-  }
-
-  if (searchType === "COMPANY" && companyWebsite) {
-    filters.push({ companyWebsite: insensitive(companyWebsite) })
-  }
-  if ((searchType === "LOCAL" || searchType === "COMPANY") && companyName) {
-    filters.push({
-      companyName: insensitive(companyName),
-      ...(location ? { location: insensitive(location) } : {}),
-    })
-  }
-  if ((searchType === "PEOPLE" || searchType === "DOMAIN") && fullName && companyName) {
-    filters.push({
-      fullName: insensitive(fullName),
-      companyName: insensitive(companyName),
-    })
-  }
-
-  return filters
+function isRetryableIdentityRace(error: unknown) {
+  return error instanceof Error && "code" in error &&
+    (error.code === "P2002" || error.code === "P2034")
 }
 
 export async function persistSearchResults({
   searchId,
+  userId,
   listId,
   searchType,
   results,
   markCompleted = true,
+  duplicatePolicy = "ONLY_NEW",
 }: {
   searchId: string
+  userId: string
   listId: string
   searchType: SearchType
   results: Array<Record<string, unknown>>
   markCompleted?: boolean
+  duplicatePolicy?: DuplicatePolicy
 }) {
-  return prisma.$transaction(async (tx) => {
+  const persist = () => prisma.$transaction(async (tx) => {
     const leads = []
 
     for (const leadData of results) {
@@ -75,30 +51,82 @@ export async function persistSearchResults({
         fields.email = fields.email.trim().toLowerCase()
       }
 
-      const identities = identityFilters(fields, searchType)
-      if (identities.length) {
-        const existing = await tx.leadListEntry.findFirst({
+      const identities = normalizeLeadIdentities(fields, searchType)
+      const existingIdentity = identities.length
+        ? await tx.leadIdentity.findFirst({
+            where: {
+              userId,
+              OR: identities.map((identity) => ({
+                type: identity.type,
+                value: identity.value,
+              })),
+            },
+            include: { lead: true },
+          })
+        : null
+
+      if (existingIdentity) {
+        const fill = missingLeadFields(
+          existingIdentity.lead as unknown as Record<string, unknown>,
+          fields
+        )
+        if (Object.keys(fill).length) {
+          existingIdentity.lead = await tx.lead.update({
+            where: { id: existingIdentity.leadId },
+            data: fill as Prisma.LeadUncheckedUpdateInput,
+          })
+        }
+        const existingIdentities = await tx.leadIdentity.findMany({
           where: {
-            listId,
-            lead: { OR: identities },
+            userId,
+            OR: identities.map((identity) => ({ type: identity.type, value: identity.value })),
           },
-          select: { id: true },
+          select: { type: true, value: true },
         })
-        if (existing) continue
+        const claimed = new Set(existingIdentities.map((identity) => `${identity.type}:${identity.value}`))
+        const newIdentities = identities.filter((identity) => !claimed.has(`${identity.type}:${identity.value}`))
+        if (newIdentities.length) {
+          await tx.leadIdentity.createMany({
+            data: newIdentities.map((identity) => ({ ...identity, userId, leadId: existingIdentity.leadId })),
+            skipDuplicates: true,
+          })
+        }
+        const alreadyInList = await tx.leadListEntry.findUnique({
+          where: {
+            listId_leadId: { listId, leadId: existingIdentity.leadId },
+          },
+        })
+        if (!alreadyInList && duplicatePolicy !== "ONLY_NEW") {
+          await tx.leadListEntry.create({
+            data: { listId, leadId: existingIdentity.leadId },
+          })
+        }
+        if (duplicatePolicy === "RETURN_ALL") {
+          leads.push(existingIdentity.lead)
+        }
+        continue
       }
 
       const lead = await tx.lead.create({
         data: {
-          ...fields,
+          ...(fields as Prisma.LeadUncheckedCreateInput),
+          userId,
           sourceType: searchType,
           emailStatus:
             typeof fields.email === "string" ? "FOUND" : "NOT_FOUND",
+          identities: identities.length
+            ? {
+                create: identities.map((identity) => ({
+                  userId,
+                  type: identity.type,
+                  value: identity.value,
+                })),
+              }
+            : undefined,
         },
       })
 
-      await tx.leadListEntry.create({
-        data: { listId, leadId: lead.id },
-      })
+      await tx.leadListEntry.create({ data: { listId, leadId: lead.id } })
       leads.push(lead)
     }
 
@@ -110,7 +138,16 @@ export async function persistSearchResults({
     }
 
     return leads
-  })
+  }, { isolationLevel: "Serializable" })
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await persist()
+    } catch (error) {
+      if (!isRetryableIdentityRace(error) || attempt === 3) throw error
+    }
+  }
+  throw new Error("Lead persistence retry limit reached")
 }
 
 export async function markSearchFailed(searchId: string) {

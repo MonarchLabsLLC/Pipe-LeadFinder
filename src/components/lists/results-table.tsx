@@ -10,12 +10,17 @@ import {
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { LeadRow, type LeadData } from "@/components/leads/lead-row"
+import type { SearchType } from "@/generated/prisma/enums"
+import { BulkActionBar } from "@/components/lists/bulk-action-bar"
 
 interface ResultsTableProps {
   leads: LeadData[]
+  listId: string
+  listType: SearchType
+  onJobQueued: (jobId: string) => void
 }
 
-export function ResultsTable({ leads }: ResultsTableProps) {
+export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const allSelected = leads.length > 0 && selectedIds.size === leads.length
@@ -42,7 +47,19 @@ export function ResultsTable({ leads }: ResultsTableProps) {
   }, [])
 
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <div>
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          listId={listId}
+          listType={listType}
+          entryIds={leads
+            .filter((lead) => selectedIds.has(lead.id))
+            .map((lead) => lead.entryId)}
+          onClear={() => setSelectedIds(new Set())}
+          onJobQueued={onJobQueued}
+        />
+      )}
+      <div className="rounded-md border overflow-x-auto">
       <Table className="min-w-[900px]">
         <TableHeader>
           <TableRow>
@@ -73,6 +90,7 @@ export function ResultsTable({ leads }: ResultsTableProps) {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }

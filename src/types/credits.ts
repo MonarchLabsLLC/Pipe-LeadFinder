@@ -49,6 +49,7 @@ export interface TokenUsagePayload {
   inputTokens: number
   outputTokens: number
   appName?: string
+  idempotencyKey?: string
 }
 
 /** Response from the microservice /credits/consume endpoint */

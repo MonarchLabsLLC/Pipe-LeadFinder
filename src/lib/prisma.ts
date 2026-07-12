@@ -10,7 +10,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function getSslConfig(): PoolConfig["ssl"] {
+export function getSslConfig(): PoolConfig["ssl"] {
   const isLocalhost = process.env.DATABASE_URL?.includes("localhost")
   if (isLocalhost) return false
   if (existsSync(CA_CERT_PATH)) {
@@ -19,7 +19,7 @@ function getSslConfig(): PoolConfig["ssl"] {
   return { rejectUnauthorized: false }
 }
 
-function getDatabaseConfig() {
+export function getDatabaseConfig() {
   const value = process.env.DATABASE_URL
   if (!value) throw new Error("DATABASE_URL is required")
 

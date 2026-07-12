@@ -10,6 +10,9 @@ const optionalNumber = z.preprocess((value) => {
 
 const optionalText = (max = 500) => z.string().trim().max(max).optional()
 const listIdSchema = z.string().trim().min(1, "Select a list").max(200)
+const duplicatePolicySchema = z
+  .enum(["ONLY_NEW", "ADD_EXISTING", "RETURN_ALL"])
+  .default("ONLY_NEW")
 
 // ─── People Search ──────────────────────────────────────
 
@@ -18,6 +21,7 @@ export const peopleSearchSchema = z.object({
   location: optionalText(200),
   resultsLimit: z.number().int().min(1).max(100).default(10),
   listId: listIdSchema,
+  duplicatePolicy: duplicatePolicySchema,
 
   // Advanced filters
   jobTitle: optionalText(200),
@@ -41,6 +45,7 @@ export const localSearchSchema = z.object({
   location: z.string().trim().min(1).max(200),
   resultsLimit: z.number().int().min(1).max(50).default(10),
   listId: listIdSchema,
+  duplicatePolicy: duplicatePolicySchema,
 }).strict()
 
 export type LocalSearchInput = z.infer<typeof localSearchSchema>
@@ -58,6 +63,7 @@ export const companySearchSchema = z.object({
   keyword: optionalText(300),
   employeeCount: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1001-5000", "5001-10000", "10001+"]).optional(),
   listId: listIdSchema,
+  duplicatePolicy: duplicatePolicySchema,
 }).strict().refine(
   (value) =>
     Boolean(
@@ -79,6 +85,7 @@ export const domainSearchSchema = z.object({
   companyNameOrWebsite: z.string().trim().min(1).max(300),
   resultsLimit: z.number().int().min(1).max(50).default(10),
   listId: listIdSchema,
+  duplicatePolicy: duplicatePolicySchema,
 }).strict()
 
 export type DomainSearchInput = z.infer<typeof domainSearchSchema>
@@ -103,6 +110,7 @@ export const influencerSearchSchema = z
     username: optionalText(100),
     location: z.string().trim().min(1, "Location is required").max(200),
     listId: listIdSchema,
+    duplicatePolicy: duplicatePolicySchema,
   })
   .strict()
   .refine(

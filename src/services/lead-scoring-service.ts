@@ -155,11 +155,13 @@ export async function scoreLeadsForList({
   email,
   listId,
   leads,
+  idempotencyKey,
 }: {
   userId: string
   email?: string | null
   listId: string
   leads: LeadForScoring[]
+  idempotencyKey?: string
 }): Promise<ScoreLeadsResult> {
   if (leads.length === 0) {
     return {
@@ -249,6 +251,7 @@ Return one JSON object for every lead using this exact shape:
         model: LEAD_SCORING_AI_CONFIG.model,
         inputTokens: usage.inputTokens ?? 0,
         outputTokens: usage.outputTokens ?? 0,
+        idempotencyKey,
       },
       email
     )
