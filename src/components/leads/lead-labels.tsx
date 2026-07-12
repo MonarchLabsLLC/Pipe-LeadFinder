@@ -45,7 +45,7 @@ export function LeadLabels({ entryId, leadId, appliedLabels }: LeadLabelsProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead-labels", leadId] })
-      queryClient.invalidateQueries({ queryKey: ["leads"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 
@@ -62,7 +62,7 @@ export function LeadLabels({ entryId, leadId, appliedLabels }: LeadLabelsProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lead-labels", leadId] })
-      queryClient.invalidateQueries({ queryKey: ["leads"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 

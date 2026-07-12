@@ -33,7 +33,7 @@ export default function AiAssistantPage() {
   const [editPrompt, setEditPrompt] = useState("")
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  const { data: templates, isLoading } = usePrompts()
+  const { data: templates, isLoading, isError, refetch } = usePrompts()
   const createPrompt = useCreatePrompt()
   const updatePrompt = useUpdatePrompt()
   const deletePrompt = useDeletePrompt()
@@ -165,7 +165,14 @@ export default function AiAssistantPage() {
       <div className="space-y-4">
         <h2 className="text-base font-semibold">Your Templates</h2>
 
-        {isLoading ? (
+        {isError ? (
+          <div className="rounded-xl border border-destructive/30 p-6 text-center">
+            <p className="text-sm text-destructive">Prompt templates could not be loaded.</p>
+            <Button variant="outline" className="mt-3" onClick={() => refetch()}>
+              Try again
+            </Button>
+          </div>
+        ) : isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-5">
@@ -263,6 +270,7 @@ export default function AiAssistantPage() {
                           variant="ghost"
                           className="h-8 px-2"
                           onClick={() => handleStartEdit(template)}
+                          aria-label={`Edit ${template.name}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
@@ -300,6 +308,7 @@ export default function AiAssistantPage() {
                               setDeleteConfirmId(template.id)
                               setEditingId(null)
                             }}
+                            aria-label={`Delete ${template.name}`}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -310,6 +319,11 @@ export default function AiAssistantPage() {
                     <p className="font-mono text-xs text-muted-foreground whitespace-pre-wrap line-clamp-3 leading-relaxed bg-muted/40 rounded-md px-3 py-2">
                       {template.prompt}
                     </p>
+                    {deletePrompt.isError && deleteConfirmId === template.id && (
+                      <p className="text-sm text-destructive">
+                        {deletePrompt.error.message}
+                      </p>
+                    )}
                   </div>
                 )}
               </Card>

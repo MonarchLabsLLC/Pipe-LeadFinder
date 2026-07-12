@@ -56,7 +56,7 @@ const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@groovedigit
   .filter(Boolean)
 const ADMIN_DOMAINS = (process.env.NEXT_PUBLIC_ADMIN_DOMAINS || "")
   .split(",")
-  .map((d) => d.trim().toLowerCase())
+  .map((d) => d.trim().toLowerCase().replace(/^@/, ""))
   .filter(Boolean)
 
 function isAdminEmail(email?: string | null) {
@@ -64,7 +64,7 @@ function isAdminEmail(email?: string | null) {
   const normalized = email.toLowerCase()
   return (
     ADMIN_EMAILS.includes(normalized) ||
-    ADMIN_DOMAINS.some((domain) => normalized.endsWith(domain))
+    ADMIN_DOMAINS.some((domain) => normalized.endsWith(`@${domain}`))
   )
 }
 

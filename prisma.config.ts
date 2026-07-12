@@ -3,12 +3,26 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+function getDatabaseUrl() {
+  const raw = process.env["DATABASE_URL"];
+  if (!raw) return undefined;
+
+  const url = new URL(raw);
+  if (
+    !url.searchParams.has("schema") &&
+    (url.hostname === "localhost" || url.hostname === "127.0.0.1")
+  ) {
+    url.searchParams.set("schema", "pipeleads");
+  }
+  return url.toString();
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: getDatabaseUrl(),
   },
 });

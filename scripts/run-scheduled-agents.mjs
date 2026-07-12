@@ -27,7 +27,9 @@ function loadDotEnv(file = ".env") {
 
 loadDotEnv()
 
-const baseUrl = process.env.BASE_URL || process.env.AUTH_URL || process.env.APP_URL
+// AUTH_URL is the canonical application origin used by Auth.js. Prefer it so a
+// stale generic BASE_URL cannot silently send scheduled runs to another app.
+const baseUrl = process.env.AUTH_URL || process.env.BASE_URL || process.env.APP_URL
 const secret = process.env.PIPELEADS_AGENT_CRON_SECRET
 
 if (!baseUrl) {

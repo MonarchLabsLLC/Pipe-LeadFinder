@@ -100,6 +100,7 @@ interface ListCardProps {
   onRename: (id: string) => void
   onArchive: (id: string) => void
   onDelete: (id: string) => void
+  archived?: boolean
 }
 
 export function ListCard({
@@ -112,6 +113,7 @@ export function ListCard({
   onRename,
   onArchive,
   onDelete,
+  archived = false,
 }: ListCardProps) {
   const router = useRouter()
   const Icon = typeIcons[type]
@@ -145,7 +147,7 @@ export function ListCard({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onArchive(id)}>
               <Archive className="mr-2 h-4 w-4" />
-              Archive
+              {archived ? "Restore" : "Archive"}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onDelete(id)}

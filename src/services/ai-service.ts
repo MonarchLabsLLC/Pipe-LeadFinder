@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { AiActionType } from "@/generated/prisma/enums"
 
+const MAX_BUSINESS_CONTEXT_CHARS = 100_000
+const MAX_DATA_SOURCE_CHARS = 30_000
+
 const SYSTEM_PROMPTS: Record<string, string> = {
   SIMILAR_PEOPLE:
     "You are a sales intelligence assistant. Based on the prospect profile, suggest 3-5 search criteria combinations to find similar professionals. Format as a bulleted list with reasoning.",
@@ -41,17 +44,32 @@ export async function getBusinessContext(userId: string): Promise<string> {
   if (profile.dataSources.length > 0) {
     parts.push("\n--- Additional Knowledge Base ---")
     for (const ds of profile.dataSources) {
+      const used = parts.reduce((total, part) => total + part.length, 0)
+      const remaining = MAX_BUSINESS_CONTEXT_CHARS - used
+      if (remaining <= 0) break
       const label = ds.name || ds.sourceUrl || ds.type
-      parts.push(`[${label}]: ${ds.content}`)
+      const content = ds.content.slice(
+        0,
+        Math.min(MAX_DATA_SOURCE_CHARS, remaining)
+      )
+      parts.push(`[${label}]: ${content}`)
     }
   }
 
-  return parts.length > 0 ? parts.join("\n") : "No business profile configured yet."
+  return parts.length > 0
+    ? parts.join("\n").slice(0, MAX_BUSINESS_CONTEXT_CHARS)
+    : "No business profile configured yet."
 }
 
-export async function getLeadContext(leadId: string): Promise<string> {
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
+export async function getLeadContext(
+  leadId: string,
+  userId: string
+): Promise<string> {
+  const lead = await prisma.lead.findFirst({
+    where: {
+      id: leadId,
+      listEntries: { some: { list: { userId } } },
+    },
   })
 
   if (!lead) {
@@ -126,14 +144,34 @@ User's request: ${customPrompt}`
   }
 
   if (actionType === "LIBRARY" && customPrompt) {
-    // Replace placeholder variables in the template
+    const values = Object.fromEntries(
+      leadContext.split("\n").flatMap((line) => {
+        const separator = line.indexOf(":")
+        if (separator < 0) return []
+        return [[line.slice(0, separator).trim(), line.slice(separator + 1).trim()]]
+      })
+    )
+    const interpolated = customPrompt.replace(
+      /\{(name|company|title|email|location)\}/gi,
+      (placeholder, variable: string) => {
+        const replacements: Record<string, string | undefined> = {
+          name: values.Name,
+          company: values.Company,
+          title: values["Job Title"],
+          email: values.Email,
+          location: values.Location,
+        }
+        return replacements[variable.toLowerCase()] || placeholder
+      }
+    )
+
     return `Here is the prospect's information:
 
 ${leadContext}
 
 ---
 
-Template to use: ${customPrompt}`
+Template to use: ${interpolated}`
   }
 
   const actionLabels: Record<string, string> = {

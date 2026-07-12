@@ -44,7 +44,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         // ── Dev auto-login ──────────────────────────────────
-        if (process.env.NODE_ENV === "development" || process.env.DEV_AUTO_LOGIN === "true") {
+        if (
+          process.env.NODE_ENV === "development" &&
+          process.env.DEV_AUTO_LOGIN === "true"
+        ) {
+          await prisma.user.upsert({
+            where: { id: DEV_USER.id },
+            update: {
+              email: DEV_USER.email,
+              name: DEV_USER.name,
+              role: DEV_USER.role,
+            },
+            create: DEV_USER,
+          })
           return DEV_USER
         }
 
@@ -55,15 +67,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           const claims = await verifyKeycloakToken(token)
 
+          if (!claims.sub || !claims.email) {
+            throw new Error("Keycloak token is missing a subject or email claim")
+          }
+          const normalizedEmail = claims.email.trim().toLowerCase()
+
           // Upsert user in database, linking by keycloakSubId or email
           let user = await prisma.user.findUnique({
             where: { keycloakSubId: claims.sub },
           })
 
-          if (!user && claims.email) {
+          if (!user) {
             // Fallback: find by email for users migrated from dev-login
             user = await prisma.user.findUnique({
-              where: { email: claims.email },
+              where: { email: normalizedEmail },
             })
             if (user) {
               // Link existing user to their Keycloak identity
@@ -87,7 +104,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             user = await prisma.user.create({
               data: {
-                email: claims.email!,
+                email: normalizedEmail,
                 name: fullName,
                 keycloakSubId: claims.sub,
                 role: "user",

@@ -16,7 +16,10 @@ export async function GET(
 
   const entryLabels = await prisma.leadEntryLabel.findMany({
     where: {
-      entry: { leadId },
+      entry: {
+        leadId,
+        list: { userId: session.user.id },
+      },
     },
     include: {
       label: true,
@@ -47,7 +50,10 @@ export async function POST(
   }
 
   const { id: leadId } = await params
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
   const { labelId, entryId } = body
 
   if (!labelId || !entryId) {
@@ -67,11 +73,15 @@ export async function POST(
   }
 
   // Verify the entry exists and belongs to this lead
-  const entry = await prisma.leadListEntry.findUnique({
-    where: { id: entryId },
+  const entry = await prisma.leadListEntry.findFirst({
+    where: {
+      id: entryId,
+      leadId,
+      list: { userId: session.user.id },
+    },
   })
 
-  if (!entry || entry.leadId !== leadId) {
+  if (!entry) {
     return NextResponse.json({ error: "Entry not found" }, { status: 404 })
   }
 

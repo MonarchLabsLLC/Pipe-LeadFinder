@@ -24,8 +24,32 @@ export async function POST(_req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  const lockTime = new Date()
+  const staleLockBefore = new Date(lockTime.getTime() - 60 * 60 * 1000)
+  const lock = await prisma.aiAgent.updateMany({
+    where: {
+      id,
+      userId: session.user.id,
+      OR: [
+        { schedulerLockAt: null },
+        { schedulerLockAt: { lt: staleLockBefore } },
+      ],
+    },
+    data: { schedulerLockAt: lockTime },
+  })
+  if (lock.count === 0) {
+    return NextResponse.json(
+      { error: "This agent is already running", code: "AGENT_ALREADY_RUNNING" },
+      { status: 409 }
+    )
+  }
+
   try {
-    const result = await runAgent(agent, {
+    const lockedAgent = await prisma.aiAgent.findUnique({ where: { id } })
+    if (!lockedAgent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 })
+    }
+    const result = await runAgent(lockedAgent, {
       id: session.user.id,
       email: session.user.email,
     })
@@ -45,5 +69,10 @@ export async function POST(_req: NextRequest, context: RouteContext) {
 
     const message = error instanceof Error ? error.message : "Agent execution failed"
     return NextResponse.json({ error: message }, { status: 500 })
+  } finally {
+    await prisma.aiAgent.updateMany({
+      where: { id, schedulerLockAt: lockTime },
+      data: { schedulerLockAt: null },
+    })
   }
 }

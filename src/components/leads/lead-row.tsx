@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useState, useRef } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -223,10 +223,6 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
   const [manualPhone, setManualPhone] = useState<string | null>(lead.phone)
   const phoneInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (lead.phone) setManualPhone(lead.phone)
-  }, [lead.phone])
-
   // Label popover state
   const [labelPopoverOpen, setLabelPopoverOpen] = useState(false)
 
@@ -234,11 +230,12 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
     enrichEmail.mutate(
       { leadId: lead.id },
       {
-        onSuccess: () => {
-          appToast.success(
-            "Email lookup started",
-            "We’ll update this lead when enrichment returns."
-          )
+        onSuccess: (updated) => {
+          if (updated.email) {
+            appToast.success("Email found", updated.email)
+          } else {
+            appToast.info("No email found", "No matching email was returned.")
+          }
         },
         onError: (error) => {
           appToast.error("emailEnrichment", error)
@@ -251,11 +248,13 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
     enrichPhone.mutate(
       { leadId: lead.id },
       {
-        onSuccess: () => {
-          appToast.success(
-            "Phone lookup started",
-            "We’ll update this lead when enrichment returns."
-          )
+        onSuccess: (updated) => {
+          if (updated.phone) {
+            setManualPhone(updated.phone)
+            appToast.success("Phone found", updated.phone)
+          } else {
+            appToast.info("No phone found", "No matching phone number was returned.")
+          }
         },
         onError: (error) => {
           appToast.error("phoneEnrichment", error)

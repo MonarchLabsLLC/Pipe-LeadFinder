@@ -251,7 +251,7 @@ One-click enrichment of existing leads to fill in missing contact data.
 
 ### 5.5 AI Assistant and Prompt Templates
 
-Inline AI-powered actions available per lead in the results table. Uses Vercel AI SDK with OpenAI/Gemini.
+Inline AI-powered actions available per lead in the results table. Uses Vercel AI SDK with OpenAI `gpt-5.4-nano`.
 
 **Built-in Actions:**
 - **Similar People** — find leads similar to this person
@@ -353,7 +353,7 @@ User → Search Form → Next.js API Route → Apify Actor → Raw Results
                                                            ↓
                                               Enrichment → Apify Enrichment Actor
                                                            ↓
-                                              AI Assistant → Vercel AI SDK → OpenAI/Gemini
+                                              AI Assistant → Vercel AI SDK → OpenAI gpt-5.4-nano
 ```
 
 ### Search Flow:
@@ -374,7 +374,7 @@ User → Search Form → Next.js API Route → Apify Actor → Raw Results
 ### AI Assistant Flow:
 1. User clicks AI action button (e.g., "Direct Message") on a lead
 2. Frontend calls AI API route with lead data + business profile context
-3. API uses Vercel AI SDK to stream response from OpenAI/Gemini
+3. API uses Vercel AI SDK to stream a response from OpenAI `gpt-5.4-nano`
 4. Generated content displayed inline or in modal
 
 ---
@@ -407,7 +407,7 @@ Each search type maps to one or more Apify actors. Specific actor IDs will be co
 ## 9. Integration Points
 
 - **Apify** — all lead data sourcing and enrichment
-- **OpenAI / Gemini** — AI Assistant content generation via Vercel AI SDK
+- **OpenAI `gpt-5.4-nano`** — AI Assistant content generation via Vercel AI SDK
 - **Firecrawl** — Knowledge Base website crawling
 - **Webhooks** — AI Agents can POST completed-run lead payloads to configured URLs
 - **CSV Export** — download list data

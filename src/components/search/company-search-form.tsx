@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useForm, Controller, type Resolver } from "react-hook-form"
+import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 import { companySearchSchema, type CompanySearchInput } from "@/lib/validators/search"
@@ -32,7 +31,6 @@ interface CompanySearchFormProps {
 }
 
 export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySearchFormProps) {
-  const [listId, setListId] = useState<string | undefined>(undefined)
   const { pricingMap } = usePipeLeadsPricing()
   const companySearchCreditText = formatScaledCreditText(
     getPipeLeadsCreditCost("search:company", pricingMap),
@@ -42,16 +40,19 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<CompanySearchInput>({
     resolver: zodResolver(companySearchSchema) as Resolver<CompanySearchInput>,
     defaultValues: {
       resultsLimit: 10,
+      listId: "",
     },
   })
+  const listId = useWatch({ control, name: "listId" })
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
@@ -99,36 +100,6 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="radius" className="text-sm font-medium text-foreground">
-                Radius (km)
-              </Label>
-              <Controller
-                name="radius"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value?.toString() ?? ""}
-                    onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
-                  >
-                    <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
-                      <SelectValue placeholder="Select radius" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[5, 10, 25, 50, 100].map((val) => (
-                        <SelectItem key={val} value={val.toString()}>
-                          {val} km
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.radius && (
-                <p className="text-xs text-destructive">{errors.radius.message}</p>
-              )}
-            </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="resultsLimit" className="text-sm font-medium text-foreground">
                 Results Limit
@@ -261,34 +232,6 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="revenue" className="text-sm font-medium text-foreground">
-                Revenue
-              </Label>
-              <Controller
-                name="revenue"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value ?? ""}
-                    onValueChange={(val) => field.onChange(val || undefined)}
-                  >
-                    <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
-                      <SelectValue placeholder="Choose Revenue" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0-1M">$0 - $1M</SelectItem>
-                      <SelectItem value="1M-10M">$1M - $10M</SelectItem>
-                      <SelectItem value="10M-50M">$10M - $50M</SelectItem>
-                      <SelectItem value="50M-100M">$50M - $100M</SelectItem>
-                      <SelectItem value="100M-500M">$100M - $500M</SelectItem>
-                      <SelectItem value="500M-1B">$500M - $1B</SelectItem>
-                      <SelectItem value="1B+">$1B+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
           </div>
         </div>
 
@@ -301,7 +244,13 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
           </h3>
           <Separator className="mt-2 mb-4" />
 
-          <ListSelector value={listId} onChange={setListId} searchType={SearchType.COMPANY} />
+          <ListSelector
+            value={listId || undefined}
+            onChange={(value) =>
+              setValue("listId", value, { shouldDirty: true, shouldValidate: true })
+            }
+            searchType={SearchType.COMPANY}
+          />
 
           {/* Credit Info */}
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
@@ -318,7 +267,7 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !listId}
               className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
             >
               {isLoading ? "Searching..." : "Continue"}

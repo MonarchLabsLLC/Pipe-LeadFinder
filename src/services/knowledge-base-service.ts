@@ -1,25 +1,20 @@
 import { prisma } from "@/lib/prisma"
 import { DataSourceType } from "@/generated/prisma/enums"
 import Firecrawl from "@mendable/firecrawl-js"
+import { assertSafePublicUrl } from "@/lib/safe-url"
+
+const MAX_STORED_SOURCE_CHARS = 500_000
 
 // ---------------------------------------------------------------------------
 // Business Profile
 // ---------------------------------------------------------------------------
 
 export async function getOrCreateProfile(userId: string) {
-  let profile = await prisma.businessProfile.findUnique({
+  return prisma.businessProfile.upsert({
     where: { userId },
-    include: { dataSources: { orderBy: { createdAt: "desc" } } },
+    update: {},
+    create: { userId },
   })
-
-  if (!profile) {
-    profile = await prisma.businessProfile.create({
-      data: { userId },
-      include: { dataSources: { orderBy: { createdAt: "desc" } } },
-    })
-  }
-
-  return profile
 }
 
 export async function updateProfile(
@@ -46,10 +41,14 @@ export async function updateProfile(
 // ---------------------------------------------------------------------------
 
 export async function getDataSources(profileId: string) {
-  return prisma.dataSource.findMany({
+  const sources = await prisma.dataSource.findMany({
     where: { profileId },
     orderBy: { createdAt: "desc" },
   })
+  return sources.map((source) => ({
+    ...source,
+    content: source.content.slice(0, 2_000),
+  }))
 }
 
 export async function addDataSource(
@@ -59,19 +58,19 @@ export async function addDataSource(
   sourceUrl?: string,
   name?: string
 ) {
+  const storedContent =
+    content.length > MAX_STORED_SOURCE_CHARS
+      ? `${content.slice(0, MAX_STORED_SOURCE_CHARS)}\n\n[Source truncated for storage safety.]`
+      : content
   return prisma.dataSource.create({
     data: {
       profileId,
       type,
-      content,
+      content: storedContent,
       sourceUrl: sourceUrl ?? null,
       name: name ?? null,
     },
   })
-}
-
-export async function deleteDataSource(id: string) {
-  return prisma.dataSource.delete({ where: { id } })
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +85,7 @@ function getFirecrawl() {
 
 /** Crawl an entire website (may return multiple pages). */
 export async function crawlWebsite(url: string): Promise<string> {
+  await assertSafePublicUrl(url)
   const app = getFirecrawl()
   const result = await app.crawl(url, {
     limit: 10,
@@ -100,13 +100,18 @@ export async function crawlWebsite(url: string): Promise<string> {
     })
     .join("\n\n---\n\n")
 
-  return combined || "No content extracted."
+  if (!combined.trim()) throw new Error("No readable content was extracted from this website")
+  return combined
 }
 
 /** Crawl / scrape a single link. */
 export async function crawlLink(url: string): Promise<string> {
+  await assertSafePublicUrl(url)
   const app = getFirecrawl()
   const result = await app.scrape(url, { formats: ["markdown"] })
 
-  return result.markdown ?? "No content extracted."
+  if (!result.markdown?.trim()) {
+    throw new Error("No readable content was extracted from this page")
+  }
+  return result.markdown
 }

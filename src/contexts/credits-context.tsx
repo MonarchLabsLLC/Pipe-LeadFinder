@@ -87,9 +87,10 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
   }, [fetchBalance])
 
   useEffect(() => {
-    fetchBalance(true)
+    const initialFetch = setTimeout(() => fetchBalance(true), 0)
     startPolling()
     return () => {
+      clearTimeout(initialFetch)
       if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [fetchBalance, startPolling])

@@ -44,8 +44,8 @@ export interface CreditUsagePayload {
  * Sent to the microservice's token-aware consume endpoint.
  */
 export interface TokenUsagePayload {
-  provider: string   // "openai", "google", "anthropic"
-  model: string      // "gpt-4o-mini", "gemini-3-flash-preview", etc.
+  provider: string   // "openai"
+  model: string      // "gpt-5.4-nano"
   inputTokens: number
   outputTokens: number
   appName?: string

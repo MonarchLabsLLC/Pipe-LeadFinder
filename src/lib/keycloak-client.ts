@@ -38,6 +38,7 @@ type KeycloakTokenRoles = {
 // Token caching to prevent loss during SSO checks
 let cachedToken: string | undefined
 let cachedRefreshToken: string | undefined
+let sessionCheckInterval: ReturnType<typeof setInterval> | null = null
 
 // Initialize Keycloak with SSO check
 export async function initKeycloak(): Promise<boolean> {
@@ -86,9 +87,10 @@ function hasRequiredRole(): boolean {
   const resourceRoles =
     parsedToken?.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles || []
 
-  return ACCEPTED_ROLES.some(
-    (role) => realmRoles.includes(role) || resourceRoles.includes(role)
+  const roles = [...realmRoles, ...resourceRoles].map((role) =>
+    role.toLowerCase()
   )
+  return ACCEPTED_ROLES.some((role) => roles.includes(role.toLowerCase()))
 }
 
 // Set up automatic token refresh
@@ -116,7 +118,8 @@ function setupTokenRefresh(): void {
 
   // Periodically verify the session is still valid by forcing a token refresh.
   // This detects cross-app logout without relying on third-party cookies.
-  setInterval(() => {
+  if (sessionCheckInterval) clearInterval(sessionCheckInterval)
+  sessionCheckInterval = setInterval(() => {
     keycloak
       .updateToken(-1) // -1 forces refresh regardless of expiry
       .then(() => {
@@ -201,6 +204,10 @@ export function login(): void {
 
 // Logout — redirects to Keycloak logout endpoint
 export function logout(): void {
+  if (sessionCheckInterval) {
+    clearInterval(sessionCheckInterval)
+    sessionCheckInterval = null
+  }
   cachedToken = undefined
   cachedRefreshToken = undefined
   keycloak.logout({

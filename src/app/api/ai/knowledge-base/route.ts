@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { getOrCreateProfile, updateProfile } from "@/services/knowledge-base-service"
+import { businessProfileSchema } from "@/lib/validators/knowledge-base"
 
 // GET /api/ai/knowledge-base — return business profile (create if missing)
 export async function GET() {
@@ -20,25 +21,15 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = await req.json()
-
-  const allowedFields = [
-    "businessName",
-    "businessWebsite",
-    "whatYouSell",
-    "whoItHelps",
-    "whatItDoes",
-    "contactPerson",
-    "personality",
-  ] as const
-
-  const data: Record<string, string> = {}
-  for (const key of allowedFields) {
-    if (key in body) {
-      data[key] = body[key] ?? ""
-    }
+  const body = await req.json().catch(() => null)
+  const parsed = businessProfileSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid business profile", details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
-  const profile = await updateProfile(session.user.id, data)
+  const profile = await updateProfile(session.user.id, parsed.data)
   return NextResponse.json(profile)
 }

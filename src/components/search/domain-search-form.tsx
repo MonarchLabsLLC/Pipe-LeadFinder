@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useForm, Controller, type Resolver } from "react-hook-form"
+import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 import { domainSearchSchema, type DomainSearchInput } from "@/lib/validators/search"
@@ -33,7 +32,6 @@ interface DomainSearchFormProps {
 }
 
 export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearchFormProps) {
-  const [listId, setListId] = useState<string | undefined>(undefined)
   const { pricingMap } = usePipeLeadsPricing()
   const domainSearchCredits = getScaledDisplayCredits(
     getPipeLeadsCreditCost("search:domain", pricingMap)
@@ -46,16 +44,19 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
     control,
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<DomainSearchInput>({
     resolver: zodResolver(domainSearchSchema) as Resolver<DomainSearchInput>,
     defaultValues: {
       resultsLimit: 10,
+      listId: "",
     },
   })
+  const listId = useWatch({ control, name: "listId" })
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
@@ -124,7 +125,13 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
           </h3>
           <Separator className="mt-2 mb-4" />
 
-          <ListSelector value={listId} onChange={setListId} searchType={SearchType.DOMAIN} />
+          <ListSelector
+            value={listId || undefined}
+            onChange={(value) =>
+              setValue("listId", value, { shouldDirty: true, shouldValidate: true })
+            }
+            searchType={SearchType.DOMAIN}
+          />
 
           {/* Credit Info */}
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
@@ -145,7 +152,7 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !listId}
               className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
             >
               {isLoading ? "Searching..." : "Continue"}

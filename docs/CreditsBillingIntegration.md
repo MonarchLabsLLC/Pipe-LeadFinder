@@ -72,7 +72,7 @@ These send a fixed `amount` to the `/api/micro/credits/consume` endpoint.
 
 ### 2. Token-Based Credits (AI Assistant)
 
-The AI Assistant generates personalized outreach messages per lead. It uses **OpenAI gpt-5.4-nano** (the cheapest current model — replaced gpt-4o-mini which was deprecated Feb 2026) and sends token usage to the microservice.
+The AI Assistant generates personalized outreach messages per lead. It uses **OpenAI `gpt-5.4-nano`** and sends token usage to the microservice.
 
 **Payload example** (token-based):
 ```json
@@ -111,10 +111,6 @@ If it's missing, add it:
 > - Cached input: $0.02 / 1M tokens
 >
 > At 2x multiplier, a typical AI Assistant action (~1,500 input + ~500 output tokens) would cost roughly **1-2 display credits**.
->
-> **Note:** gpt-4o-mini was deprecated Feb 12, 2026. We switched to gpt-5.4-nano as the
-> cheapest available model. If higher quality outreach is needed, upgrade to `gpt-5.4-mini`
-> ($0.75/$4.50 per 1M tokens) — just change the model string in `src/app/api/ai/assistant/route.ts`.
 
 ### 2. Configure Project Multiplier for `pipe-leadfinder`
 
@@ -197,7 +193,7 @@ These are the Apify actors we call. PipeLeads pays Apify per actor run — this 
 
 ## OpenAI AI Assistant Costs
 
-**Current model:** `gpt-5.4-nano` (replaced deprecated `gpt-4o-mini`)
+**Current model:** `gpt-5.4-nano`
 
 | Model | Provider | Input Price | Output Price | Typical Action | Est. Tokens | Est. Cost | Credits (2x markup) |
 |-------|----------|------------|-------------|----------------|-------------|-----------|---------------------|
@@ -206,8 +202,6 @@ These are the Apify actors we call. PipeLeads pays Apify per actor run — this 
 | `gpt-5.4-nano` | OpenAI | $0.20/1M | $1.25/1M | Subject lines | ~1,200 in / ~300 out | ~$0.0006 | ~1-2 credits |
 
 AI actions are very cheap with `gpt-5.4-nano`. At 2x multiplier, a typical action costs 1-3 display credits. Well within margin.
-
-**Upgrade path:** If outreach quality needs improvement, swap to `gpt-5.4-mini` ($0.75/$4.50 per 1M) — change one line in `src/app/api/ai/assistant/route.ts`.
 
 ---
 

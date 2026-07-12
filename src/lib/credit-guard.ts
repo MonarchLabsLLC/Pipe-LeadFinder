@@ -35,21 +35,23 @@ export async function guardCredits(
 }
 
 /**
- * Post-operation: consume credits after a successful action.
- * Fire-and-forget — never blocks the response.
+ * Post-operation: consume credits after a successful action. Callers await the
+ * returned promise so serverless runtimes do not terminate before billing is
+ * recorded. Billing failures are logged by the credit service and do not undo
+ * the completed user operation.
  */
-export function deductCredits(
+export async function deductCredits(
   userId: string,
   action: CreditAction,
   resultCount: number,
-  meta?: { listId?: string; leadId?: string; searchType?: string }
+  meta?: { listId?: string; leadId?: string; searchType?: string },
+  email?: string | null
 ) {
   const perUnit = CREDIT_COSTS[action]
   const total = perUnit * resultCount
-  if (total <= 0) return
+  if (total <= 0) return null
 
-  // Fire-and-forget
-  consumeCredits(userId, {
+  return consumeCredits(userId, {
     amount: total,
     description: `${action} × ${resultCount}`,
     metadata: {
@@ -57,7 +59,8 @@ export function deductCredits(
       resultCount,
       ...meta,
     },
-  }).catch((err) => {
+  }, email).catch((err) => {
     console.error("[CreditGuard] Deduction failed:", err)
+    return null
   })
 }

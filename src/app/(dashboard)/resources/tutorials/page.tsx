@@ -10,6 +10,7 @@ import {
   Search,
   List,
   Sparkles,
+  WandSparkles,
   Bot,
   Tags,
   Download,

@@ -51,7 +51,10 @@ async function updateProfile(data: Partial<BusinessProfile>) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error("Failed to update profile")
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error ?? "Failed to update profile")
+  }
   return res.json()
 }
 
@@ -91,7 +94,10 @@ async function uploadPdfSource(file: File): Promise<{ source: DataSource }> {
 
 async function deleteSource(id: string) {
   const res = await fetch(`/api/ai/knowledge-base/sources/${id}`, { method: "DELETE" })
-  if (!res.ok) throw new Error("Failed to delete data source")
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error ?? "Failed to delete data source")
+  }
   return res.json()
 }
 
@@ -119,7 +125,7 @@ export default function KnowledgeBasePage() {
 
 function BusinessProfileSection() {
   const queryClient = useQueryClient()
-  const { data: profile, isLoading, dataUpdatedAt } = useQuery({
+  const { data: profile, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ["knowledge-base-profile"],
     queryFn: fetchProfile,
   })
@@ -130,6 +136,17 @@ function BusinessProfileSection() {
         <div className="flex items-center gap-2 py-8 text-muted-foreground justify-center">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading profile...
         </div>
+      </Card>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-6 text-center">
+        <p className="text-sm text-destructive">Failed to load the business profile.</p>
+        <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+          Try again
+        </Button>
       </Card>
     )
   }
@@ -295,7 +312,7 @@ function BusinessProfileForm({
 function DataSourcesSection() {
   const queryClient = useQueryClient()
 
-  const { data: sources = [], isLoading } = useQuery({
+  const { data: sources = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["knowledge-base-sources"],
     queryFn: fetchSources,
   })
@@ -415,6 +432,15 @@ function DataSourcesSection() {
             </p>
           )}
 
+          {isError && (
+            <div className="py-4 text-sm text-destructive">
+              Failed to load data sources.
+              <Button variant="link" className="ml-1 h-auto p-0" onClick={() => refetch()}>
+                Try again
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-2">
             {sources.map((source) => (
               <div
@@ -444,6 +470,7 @@ function DataSourcesSection() {
                   className="shrink-0 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
                   onClick={() => deleteMutation.mutate(source.id)}
                   disabled={deleteMutation.isPending}
+                  aria-label={`Delete ${source.name ?? source.sourceUrl ?? source.type} source`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -472,14 +499,22 @@ function WebsiteTab({
 
   async function handleCrawlWebsite() {
     if (!websiteUrl.trim()) return
-    await onAdd({ type: "WEBSITE", sourceUrl: websiteUrl.trim(), crawlMode: "website" })
-    setWebsiteUrl("")
+    try {
+      await onAdd({ type: "WEBSITE", sourceUrl: websiteUrl.trim(), crawlMode: "website" })
+      setWebsiteUrl("")
+    } catch {
+      // The mutation reports the error through its onError handler.
+    }
   }
 
   async function handleCrawlLink() {
     if (!linkUrl.trim()) return
-    await onAdd({ type: "WEBSITE", sourceUrl: linkUrl.trim(), crawlMode: "link" })
-    setLinkUrl("")
+    try {
+      await onAdd({ type: "WEBSITE", sourceUrl: linkUrl.trim(), crawlMode: "link" })
+      setLinkUrl("")
+    } catch {
+      // The mutation reports the error through its onError handler.
+    }
   }
 
   return (
@@ -532,8 +567,12 @@ function TextTab({
 
   async function handleSave() {
     if (!text.trim()) return
-    await onAdd({ type: "TEXT", content: text.trim(), name: "Custom text" })
-    setText("")
+    try {
+      await onAdd({ type: "TEXT", content: text.trim(), name: "Custom text" })
+      setText("")
+    } catch {
+      // The mutation reports the error through its onError handler.
+    }
   }
 
   return (
@@ -573,9 +612,13 @@ function QATab({
   async function handleAdd() {
     if (!question.trim() || !answer.trim()) return
     const content = JSON.stringify({ question: question.trim(), answer: answer.trim() })
-    await onAdd({ type: "QA", content, name: question.trim().slice(0, 80) })
-    setQuestion("")
-    setAnswer("")
+    try {
+      await onAdd({ type: "QA", content, name: question.trim().slice(0, 80) })
+      setQuestion("")
+      setAnswer("")
+    } catch {
+      // The mutation reports the error through its onError handler.
+    }
   }
 
   return (
@@ -642,8 +685,12 @@ function PDFTab({
 
   async function handleUpload() {
     if (!file) return
-    await onUpload(file)
-    setFile(null)
+    try {
+      await onUpload(file)
+      setFile(null)
+    } catch {
+      // The mutation reports the error through its onError handler.
+    }
   }
 
   return (

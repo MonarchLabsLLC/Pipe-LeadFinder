@@ -1,7 +1,7 @@
 import { apifyClient } from "@/lib/apify"
 import { prisma } from "@/lib/prisma"
 import { extractPrimaryEmail } from "@/lib/contact-info"
-import { findWebsiteEmails, normalizeDomain } from "@/lib/website-email-discovery"
+import { findWebsiteEmails } from "@/lib/website-email-discovery"
 import type { Lead } from "@/generated/prisma/client"
 
 // ---------------------------------------------------------------------------
@@ -26,43 +26,15 @@ function getPhoneActorId(): string {
 // Build actor input from lead data
 // ---------------------------------------------------------------------------
 
-function cleanDomain(value: string | null): string | undefined {
-  return normalizeDomain(value) ?? undefined
-}
-
 function buildEmailActorInputs(lead: Lead): Record<string, unknown>[] {
-  const inputs: Record<string, unknown>[] = []
-
-  if (lead.linkedinUrl) {
-    inputs.push({ linkedin_url: [lead.linkedinUrl] })
-  }
-
-  inputs.push({
-    firstName: lead.firstName ?? undefined,
-    lastName: lead.lastName ?? undefined,
-    fullName: lead.fullName ?? undefined,
-    company: lead.companyName ?? undefined,
-    domain: cleanDomain(lead.companyWebsite),
-  })
-
-  return inputs.filter((input) =>
-    Object.values(input).some((value) => value !== undefined && value !== null)
-  )
+  return lead.linkedinUrl ? [{ linkedin_url: [lead.linkedinUrl] }] : []
 }
 
 function buildPhoneActorInput(lead: Lead): Record<string, unknown> {
-  // code_crafter/mobile-finder takes linkedin_url array
-  if (lead.linkedinUrl) {
-    return { linkedin_url: [lead.linkedinUrl] }
+  if (!lead.linkedinUrl) {
+    throw new Error("A LinkedIn profile URL is required for phone enrichment")
   }
-  // Fallback
-  return {
-    firstName: lead.firstName ?? undefined,
-    lastName: lead.lastName ?? undefined,
-    fullName: lead.fullName ?? undefined,
-    company: lead.companyName ?? undefined,
-    email: lead.email ?? undefined,
-  }
+  return { linkedin_url: [lead.linkedinUrl] }
 }
 
 // ---------------------------------------------------------------------------
@@ -85,7 +57,10 @@ function parseEmailResult(
 
   // Some actors indicate confidence/verification status
   const verified = matchedItem?.verified ?? matchedItem?.isVerified ?? matchedItem?.status
-  const status = verified === true || verified === "verified" ? "FOUND" : "POTENTIAL"
+  const status =
+    verified === false || verified === "unverified" || verified === "potential"
+      ? "POTENTIAL"
+      : "FOUND"
 
   return { email, emailStatus: status }
 }
@@ -98,7 +73,13 @@ function parsePhoneResult(
   }
 
   const item = items[0]
-  const phone = (item.phone || item.phoneNumber || item.contact_phone || null) as string | null
+  const rawPhone =
+    item.first_mobile_number ||
+    item.phone ||
+    item.phoneNumber ||
+    item.contact_phone
+  const phone =
+    typeof rawPhone === "string" && rawPhone.trim() ? rawPhone.trim() : null
 
   if (!phone) {
     return { phone: null, phoneStatus: "NOT_FOUND" }
@@ -114,14 +95,18 @@ function parsePhoneResult(
 export async function enrichEmail(leadId: string) {
   const lead = await prisma.lead.findUnique({ where: { id: leadId } })
   if (!lead) throw new Error(`Lead not found: ${leadId}`)
+  if (lead.email && (lead.emailStatus === "FOUND" || lead.emailStatus === "POTENTIAL")) {
+    return lead
+  }
 
-  const actorId = getEmailActorId()
   const inputs = buildEmailActorInputs(lead)
   let email: string | null = null
   let emailStatus: "FOUND" | "NOT_FOUND" | "POTENTIAL" = "NOT_FOUND"
 
-  for (const input of inputs) {
+  if (inputs.length) {
     try {
+      const actorId = getEmailActorId()
+      for (const input of inputs) {
       const run = await apifyClient.actor(actorId).call(input)
       const { items } = await apifyClient
         .dataset(run.defaultDatasetId)
@@ -132,6 +117,7 @@ export async function enrichEmail(leadId: string) {
         email = parsed.email
         emailStatus = parsed.emailStatus
         break
+      }
       }
     } catch (error) {
       console.error("Email enrichment actor attempt failed:", error)
@@ -150,7 +136,7 @@ export async function enrichEmail(leadId: string) {
     where: { id: leadId },
     data: {
       email: email ?? lead.email,
-      emailStatus,
+      emailStatus: email || !lead.email ? emailStatus : lead.emailStatus,
     },
   })
 
@@ -164,6 +150,7 @@ export async function enrichEmail(leadId: string) {
 export async function enrichPhone(leadId: string) {
   const lead = await prisma.lead.findUnique({ where: { id: leadId } })
   if (!lead) throw new Error(`Lead not found: ${leadId}`)
+  if (lead.phone && lead.phoneStatus === "FOUND") return lead
 
   const actorId = getPhoneActorId()
   const input = buildPhoneActorInput(lead)
@@ -181,7 +168,7 @@ export async function enrichPhone(leadId: string) {
     where: { id: leadId },
     data: {
       phone: phone ?? lead.phone,
-      phoneStatus,
+      phoneStatus: phone || !lead.phone ? phoneStatus : lead.phoneStatus,
     },
   })
 

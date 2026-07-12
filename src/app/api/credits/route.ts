@@ -42,13 +42,10 @@ export async function GET(req: Request) {
   // Default: return balance
   const balance = await getBalance(session.user.id, session.user.email)
   if (!balance) {
-    // Service unavailable — return a safe default so UI doesn't break
-    return NextResponse.json({
-      userId: session.user.id,
-      availableCredits: 0,
-      consumedCredits: 0,
-      updatedAt: null,
-    })
+    return NextResponse.json(
+      { error: "Credit service temporarily unavailable" },
+      { status: 503 }
+    )
   }
 
   return NextResponse.json(balance)

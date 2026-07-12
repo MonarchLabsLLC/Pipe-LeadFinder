@@ -1,15 +1,16 @@
 import { generateText } from "ai"
 import { prisma } from "@/lib/prisma"
-import { pickLeadFields } from "@/lib/pick-lead-fields"
-import { executeSearch, getActorId } from "@/services/search-service"
+import {
+  assertSearchConfigured,
+  executeSearch,
+} from "@/services/search-service"
 import { enrichEmail, enrichPhone } from "@/services/enrich-service"
 import {
   ensureCreditsAvailable,
-  consumeCredits,
   consumeTokenCredits,
-  CREDIT_COSTS,
   type CreditAction,
 } from "@/services/credits-service"
+import { deductCredits } from "@/lib/credit-guard"
 import {
   getBusinessContext,
   getLeadContext,
@@ -22,6 +23,19 @@ import {
 } from "@/services/ai-runtime"
 import type { AiAgent, Lead } from "@/generated/prisma/client"
 import type { SearchType } from "@/generated/prisma/enums"
+import { agentConfigSchema } from "@/lib/validators/agent"
+import {
+  markSearchFailed,
+  persistSearchResults,
+} from "@/services/search-persistence"
+import { safeFetch } from "@/lib/safe-url"
+import {
+  companySearchSchema,
+  domainSearchSchema,
+  influencerSearchSchema,
+  localSearchSchema,
+  peopleSearchSchema,
+} from "@/lib/validators/search"
 
 const AGENT_AI_CONFIG = getAiRuntimeConfig("agent")
 
@@ -106,33 +120,10 @@ function getSearchCreditAction(searchType: SearchType): CreditAction {
 }
 
 function countBillableSearchResults(searchType: SearchType, leads: Lead[]) {
-  if (searchType === "LOCAL") {
+  if (searchType === "LOCAL" || searchType === "DOMAIN") {
     return leads.filter((lead) => Boolean(lead.email)).length
   }
   return leads.length
-}
-
-function deductAgentCredits(
-  userId: string,
-  action: CreditAction,
-  resultCount: number,
-  meta?: { listId?: string; leadId?: string; searchType?: string }
-) {
-  const perUnit = CREDIT_COSTS[action]
-  const total = perUnit * resultCount
-  if (total <= 0) return
-
-  consumeCredits(userId, {
-    amount: total,
-    description: `${action} x ${resultCount}`,
-    metadata: {
-      action,
-      resultCount,
-      ...meta,
-    },
-  }).catch((err) => {
-    console.error("[AgentRunner] Credit deduction failed:", err)
-  })
 }
 
 async function ensureAgentCredits(user: AgentRunUser) {
@@ -152,7 +143,7 @@ async function saveAiResult(
   actionType: "SUMMARY" | "DIRECT_MESSAGE"
 ) {
   const [leadContext, businessContext] = await Promise.all([
-    getLeadContext(leadId),
+    getLeadContext(leadId, user.id),
     getBusinessContext(user.id),
   ])
   const systemPrompt = buildSystemPrompt(actionType, businessContext)
@@ -162,6 +153,7 @@ async function saveAiResult(
     model: getAiLanguageModel(AGENT_AI_CONFIG),
     system: systemPrompt,
     prompt: userPrompt,
+    maxOutputTokens: 1_500,
   })
 
   await prisma.aiResult.create({
@@ -175,7 +167,7 @@ async function saveAiResult(
   })
 
   if (usage?.inputTokens || usage?.outputTokens) {
-    consumeTokenCredits(
+    await consumeTokenCredits(
       user.id,
       {
         provider: AGENT_AI_CONFIG.provider,
@@ -184,7 +176,7 @@ async function saveAiResult(
         outputTokens: usage.outputTokens ?? 0,
       },
       user.email
-    ).catch(() => {})
+    )
   }
 }
 
@@ -192,34 +184,100 @@ export async function runAgent(
   agent: AiAgent,
   user: AgentRunUser
 ): Promise<AgentRunResult> {
-  const config = (agent.config ?? {}) as AgentConfig
+  const parsedConfig = agentConfigSchema.safeParse(agent.config ?? {})
+  if (!parsedConfig.success) {
+    throw new AgentRunError("Agent configuration is invalid", {
+      status: 400,
+      code: "INVALID_AGENT_CONFIG",
+    })
+  }
+  const config = parsedConfig.data as AgentConfig
 
   if (!config.searchType) {
     throw new AgentRunError("Agent has no searchType configured", { status: 400 })
   }
 
-  try {
-    getActorId(config.searchType)
-  } catch {
+  await ensureAgentCredits(user)
+
+  const searchType = config.searchType
+  const rawSearchParams: Record<string, unknown> = {
+    ...config.searchParams,
+    resultsLimit: config.resultsLimit ?? 10,
+    listId: "agent-validation",
+  }
+
+  if (searchType === "LOCAL") {
+    rawSearchParams.businessType = config.searchDescription
+    rawSearchParams.location = config.searchLocation
+  } else if (searchType === "DOMAIN") {
+    rawSearchParams.companyNameOrWebsite = config.searchDescription
+  } else {
+    rawSearchParams.description = config.searchDescription
+    rawSearchParams.location = config.searchLocation
+  }
+
+  const schema = {
+    PEOPLE: peopleSearchSchema,
+    LOCAL: localSearchSchema,
+    COMPANY: companySearchSchema,
+    DOMAIN: domainSearchSchema,
+    INFLUENCER: influencerSearchSchema,
+  }[searchType]
+  const parsedSearch = schema.safeParse(rawSearchParams)
+  if (!parsedSearch.success) {
     throw new AgentRunError(
-      `Apify actor not configured for search type: ${config.searchType}. Check your .env file.`,
+      parsedSearch.error.issues[0]?.message || "Agent search configuration is invalid",
+      { status: 400, code: "INVALID_SEARCH_CONFIG" }
+    )
+  }
+  const { listId: _validationListId, ...searchParams } = parsedSearch.data
+  void _validationListId
+
+  try {
+    assertSearchConfigured(searchType, searchParams)
+  } catch (error) {
+    throw new AgentRunError(
+      error instanceof Error ? error.message : "Search actor is not configured",
       { status: 503, code: "ACTOR_NOT_CONFIGURED" }
     )
   }
 
-  await ensureAgentCredits(user)
-
-  const searchType = config.searchType
-  const searchParams: Record<string, unknown> = {
-    ...config.searchParams,
-    description: config.searchDescription,
-    location: config.searchLocation,
-    resultsLimit: config.resultsLimit ?? 10,
+  let listId = config.listId
+  if (listId) {
+    const list = await prisma.leadList.findFirst({
+      where: {
+        id: listId,
+        userId: user.id,
+        type: searchType,
+        status: "ACTIVE",
+      },
+      select: { id: true },
+    })
+    if (!list) {
+      throw new AgentRunError(
+        "The agent's target list is missing, archived, or belongs to another user",
+        { status: 400, code: "INVALID_TARGET_LIST" }
+      )
+    }
+  } else {
+    const list = await prisma.leadList.create({
+      data: {
+        name: `${agent.name} - ${new Date().toLocaleDateString()}`,
+        type: searchType,
+        userId: user.id,
+      },
+    })
+    listId = list.id
+    await prisma.aiAgent.update({
+      where: { id: agent.id },
+      data: { config: jsonConfig({ ...config, listId }) },
+    })
   }
 
   const searchHistory = await prisma.searchHistory.create({
     data: {
       userId: user.id,
+      listId,
       searchType,
       parameters: JSON.parse(JSON.stringify(searchParams)),
       status: "PENDING",
@@ -233,35 +291,20 @@ export async function runAgent(
     })
 
     const results = await executeSearch(searchType, searchParams)
-    let listId = config.listId
+    const leads = await persistSearchResults({
+      searchId: searchHistory.id,
+      listId,
+      searchType,
+      results,
+      markCompleted: false,
+    })
 
-    if (!listId) {
-      const list = await prisma.leadList.create({
-        data: {
-          name: `${agent.name} - ${new Date().toLocaleDateString()}`,
-          type: searchType,
-          userId: user.id,
-        },
-      })
-      listId = list.id
-    }
-
-    const leads = await Promise.all(
-      results.map(async (leadData) => {
-        const lead = await prisma.lead.create({
-          data: {
-            ...pickLeadFields(leadData),
-            sourceType: searchType,
-            emailStatus: leadData.email ? "FOUND" : "NOT_FOUND",
-          },
-        })
-
-        await prisma.leadListEntry.create({
-          data: { listId: listId!, leadId: lead.id },
-        }).catch(() => {})
-
-        return lead
-      })
+    await deductCredits(
+      user.id,
+      getSearchCreditAction(searchType),
+      countBillableSearchResults(searchType, leads),
+      { listId, searchType },
+      user.email
     )
 
     const actions = config.actions ?? []
@@ -269,37 +312,56 @@ export async function runAgent(
 
     for (const lead of leads) {
       if (actions.includes("enrich_email")) {
-        try {
-          const updated = await enrichEmail(lead.id)
-          if (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL") {
-            deductAgentCredits(user.id, "enrich:email", 1, { leadId: lead.id })
+        if (!lead.email) {
+          try {
+            await ensureAgentCredits(user)
+            const updated = await enrichEmail(lead.id)
+            if (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL") {
+              await deductCredits(
+                user.id,
+                "enrich:email",
+                1,
+                { leadId: lead.id },
+                user.email
+              )
+            }
+          } catch (err) {
+            actionErrors.push({
+              leadId: lead.id,
+              action: "enrich_email",
+              error: err instanceof Error ? err.message : "Unknown error",
+            })
           }
-        } catch (err) {
-          actionErrors.push({
-            leadId: lead.id,
-            action: "enrich_email",
-            error: err instanceof Error ? err.message : "Unknown error",
-          })
         }
       }
 
       if (actions.includes("enrich_phone")) {
-        try {
-          const updated = await enrichPhone(lead.id)
-          if (updated.phoneStatus === "FOUND") {
-            deductAgentCredits(user.id, "enrich:phone", 1, { leadId: lead.id })
+        if (!lead.phone) {
+          try {
+            await ensureAgentCredits(user)
+            const updated = await enrichPhone(lead.id)
+            if (updated.phoneStatus === "FOUND") {
+              await deductCredits(
+                user.id,
+                "enrich:phone",
+                1,
+                { leadId: lead.id },
+                user.email
+              )
+            }
+          } catch (err) {
+            actionErrors.push({
+              leadId: lead.id,
+              action: "enrich_phone",
+              error: err instanceof Error ? err.message : "Unknown error",
+            })
           }
-        } catch (err) {
-          actionErrors.push({
-            leadId: lead.id,
-            action: "enrich_phone",
-            error: err instanceof Error ? err.message : "Unknown error",
-          })
         }
       }
 
       if (actions.includes("ai_summary")) {
         try {
+          await ensureAgentCredits(user)
           await saveAiResult(user, lead.id, "SUMMARY")
         } catch (err) {
           actionErrors.push({
@@ -312,6 +374,7 @@ export async function runAgent(
 
       if (actions.includes("ai_direct_message")) {
         try {
+          await ensureAgentCredits(user)
           await saveAiResult(user, lead.id, "DIRECT_MESSAGE")
         } catch (err) {
           actionErrors.push({
@@ -348,11 +411,11 @@ export async function runAgent(
 
       for (const url of config.connections) {
         try {
-          const res = await fetch(url, {
+          const res = await safeFetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          })
+          }, { timeoutMs: 10_000 })
           webhookResults.push({ url, status: res.status })
         } catch (err) {
           webhookResults.push({
@@ -367,13 +430,6 @@ export async function runAgent(
       where: { id: searchHistory.id },
       data: { status: "COMPLETED", resultCount: leads.length, listId },
     })
-
-    deductAgentCredits(
-      user.id,
-      getSearchCreditAction(searchType),
-      countBillableSearchResults(searchType, leads),
-      { listId, searchType }
-    )
 
     const updatedLeadCount = (config.leadCount ?? 0) + leads.length
     await prisma.aiAgent.update({
@@ -399,10 +455,7 @@ export async function runAgent(
       webhookResults: webhookResults.length > 0 ? webhookResults : undefined,
     }
   } catch (error) {
-    await prisma.searchHistory.update({
-      where: { id: searchHistory.id },
-      data: { status: "FAILED" },
-    })
+    await markSearchFailed(searchHistory.id)
 
     if (error instanceof AgentRunError) {
       error.searchId = searchHistory.id

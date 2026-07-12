@@ -92,6 +92,10 @@ function internalHeaders(
     "x-app-name": APP_NAME,
   }
   if (email) headers["x-user-email"] = email
+  if (process.env.INTERNAL_WEBHOOK_SECRET) {
+    headers["x-internal-webhook-secret"] =
+      process.env.INTERNAL_WEBHOOK_SECRET
+  }
   return headers
 }
 
@@ -128,7 +132,17 @@ export async function getBalance(
 ): Promise<CreditBalance | null> {
   if (!MICRO_SERVICE_BASE) return null
   const creditUserId = await resolveCreditUserId(userId)
-  if (!creditUserId) return null
+  if (!creditUserId) {
+    if (process.env.NODE_ENV === "development") {
+      return {
+        userId,
+        availableCredits: 1_000_000,
+        consumedCredits: 0,
+        updatedAt: null,
+      }
+    }
+    return null
+  }
 
   try {
     const res = await fetchWithRetry(`${MICRO_SERVICE_BASE}/credits/me`, {
@@ -163,7 +177,7 @@ export async function ensureCreditsAvailable(
 
   const creditUserId = await resolveCreditUserId(userId)
   if (!creditUserId) {
-    if (process.env.NODE_ENV !== "production" || process.env.DEV_AUTO_LOGIN === "true") {
+    if (process.env.NODE_ENV === "development") {
       return {
         ok: true,
         balance: {
@@ -232,6 +246,12 @@ export async function getPipeLeadsPricing(): Promise<
           "x-internal-webhook": "true",
           "x-user-id": "pipeleads-pricing",
           "x-app-name": APP_NAME,
+          ...(process.env.INTERNAL_WEBHOOK_SECRET
+            ? {
+                "x-internal-webhook-secret":
+                  process.env.INTERNAL_WEBHOOK_SECRET,
+              }
+            : {}),
         },
       },
       1,
@@ -251,7 +271,7 @@ export async function getPipeLeadsPricing(): Promise<
 
 /**
  * Consume credits after a successful operation.
- * Fire-and-forget — logs errors but never throws.
+ * Retries transient failures and returns a failure result without throwing.
  */
 export async function consumeCredits(
   userId: string,
@@ -334,8 +354,7 @@ export async function consumeCredits(
 }
 
 /**
- * Consume credits for AI token usage (OpenAI, Gemini, etc.)
- * Fire-and-forget — the microservice calculates the credit cost from tokens.
+ * Consume credits for OpenAI token usage. The microservice calculates cost.
  */
 export async function consumeTokenCredits(
   userId: string,

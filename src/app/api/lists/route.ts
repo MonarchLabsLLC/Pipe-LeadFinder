@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
-import { createListSchema } from "@/lib/validators/list"
+import { createListSchema, listQuerySchema } from "@/lib/validators/list"
 
 // GET /api/lists — returns all lists for current user with lead counts
 export async function GET(req: NextRequest) {
@@ -13,8 +13,19 @@ export async function GET(req: NextRequest) {
   await ensureUser(session)
 
   const { searchParams } = req.nextUrl
-  const type = searchParams.get("type")
-  const status = searchParams.get("status") || "ACTIVE"
+  const parsedQuery = listQuerySchema.safeParse({
+    type: searchParams.get("type") || undefined,
+    status: searchParams.get("status") || undefined,
+  })
+
+  if (!parsedQuery.success) {
+    return NextResponse.json(
+      { error: "Invalid list filters", details: parsedQuery.error.flatten() },
+      { status: 400 }
+    )
+  }
+
+  const { type, status } = parsedQuery.data
 
   const where: Record<string, unknown> = { userId: session.user.id }
   if (type) where.type = type
@@ -26,24 +37,25 @@ export async function GET(req: NextRequest) {
       _count: {
         select: { leads: true },
       },
-      leads: {
-        include: {
-          lead: {
-            select: { emailStatus: true },
-          },
-        },
-      },
     },
     orderBy: { createdAt: "desc" },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = lists.map((list: any) => {
-    const emailFoundCount = list.leads.filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (entry: any) => entry.lead.emailStatus === "FOUND"
-    ).length
+  const foundEntries = lists.length
+    ? await prisma.leadListEntry.groupBy({
+        by: ["listId"],
+        where: {
+          listId: { in: lists.map((list) => list.id) },
+          lead: { emailStatus: "FOUND" },
+        },
+        _count: { _all: true },
+      })
+    : []
+  const foundCounts = new Map(
+    foundEntries.map((entry) => [entry.listId, entry._count._all])
+  )
 
+  const result = lists.map((list) => {
     return {
       id: list.id,
       name: list.name,
@@ -52,7 +64,7 @@ export async function GET(req: NextRequest) {
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
       leadCount: list._count.leads,
-      emailFoundCount,
+      emailFoundCount: foundCounts.get(list.id) ?? 0,
     }
   })
 
@@ -67,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
   await ensureUser(session)
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
   const parsed = createListSchema.safeParse(body)
 
   if (!parsed.success) {

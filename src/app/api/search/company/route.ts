@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
-import { pickLeadFields } from "@/lib/pick-lead-fields"
-import { executeSearch } from "@/services/search-service"
+import { assertSearchConfigured, executeSearch } from "@/services/search-service"
+import {
+  markSearchFailed,
+  persistSearchResults,
+} from "@/services/search-persistence"
 import { companySearchSchema } from "@/lib/validators/search"
 import { guardCredits, deductCredits } from "@/lib/credit-guard"
 import { searchErrorResponse } from "@/lib/search-error-response"
+import { validateSearchTarget } from "@/lib/search-target"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -18,7 +22,7 @@ export async function POST(req: NextRequest) {
   const blocked = await guardCredits(session.user.id, session.user.email)
   if (blocked) return blocked
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
   const parsed = companySearchSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
@@ -26,11 +30,20 @@ export async function POST(req: NextRequest) {
 
   const { listId, ...searchParams } = parsed.data
 
+  const invalidTarget = await validateSearchTarget(
+    session.user.id,
+    listId,
+    "COMPANY"
+  )
+  if (invalidTarget) return invalidTarget
+
   // Check if Apify actor is configured
-  if (!process.env.APIFY_ACTOR_COMPANY) {
+  try {
+    assertSearchConfigured("COMPANY", searchParams)
+  } catch (error) {
     return NextResponse.json(
       {
-        error: "Company search is not configured yet. Set APIFY_ACTOR_COMPANY in your .env file.",
+        error: error instanceof Error ? error.message : "Company search is not configured",
         code: "ACTOR_NOT_CONFIGURED",
       },
       { status: 503 }
@@ -40,7 +53,7 @@ export async function POST(req: NextRequest) {
   const searchHistory = await prisma.searchHistory.create({
     data: {
       userId: session.user.id,
-      listId: listId || null,
+      listId,
       searchType: "COMPANY",
       parameters: JSON.parse(JSON.stringify(searchParams)),
       status: "PENDING",
@@ -55,48 +68,26 @@ export async function POST(req: NextRequest) {
 
     const results = await executeSearch("COMPANY", searchParams as Record<string, unknown>)
 
-    const leads = await Promise.all(
-      results.map(async (leadData) => {
-        const lead = await prisma.lead.create({
-          data: {
-            ...pickLeadFields(leadData),
-            sourceType: "COMPANY",
-            emailStatus: leadData.email ? "FOUND" : "NOT_FOUND",
-          },
-        })
-
-        if (listId) {
-          await prisma.leadListEntry.create({
-            data: { listId, leadId: lead.id },
-          }).catch(() => {}) // Ignore duplicate entries
-        }
-
-        return lead
-      })
-    )
-
-    await prisma.searchHistory.update({
-      where: { id: searchHistory.id },
-      data: { status: "COMPLETED", resultCount: leads.length },
-    })
-
-    deductCredits(session.user.id, "search:company", leads.length, {
-      listId: listId || undefined,
+    const leads = await persistSearchResults({
+      searchId: searchHistory.id,
+      listId,
       searchType: "COMPANY",
+      results,
     })
+
+    await deductCredits(session.user.id, "search:company", leads.length, {
+      listId,
+      searchType: "COMPANY",
+    }, session.user.email)
 
     return NextResponse.json({
       searchId: searchHistory.id,
-      listId: listId || null,
+      listId,
       status: "COMPLETED",
       resultCount: leads.length,
-      results: leads,
     })
   } catch (error) {
-    await prisma.searchHistory.update({
-      where: { id: searchHistory.id },
-      data: { status: "FAILED" },
-    })
+    await markSearchFailed(searchHistory.id)
 
     return searchErrorResponse(error, searchHistory.id, "COMPANY")
   }

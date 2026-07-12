@@ -23,7 +23,7 @@ Part of the [Scale.gg](https://scale.gg) ecosystem.
 | Database | PostgreSQL + Prisma 7 |
 | Auth | Keycloak (OIDC) bridged to NextAuth 5 (Auth.js) |
 | Data Engine | Apify (lead sourcing + enrichment) |
-| AI | Vercel AI SDK 6 (OpenAI + Gemini) |
+| AI | Vercel AI SDK 6 (OpenAI `gpt-5.4-nano`) |
 | Scraping | Firecrawl (Knowledge Base website crawling) |
 | State | React Query 5, Zod 4, React Hook Form 7 |
 | Runtime | Node.js 24.x LTS |

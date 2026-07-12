@@ -38,6 +38,7 @@ export function LocationAutocomplete({
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const requestRef = useRef<AbortController | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,7 +48,11 @@ export function LocationAutocomplete({
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      requestRef.current?.abort()
+    }
   }, [])
 
   const searchLocation = useCallback(async (query: string) => {
@@ -55,12 +60,16 @@ export function LocationAutocomplete({
       setResults([])
       return
     }
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
     setIsSearching(true)
     try {
       const res = await fetch("/api/location-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
+        signal: controller.signal,
       })
       if (res.ok) {
         const data = await res.json()
@@ -69,16 +78,21 @@ export function LocationAutocomplete({
           setShowDropdown(true)
         }
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return
       /* silently fail */
+    } finally {
+      if (requestRef.current === controller) {
+        requestRef.current = null
+        setIsSearching(false)
+      }
     }
-    setIsSearching(false)
   }, [])
 
   const handleInputChange = (val: string) => {
     onChange(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => searchLocation(val), 400)
+    debounceRef.current = setTimeout(() => searchLocation(val), 1_100)
   }
 
   const formatDisplayName = (result: NominatimResult): string => {

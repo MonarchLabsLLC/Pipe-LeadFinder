@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 import {
   AgentRunError,
@@ -25,16 +26,24 @@ function isAuthorized(req: NextRequest) {
 
   const supplied =
     req.headers.get("x-cron-secret") ||
-    getBearerToken(req) ||
-    req.nextUrl.searchParams.get("secret")
+    getBearerToken(req)
 
-  return supplied === secret
+  if (!supplied) return false
+  const expectedBuffer = Buffer.from(secret)
+  const suppliedBuffer = Buffer.from(supplied)
+  return (
+    expectedBuffer.length === suppliedBuffer.length &&
+    timingSafeEqual(expectedBuffer, suppliedBuffer)
+  )
 }
 
 async function updateAgentScheduleConfig(agentId: string, config: AgentConfig) {
   await prisma.aiAgent.update({
     where: { id: agentId },
-    data: { config: serializeAgentConfig(config) },
+    data: {
+      config: serializeAgentConfig(config),
+      schedulerLockAt: null,
+    },
   })
 }
 
@@ -52,6 +61,7 @@ async function runScheduled(req: NextRequest) {
 
   const now = new Date()
   const nowIso = now.toISOString()
+  const staleLockBefore = new Date(now.getTime() - 60 * 60 * 1000)
   const agents = await prisma.aiAgent.findMany({
     where: { status: "ACTIVE" },
     include: { user: { select: { id: true, email: true } } },
@@ -76,15 +86,34 @@ async function runScheduled(req: NextRequest) {
 
     const lockedConfig: AgentConfig = {
       ...config,
-      schedulerLockAt: nowIso,
       lastScheduledStatus: "running",
       lastScheduledError: null,
     }
 
-    const lockedAgent = await prisma.aiAgent.update({
-      where: { id: agent.id },
-      data: { config: serializeAgentConfig(lockedConfig) },
+    const lock = await prisma.aiAgent.updateMany({
+      where: {
+        id: agent.id,
+        status: "ACTIVE",
+        OR: [
+          { schedulerLockAt: null },
+          { schedulerLockAt: { lt: staleLockBefore } },
+        ],
+      },
+      data: {
+        config: serializeAgentConfig(lockedConfig),
+        schedulerLockAt: now,
+      },
     })
+    if (lock.count === 0) {
+      results.push({ agentId: agent.id, status: "skipped" })
+      continue
+    }
+
+    const lockedAgent = await prisma.aiAgent.findUnique({ where: { id: agent.id } })
+    if (!lockedAgent) {
+      results.push({ agentId: agent.id, status: "failed", error: "Agent disappeared after locking" })
+      continue
+    }
 
     try {
       const run = await runAgent(lockedAgent, {
@@ -150,13 +179,9 @@ async function runScheduled(req: NextRequest) {
     checked: agents.length,
     ran: results.filter((result) => result.status !== "skipped").length,
     results,
-  })
+  }, { headers: { "Cache-Control": "no-store" } })
 }
 
 export async function POST(req: NextRequest) {
-  return runScheduled(req)
-}
-
-export async function GET(req: NextRequest) {
   return runScheduled(req)
 }

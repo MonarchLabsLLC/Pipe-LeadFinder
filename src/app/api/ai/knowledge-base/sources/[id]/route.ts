@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { deleteDataSource } from "@/services/knowledge-base-service"
+import { deleteFromSpaces } from "@/lib/storage"
 
 // DELETE /api/ai/knowledge-base/sources/[id]
 export async function DELETE(
@@ -18,7 +18,10 @@ export async function DELETE(
   // Verify ownership: source -> profile -> user
   const source = await prisma.dataSource.findUnique({
     where: { id },
-    include: { profile: { select: { userId: true } } },
+    include: {
+      profile: { select: { userId: true } },
+      fileUpload: true,
+    },
   })
 
   if (!source) {
@@ -29,6 +32,16 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  await deleteDataSource(id)
+  await prisma.$transaction(async (tx) => {
+    await tx.dataSource.delete({ where: { id } })
+    if (source.fileUploadId) {
+      await tx.fileUpload.delete({ where: { id: source.fileUploadId } })
+    }
+  })
+  if (source.fileUpload) {
+    await deleteFromSpaces(source.fileUpload.storageKey).catch((error) => {
+      console.error("Failed to delete knowledge-base object", error)
+    })
+  }
   return NextResponse.json({ success: true })
 }

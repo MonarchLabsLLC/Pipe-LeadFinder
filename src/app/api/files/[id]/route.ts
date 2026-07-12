@@ -44,9 +44,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Delete from DO Spaces first, then remove DB record
-  await deleteFromSpaces(file.storageKey)
+  // Remove the database record first so an object-storage outage cannot leave
+  // the application pointing at a file that no longer exists.
   await prisma.fileUpload.delete({ where: { id } })
+  await deleteFromSpaces(file.storageKey).catch((error) => {
+    console.error("[Files] Failed to delete orphaned storage object:", error)
+  })
 
   return NextResponse.json({ success: true })
 }

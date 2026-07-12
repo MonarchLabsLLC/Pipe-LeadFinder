@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
+import { useKeycloak } from "@/contexts/keycloak-context"
 import { Sun, Moon, Flame, Sparkles, User, BookOpen, Palette, LogOut, Check } from "lucide-react"
 
 import { useTheme } from "@/hooks/useTheme"
@@ -63,6 +64,7 @@ export function Topbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { theme, colorMode, setTheme, toggleColorMode } = useTheme()
+  const { isKeycloakReady, logout: keycloakLogout } = useKeycloak()
 
   const title = getPageTitle(pathname)
   const initials = getInitials(session?.user?.name, session?.user?.email)
@@ -133,7 +135,15 @@ export function Topbar() {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem
+              onClick={() => {
+                if (isKeycloakReady) {
+                  signOut({ redirect: false }).finally(keycloakLogout)
+                } else {
+                  signOut({ callbackUrl: "/" })
+                }
+              }}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Log Out
             </DropdownMenuItem>

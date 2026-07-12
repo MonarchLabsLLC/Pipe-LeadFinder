@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   // Only allow in development
-  if (process.env.NODE_ENV !== "development") {
+  if (
+    process.env.NODE_ENV !== "development" ||
+    process.env.DEV_AUTO_LOGIN !== "true"
+  ) {
     return NextResponse.json({ error: "Not available in production" }, { status: 403 })
   }
 

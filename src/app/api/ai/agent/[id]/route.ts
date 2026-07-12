@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { updateAgentSchema } from "@/lib/validators/agent"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -41,18 +42,43 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const body = await req.json()
-  const data: Record<string, unknown> = {}
+  const body = await req.json().catch(() => null)
+  const parsed = updateAgentSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid agent update", details: parsed.error.flatten() },
+      { status: 400 }
+    )
+  }
 
-  if (body.name !== undefined) data.name = body.name
-  if (body.description !== undefined) data.description = body.description
-  if (body.status !== undefined) data.status = body.status
-  if (body.config !== undefined) data.config = body.config
-  if (body.autoSave !== undefined) data.autoSave = body.autoSave
+  if (parsed.data.config?.listId) {
+    const targetList = await prisma.leadList.findFirst({
+      where: {
+        id: parsed.data.config.listId,
+        userId: session.user.id,
+        status: "ACTIVE",
+        ...(parsed.data.config.searchType
+          ? { type: parsed.data.config.searchType }
+          : {}),
+      },
+      select: { id: true },
+    })
+    if (!targetList) {
+      return NextResponse.json(
+        { error: "Invalid agent target list" },
+        { status: 400 }
+      )
+    }
+  }
 
   const updated = await prisma.aiAgent.update({
     where: { id },
-    data,
+    data: {
+      ...parsed.data,
+      config: parsed.data.config
+        ? JSON.parse(JSON.stringify(parsed.data.config))
+        : undefined,
+    },
   })
 
   return NextResponse.json(updated)

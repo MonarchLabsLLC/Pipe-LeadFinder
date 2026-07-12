@@ -15,14 +15,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const useDevAuth =
+    process.env.NODE_ENV === "development" &&
+    process.env.DEV_AUTO_LOGIN === "true"
+
   return (
-    <html lang="en" data-theme="amber" className="scroll-smooth">
+    <html
+      lang="en"
+      data-theme="amber"
+      data-scroll-behavior="smooth"
+      className="scroll-smooth"
+    >
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className="font-sans antialiased">
         <QueryProvider>
-          <SessionProvider>
+          <SessionProvider useDevAuth={useDevAuth}>
             <CreditsProvider>{children}</CreditsProvider>
           </SessionProvider>
         </QueryProvider>

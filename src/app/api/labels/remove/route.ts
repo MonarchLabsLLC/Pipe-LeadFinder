@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
   const parsed = removeLabelSchema.safeParse(body)
 
   if (!parsed.success) {
@@ -26,6 +26,15 @@ export async function POST(req: NextRequest) {
   }
 
   const { entryId, labelId } = parsed.data
+
+  const entry = await prisma.leadListEntry.findFirst({
+    where: { id: entryId, list: { userId: session.user.id } },
+    select: { id: true },
+  })
+
+  if (!entry) {
+    return NextResponse.json({ error: "Lead entry not found" }, { status: 404 })
+  }
 
   // Verify the label belongs to the user
   const label = await prisma.customLabel.findFirst({

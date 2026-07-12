@@ -74,10 +74,15 @@ export function KeycloakProvider({ children }: { children: React.ReactNode }) {
           // Only do this if we don't already have a NextAuth session
           if (sessionStatus !== "authenticated" && token) {
             try {
-              await signIn("credentials", {
+              const result = await signIn("credentials", {
                 keycloakToken: token,
                 redirect: false,
               })
+              if (!result?.ok) {
+                throw new Error(
+                  result?.error || "NextAuth rejected the Keycloak session"
+                )
+              }
               console.log("[KeycloakProvider] NextAuth session created from Keycloak token")
             } catch (error) {
               console.error("[KeycloakProvider] Failed to bridge to NextAuth:", error)

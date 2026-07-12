@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
   const { listId } = body as { listId?: string }
 
   if (!listId || typeof listId !== "string") {
@@ -37,9 +40,13 @@ export async function POST(req: NextRequest) {
 
     // Charge per lead that was actually enriched
     if (result.enriched > 0) {
-      deductCredits(session.user.id, "enrich:email", result.enriched, {
-        listId,
-      })
+      await deductCredits(
+        session.user.id,
+        "enrich:email",
+        result.enriched,
+        { listId },
+        session.user.email
+      )
     }
 
     return NextResponse.json(result)

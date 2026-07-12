@@ -18,6 +18,7 @@ export function useEnrichEmail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 }
@@ -40,6 +41,7 @@ export function useEnrichPhone() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 }

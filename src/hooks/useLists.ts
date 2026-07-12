@@ -44,8 +44,9 @@ export function useCreateList() {
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] })
+    onSuccess: async () => {
+      // Keep mutateAsync pending until selectors can render the new option.
+      await queryClient.invalidateQueries({ queryKey: ["lists"] })
     },
   })
 }

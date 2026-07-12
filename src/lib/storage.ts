@@ -40,13 +40,14 @@ export function getPublicUrl(key: string): string {
 
 /**
  * Upload a file to DO Spaces.
- * Returns the public CDN URL.
+ * Returns a public CDN URL for public objects or an internal S3 identifier for
+ * private objects.
  */
 export async function uploadToSpaces(
   key: string,
   body: Buffer | Uint8Array,
   contentType: string,
-  acl: "public-read" | "private" = "public-read",
+  acl: "public-read" | "private" = "private",
 ): Promise<string> {
   await s3.send(
     new PutObjectCommand({
@@ -57,7 +58,7 @@ export async function uploadToSpaces(
       ACL: acl,
     }),
   )
-  return getPublicUrl(key)
+  return acl === "public-read" ? getPublicUrl(key) : `s3://${bucket}/${key}`
 }
 
 /**

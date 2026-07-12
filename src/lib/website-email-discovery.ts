@@ -1,4 +1,5 @@
 import { extractEmailsFromText } from "@/lib/contact-info"
+import { readLimitedText, safeFetch } from "@/lib/safe-url"
 
 function asText(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined
@@ -31,6 +32,8 @@ export function normalizeWebsiteUrl(value: unknown): string | undefined {
 
   try {
     const url = new URL(withProtocol)
+    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined
+    if (url.username || url.password) return undefined
     if (url.hostname.includes("google.") || url.hostname.includes("linkedin.")) {
       return undefined
     }
@@ -42,27 +45,21 @@ export function normalizeWebsiteUrl(value: unknown): string | undefined {
 }
 
 async function fetchPageText(url: string): Promise<string | null> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5000)
-
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "PipeLeadFinder/1.0 (contact@scale.gg)",
         Accept: "text/html,application/xhtml+xml",
       },
-    })
+    }, { timeoutMs: 5_000, maxRedirects: 3 })
 
     if (!res.ok) return null
     const contentType = res.headers.get("content-type") || ""
     if (!contentType.includes("text/html")) return null
 
-    return await res.text()
+    return await readLimitedText(res)
   } catch {
     return null
-  } finally {
-    clearTimeout(timeout)
   }
 }
 

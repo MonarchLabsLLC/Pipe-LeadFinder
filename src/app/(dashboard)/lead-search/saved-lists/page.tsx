@@ -27,6 +27,7 @@ import { ListCardSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { cn } from "@/lib/utils"
+import { appToast } from "@/lib/app-toast"
 
 const searchTypeOptions: { value: SearchType; label: string }[] = [
   { value: "PEOPLE" as SearchType, label: "People" },
@@ -98,6 +99,7 @@ export default function SavedListsPage() {
           setNewName("")
           setNewType("PEOPLE" as SearchType)
         },
+        onError: (err) => appToast.error("listCreate", err),
       }
     )
   }
@@ -112,20 +114,26 @@ export default function SavedListsPage() {
           setRenameId("")
           setRenameName("")
         },
+        onError: (err) => appToast.error("listRename", err),
       }
     )
   }
 
   const handleArchive = (id: string) => {
-    updateList.mutate({
-      id,
-      status: statusFilter === "ACTIVE" ? "ARCHIVED" : "ACTIVE",
-    })
+    updateList.mutate(
+      {
+        id,
+        status: statusFilter === "ACTIVE" ? "ARCHIVED" : "ACTIVE",
+      },
+      { onError: (err) => appToast.error("listStatus", err) }
+    )
   }
 
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this list?")) {
-      deleteList.mutate(id)
+      deleteList.mutate(id, {
+        onError: (err) => appToast.error("listDelete", err),
+      })
     }
   }
 
@@ -270,6 +278,7 @@ export default function SavedListsPage() {
               onRename={openRenameDialog}
               onArchive={handleArchive}
               onDelete={handleDelete}
+              archived={statusFilter === "ARCHIVED"}
             />
           ))}
         </div>

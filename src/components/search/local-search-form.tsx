@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useForm, Controller, type Resolver } from "react-hook-form"
+import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Coins } from "lucide-react"
 
@@ -33,7 +32,6 @@ interface LocalSearchFormProps {
 }
 
 export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFormProps) {
-  const [listId, setListId] = useState<string | undefined>(undefined)
   const { pricingMap } = usePipeLeadsPricing()
   const localSearchCreditText = formatScaledCreditText(
     getPipeLeadsCreditCost("search:local", pricingMap),
@@ -43,6 +41,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<LocalSearchInput>({
     resolver: zodResolver(localSearchSchema) as Resolver<LocalSearchInput>,
@@ -50,11 +49,13 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
       businessType: "",
       location: "",
       resultsLimit: 10,
+      listId: "",
     },
   })
+  const listId = useWatch({ control, name: "listId" })
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
@@ -145,7 +146,13 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
           </h3>
           <Separator className="mt-2 mb-4" />
 
-          <ListSelector value={listId} onChange={setListId} searchType={SearchType.LOCAL} />
+          <ListSelector
+            value={listId || undefined}
+            onChange={(value) =>
+              setValue("listId", value, { shouldDirty: true, shouldValidate: true })
+            }
+            searchType={SearchType.LOCAL}
+          />
 
           {/* Credit Info */}
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
@@ -163,7 +170,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !listId}
               className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
             >
               {isLoading ? "Searching..." : "Continue"}

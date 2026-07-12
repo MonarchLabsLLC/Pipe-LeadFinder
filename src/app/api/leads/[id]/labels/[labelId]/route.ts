@@ -18,7 +18,10 @@ export async function DELETE(
   const entryLabel = await prisma.leadEntryLabel.findFirst({
     where: {
       labelId,
-      entry: { leadId },
+      entry: {
+        leadId,
+        list: { userId: session.user.id },
+      },
       label: { userId: session.user.id },
     },
   })

@@ -5,6 +5,7 @@ import {
   findWebsiteEmails,
   normalizeWebsiteUrl,
 } from "@/lib/website-email-discovery"
+import { readLimitedText, safeFetch } from "@/lib/safe-url"
 
 // Map search type to Apify actor ID from env vars
 function getActorId(type: SearchType): string {
@@ -19,6 +20,23 @@ function getActorId(type: SearchType): string {
   if (!actorId)
     throw new Error(`No Apify actor configured for search type: ${type}`)
   return actorId
+}
+
+export function assertSearchConfigured(
+  type: SearchType,
+  params: Record<string, unknown> = {}
+) {
+  if (type === "DOMAIN") {
+    if (!process.env.APIFY_ACTOR_COMPANY || !process.env.APIFY_ACTOR_PEOPLE) {
+      throw new Error(
+        "Domain search requires APIFY_ACTOR_COMPANY and APIFY_ACTOR_PEOPLE"
+      )
+    }
+    return
+  }
+
+  if (type === "INFLUENCER" && params.platform === "youtube") return
+  getActorId(type)
 }
 
 function getResultLimit(value: unknown, max = 50, fallback = 10): number {
@@ -40,6 +58,71 @@ function asNumber(value: unknown): number | undefined {
 function asInt(value: unknown): number | null {
   const parsed = asNumber(value)
   return parsed === undefined ? null : Math.trunc(parsed)
+}
+
+const PEOPLE_SENIORITY_IDS: Record<string, string> = {
+  entry: "110",
+  senior: "120",
+  manager: "210",
+  director: "220",
+  vp: "300",
+  "c-level": "310",
+  owner: "320",
+}
+
+const PEOPLE_EXPERIENCE_IDS: Record<string, string> = {
+  "0-1": "1",
+  "1-3": "2",
+  "3-5": "3",
+  "5-10": "4",
+  "10+": "5",
+}
+
+const PEOPLE_HEADCOUNT_IDS: Record<string, string> = {
+  "1-10": "B",
+  "11-50": "C",
+  "51-200": "D",
+  "201-500": "E",
+  "501-1000": "F",
+  "1001-5000": "G",
+  "5001-10000": "H",
+  "10001+": "I",
+}
+
+const PEOPLE_FUNCTION_IDS: Record<string, string> = {
+  accounting: "1",
+  administrative: "2",
+  design: "3",
+  "business development": "4",
+  consulting: "6",
+  education: "7",
+  engineering: "8",
+  finance: "10",
+  healthcare: "11",
+  "human resources": "12",
+  hr: "12",
+  "information technology": "13",
+  it: "13",
+  legal: "14",
+  marketing: "15",
+  operations: "18",
+  product: "19",
+  purchasing: "21",
+  "real estate": "23",
+  research: "24",
+  sales: "25",
+  "customer success": "26",
+}
+
+const COMPANY_SIZE_VALUES: Record<string, string> = {
+  "1-10": "1-10 employees",
+  "11-50": "11-50 employees",
+  "51-200": "51-200 employees",
+  "201-500": "201-500 employees",
+  "501-1000": "501-1000 employees",
+  "1001-5000": "1001-5000 employees",
+  "5001-10000": "5001-10,000 employees",
+  "10001+": "10,001+ employees",
 }
 
 function cleanArray(value: unknown): string[] {
@@ -137,6 +220,9 @@ function getCompanyWebsiteFromProfile(item: Record<string, unknown>): string | n
 
   return (
     asString(item.companyWebsite) ||
+    (Array.isArray(item.companyWebsites)
+      ? asString(item.companyWebsites[0])
+      : undefined) ||
     asString(currentCompany?.website) ||
     null
   )
@@ -156,27 +242,21 @@ function getCompanyLinkedInFromProfile(item: Record<string, unknown>): string | 
 }
 
 async function fetchPageText(url: string, timeoutMs = 6000): Promise<string | null> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
-
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "PipeLeadFinder/1.0 (contact@scale.gg)",
         Accept: "text/html,application/xhtml+xml",
       },
-    })
+    }, { timeoutMs, maxRedirects: 3 })
 
     if (!res.ok) return null
     const contentType = res.headers.get("content-type") || ""
     if (!contentType.includes("text/html")) return null
 
-    return await res.text()
+    return await readLimitedText(res)
   } catch {
     return null
-  } finally {
-    clearTimeout(timeout)
   }
 }
 
@@ -421,18 +501,48 @@ function buildActorInput(
   switch (type) {
     case "PEOPLE":
       // HarvestAPI LinkedIn Profile Search actor
+      {
+      const department = asString(params.department)?.toLowerCase()
+      const industry = asString(params.industry)
+      const company = asString(params.companyNameOrDomain)
+      const query = [
+        asString(params.description),
+        asString(params.skills),
+        department && !PEOPLE_FUNCTION_IDS[department] ? department : undefined,
+        industry && !/^\d+(?:,\d+)*$/.test(industry) ? industry : undefined,
+        company && !/linkedin\.com\/company\//i.test(company) ? company : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .slice(0, 300)
+
       return {
-        searchQuery: params.description || undefined,
+        searchQuery: query || undefined,
         locations: params.location ? [String(params.location)] : undefined,
         currentJobTitles: params.jobTitle ? [String(params.jobTitle)] : undefined,
         maxItems: getResultLimit(params.resultsLimit, 100),
         profileScraperMode: "Full + email search",
-        // Advanced filters
-        seniorityLevelIds: params.managementLevel ? [String(params.managementLevel)] : undefined,
-        industryIds: params.industry ? [String(params.industry)] : undefined,
-        recentlyChangedJobs: params.changedJobsWithin ? true : undefined,
+        seniorityLevelIds: asString(params.managementLevel) && PEOPLE_SENIORITY_IDS[String(params.managementLevel)]
+          ? [PEOPLE_SENIORITY_IDS[String(params.managementLevel)]]
+          : undefined,
+        functionIds: department && PEOPLE_FUNCTION_IDS[department]
+          ? [PEOPLE_FUNCTION_IDS[department]]
+          : undefined,
+        industryIds: industry && /^\d+(?:,\d+)*$/.test(industry)
+          ? industry.split(",")
+          : undefined,
+        yearsOfExperienceIds: asString(params.yearsOfExperience) && PEOPLE_EXPERIENCE_IDS[String(params.yearsOfExperience)]
+          ? [PEOPLE_EXPERIENCE_IDS[String(params.yearsOfExperience)]]
+          : undefined,
+        currentCompanies: company && /linkedin\.com\/company\//i.test(company)
+          ? [company]
+          : undefined,
+        recentlyChangedJobs: params.changedJobsWithin === "90" ? true : undefined,
         schools: params.school ? [String(params.school)] : undefined,
-        companyHeadcount: params.employeeCount ? [String(params.employeeCount)] : undefined,
+        companyHeadcount: asString(params.employeeCount) && PEOPLE_HEADCOUNT_IDS[String(params.employeeCount)]
+          ? [PEOPLE_HEADCOUNT_IDS[String(params.employeeCount)]]
+          : undefined,
+      }
       }
 
     case "LOCAL":
@@ -444,7 +554,6 @@ function buildActorInput(
           .trim()
 
         return {
-          keywords: keyword || undefined,
           searchTerms: keyword ? [keyword] : [],
           maxItems: getResultLimit(params.resultsLimit),
           language: "en",
@@ -473,7 +582,9 @@ function buildActorInput(
           keyword: keyword || "company",
           page_number: 1,
           limit: getResultLimit(params.resultsLimit),
-          company_sizes: params.employeeCount ? [String(params.employeeCount)] : undefined,
+          company_sizes: asString(params.employeeCount) && COMPANY_SIZE_VALUES[String(params.employeeCount)]
+            ? [COMPANY_SIZE_VALUES[String(params.employeeCount)]]
+            : undefined,
         }
       }
 
@@ -498,7 +609,6 @@ function buildActorInput(
         const minFollowers = asNumber(params.minFollowers ?? params.followersFrom)
         const maxFollowers = asNumber(params.maxFollowers ?? params.followersTo)
         const minEngagementRate = asNumber(params.engagementRate)
-        const queryText = [description, location].filter(Boolean).join(" ").trim()
         const niches = [
           asString(params.category),
           description,
@@ -515,7 +625,6 @@ function buildActorInput(
           niches,
           hashtags: hashtags.length ? hashtags : undefined,
           keywords: keywords.length ? keywords : undefined,
-          searchQueries: queryText ? [queryText] : undefined,
           locations: location ? [location] : undefined,
           influencerTiers: ["nano", "micro", "mid", "macro", "mega"],
           followerRange: minFollowers !== undefined || maxFollowers !== undefined
@@ -526,7 +635,10 @@ function buildActorInput(
             : undefined,
           minEngagementRate,
           verifiedOnly: params.verified === true ? true : undefined,
-          businessAccountsOnly: params.accountType === "business" ? true : undefined,
+          businessAccountsOnly:
+            params.accountType === "business" || params.accountType === "creator"
+              ? true
+              : undefined,
           includeContactInfo: true,
           languagePreference: asString(params.language),
           maxResults: getResultLimit(params.resultsLimit, 50, 10),
@@ -568,9 +680,27 @@ function normalizeResults(
         const stateVal = (locParsed?.state as string) || null
         const countryVal = (locParsed?.country as string) || (locParsed?.countryFull as string) || null
 
+        const fullName =
+          asString(item.fullName) ||
+          asString(item.name) ||
+          `${asString(item.firstName) || ""} ${asString(item.lastName) || ""}`.trim() ||
+          null
+        const linkedinUrl =
+          asString(item.linkedinUrl) ||
+          asString(item.profileUrl) ||
+          asString(item.url) ||
+          null
+        if (!fullName && !linkedinUrl) break
+
+        const currentPosition = getCurrentPosition(item)
+        const currentCompany = getNestedRecord(currentPosition, "company")
+        const industries = Array.isArray(currentCompany?.industries)
+          ? currentCompany.industries
+          : []
+
         normalized.push({
           ...base,
-          fullName: item.fullName || item.name || `${item.firstName || ""} ${item.lastName || ""}`.trim() || null,
+          fullName,
           firstName: typeof item.firstName === "string" ? item.firstName : null,
           lastName: typeof item.lastName === "string" ? item.lastName : null,
           title: typeof item.headline === "string" ? item.headline : typeof item.title === "string" ? item.title : null,
@@ -581,20 +711,34 @@ function normalizeResults(
           city: cityVal,
           state: stateVal,
           country: countryVal,
-          linkedinUrl: typeof item.linkedinUrl === "string" ? item.linkedinUrl
-            : typeof item.profileUrl === "string" ? item.profileUrl
-            : typeof item.url === "string" ? item.url : null,
+          linkedinUrl,
           companyName: getCompanyNameFromProfile(item),
           companyWebsite: getCompanyWebsiteFromProfile(item),
           companyLinkedin: getCompanyLinkedInFromProfile(item),
-          avatarUrl: typeof item.profilePicture === "string" ? item.profilePicture
-            : typeof item.avatarUrl === "string" ? item.avatarUrl : null,
+          companySize: asString(currentCompany?.employeeCount) ||
+            (typeof currentCompany?.employeeCount === "number"
+              ? String(currentCompany.employeeCount)
+              : null),
+          companyIndustry: industries
+            .map((industry) =>
+              typeof industry === "string"
+                ? industry
+                : asString((industry as Record<string, unknown>)?.name)
+            )
+            .filter(Boolean)
+            .join(", ") || null,
+          avatarUrl:
+            asString((item.profilePicture as Record<string, unknown> | undefined)?.url) ||
+            asString(item.photo) ||
+            asString(item.avatarUrl) ||
+            null,
         })
         break
       }
 
       case "LOCAL":
         // Google Maps output
+        if (!asString(item.name) && !asString(item.title)) break
         normalized.push({
           ...base,
           fullName: item.name || item.title || null,
@@ -612,6 +756,7 @@ function normalizeResults(
 
       case "COMPANY":
         // LinkedIn Company output
+        if (!asString(item.name) && !asString(item.companyName)) break
         normalized.push({
           ...base,
           fullName: item.name || item.companyName || null,
@@ -684,6 +829,12 @@ function normalizeResults(
         {
           const platform = item.platform || null
           const profileUrl = item.profileUrl || item.url || null
+          if (
+            !asString(item.displayName) &&
+            !asString(item.name) &&
+            !asString(item.username) &&
+            !asString(profileUrl)
+          ) break
 
           normalized.push({
           ...base,
@@ -693,7 +844,7 @@ function normalizeResults(
           followerCount: item.followerCount || item.followers || null,
           engagementRate: asNumber(item.engagementRate) ?? asNumber(item.engagement) ?? null,
           bio: item.bio || item.description || null,
-          avatarUrl: item.avatarUrl || item.avatar || item.profilePicture || null,
+          avatarUrl: item.avatarUrl || item.profilePicUrl || item.avatar || item.profilePicture || null,
           email: extractPrimaryEmail(item),
           location: item.location || null,
           instagramUrl: platform === "instagram" ? profileUrl : null,
@@ -719,23 +870,46 @@ function normalizeResults(
   return normalized
 }
 
+function dedupeResults(leads: Array<Record<string, unknown>>) {
+  const seen = new Set<string>()
+  return leads.filter((lead) => {
+    const key =
+      asString(lead.email)?.toLowerCase() ||
+      asString(lead.linkedinUrl)?.toLowerCase() ||
+      (asString(lead.platform) && asString(lead.username)
+        ? `${asString(lead.platform)}:${asString(lead.username)}`.toLowerCase()
+        : undefined) ||
+      (asString(lead.companyName)
+        ? `${asString(lead.companyName)}:${asString(lead.location) || ""}`.toLowerCase()
+        : undefined) ||
+      (asString(lead.fullName)
+        ? `${asString(lead.fullName)}:${asString(lead.companyName) || ""}`.toLowerCase()
+        : undefined)
+
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 // Main search execution function
 export async function executeSearch(
   type: SearchType,
   params: Record<string, unknown>
 ) {
+  assertSearchConfigured(type, params)
   const limit = getResultLimit(params.resultsLimit, type === "PEOPLE" ? 100 : 50)
 
   if (type === "DOMAIN") {
     const results = await executeDomainPeopleSearch(params, limit)
-    if (results.length > 0) return results
+    if (results.length > 0) return dedupeResults(results).slice(0, limit)
 
-    return fallbackDomainContacts(params, limit)
+    return dedupeResults(await fallbackDomainContacts(params, limit)).slice(0, limit)
   }
 
   if (type === "INFLUENCER" && params.platform === "youtube") {
     const results = await executeYouTubeInfluencerSearch(params, limit)
-    if (results.length > 0) return results
+    if (results.length > 0) return dedupeResults(results).slice(0, limit)
   }
 
   const actorId = getActorId(type)
@@ -748,7 +922,7 @@ export async function executeSearch(
       .listItems({ limit })
 
     const results = normalizeResults(type, items as Record<string, unknown>[])
-    return enrichWebsiteEmails(type, results)
+    return dedupeResults(await enrichWebsiteEmails(type, results)).slice(0, limit)
   } catch (error) {
     throw error
   }

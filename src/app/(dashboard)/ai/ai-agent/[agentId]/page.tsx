@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAgent, useUpdateAgent, useRunAgent, type AgentSummary } from "@/hooks/useAgents"
 import type { AgentStatus } from "@/generated/prisma/enums"
@@ -30,6 +30,14 @@ interface AgentConfig {
   actions: string[]
   connections: string[]
   schedule: string
+  resultsLimit?: number
+  listId?: string
+  leadCount?: number
+  lastScheduledRunAt?: string | null
+  nextScheduledRunAt?: string | null
+  lastScheduledStatus?: "running" | "completed" | "failed" | null
+  lastScheduledError?: string | null
+  schedulerLockAt?: string | null
 }
 
 const defaultConfig: AgentConfig = {
@@ -89,6 +97,23 @@ function parseAgentConfig(agent: AgentSummary): AgentConfig {
       actions: Array.isArray(c.actions) ? (c.actions as string[]) : [],
       connections: Array.isArray(c.connections) ? (c.connections as string[]) : [],
       schedule: (c.schedule as string) || "manual",
+      resultsLimit: typeof c.resultsLimit === "number" ? c.resultsLimit : undefined,
+      listId: typeof c.listId === "string" ? c.listId : undefined,
+      leadCount: typeof c.leadCount === "number" ? c.leadCount : undefined,
+      lastScheduledRunAt:
+        typeof c.lastScheduledRunAt === "string" ? c.lastScheduledRunAt : null,
+      nextScheduledRunAt:
+        typeof c.nextScheduledRunAt === "string" ? c.nextScheduledRunAt : null,
+      lastScheduledStatus:
+        c.lastScheduledStatus === "running" ||
+        c.lastScheduledStatus === "completed" ||
+        c.lastScheduledStatus === "failed"
+          ? c.lastScheduledStatus
+          : null,
+      lastScheduledError:
+        typeof c.lastScheduledError === "string" ? c.lastScheduledError : null,
+      schedulerLockAt:
+        typeof c.schedulerLockAt === "string" ? c.schedulerLockAt : null,
     }
   }
   return defaultConfig
@@ -99,7 +124,7 @@ export default function AgentBuilderPage() {
   const router = useRouter()
   const agentId = params.agentId as string
 
-  const { data: agent, isLoading } = useAgent(agentId)
+  const { data: agent, isLoading, isError, refetch } = useAgent(agentId)
 
   if (isLoading) {
     return (
@@ -107,6 +132,15 @@ export default function AgentBuilderPage() {
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-48 w-full" />
         <Skeleton className="h-48 w-full" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <p className="text-destructive">Failed to load this agent.</p>
+        <Button variant="outline" onClick={() => refetch()}>Try again</Button>
       </div>
     )
   }
@@ -175,10 +209,38 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
   const router = useRouter()
   const updateAgent = useUpdateAgent()
   const runAgent = useRunAgent()
+  const updateAgentMutate = updateAgent.mutate
 
   const [name, setName] = useState(agent.name)
   const [config, setConfig] = useState<AgentConfig>(() => parseAgentConfig(agent))
   const [newWebhook, setNewWebhook] = useState("")
+  const savedSignatureRef = useRef(
+    JSON.stringify({ name: agent.name, config: parseAgentConfig(agent) })
+  )
+
+  useEffect(() => {
+    if (!agent.autoSave || !name.trim()) return
+    const signature = JSON.stringify({ name: name.trim(), config })
+    if (signature === savedSignatureRef.current) return
+
+    const timeout = setTimeout(() => {
+      updateAgentMutate(
+        {
+          id: agent.id,
+          name: name.trim(),
+          config: config as unknown as Record<string, unknown>,
+        },
+        {
+          onSuccess: () => {
+            savedSignatureRef.current = signature
+          },
+          onError: (err) => appToast.error("agentAutoSave", err),
+        }
+      )
+    }, 800)
+
+    return () => clearTimeout(timeout)
+  }, [agent.autoSave, agent.id, config, name, updateAgentMutate])
 
   const handleSave = useCallback(() => {
     updateAgent.mutate(
@@ -188,25 +250,38 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         config: config as unknown as Record<string, unknown>,
       },
       {
-        onSuccess: () =>
+        onSuccess: () => {
+          savedSignatureRef.current = JSON.stringify({
+            name: name.trim(),
+            config,
+          })
           appToast.success(
             "Agent saved",
             "Your prospecting workflow is up to date."
-          ),
+          )
+        },
         onError: (err) => appToast.error("agentSave", err),
       }
     )
   }, [agent.id, name, config, updateAgent])
 
-  const handleRun = () => {
-    runAgent.mutate(agent.id, {
-      onSuccess: (data) =>
-        appToast.success(
-          data.message || "Agent started",
-          "We’ll save new leads and actions as the run completes."
-        ),
-      onError: (err) => appToast.error("agentRun", err),
-    })
+  const handleRun = async () => {
+    if (!name.trim()) return
+    try {
+      await updateAgent.mutateAsync({
+        id: agent.id,
+        name: name.trim(),
+        config: config as unknown as Record<string, unknown>,
+      })
+      savedSignatureRef.current = JSON.stringify({ name: name.trim(), config })
+      const data = await runAgent.mutateAsync(agent.id)
+      appToast.success(
+        data.message || "Agent run completed",
+        `Saved ${data.leadCount ?? 0} lead${data.leadCount === 1 ? "" : "s"}.`
+      )
+    } catch (err) {
+      appToast.error("agentRun", err)
+    }
   }
 
   const toggleAction = (action: string) => {
@@ -221,6 +296,16 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
   const addConnection = () => {
     const url = newWebhook.trim()
     if (!url) return
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        throw new Error("Unsupported protocol")
+      }
+    } catch {
+      appToast.error("agentWebhook", new Error("Enter a valid HTTP or HTTPS webhook URL"))
+      return
+    }
+    if (config.connections.includes(url)) return
     setConfig((prev) => ({
       ...prev,
       connections: [...prev.connections, url],
@@ -261,11 +346,11 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         >
           {agent.status}
         </Badge>
-        <Button variant="outline" size="sm" onClick={handleSave} disabled={updateAgent.isPending}>
+        <Button variant="outline" size="sm" onClick={handleSave} disabled={updateAgent.isPending || !name.trim()}>
           <Save className="mr-2 h-4 w-4" />
           {updateAgent.isPending ? "Saving..." : "Save"}
         </Button>
-        <Button size="sm" onClick={handleRun} disabled={runAgent.isPending}>
+        <Button size="sm" onClick={handleRun} disabled={runAgent.isPending || updateAgent.isPending || !name.trim()}>
           <Play className="mr-2 h-4 w-4" />
           {runAgent.isPending ? "Running..." : "Run"}
         </Button>

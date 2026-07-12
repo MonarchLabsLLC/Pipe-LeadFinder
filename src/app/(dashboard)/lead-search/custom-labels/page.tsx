@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { X, Plus, Loader2, Tag } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
+import { appToast } from "@/lib/app-toast"
 
 const DEFAULT_LABELS = ["Called", "Messaged", "Emailed", "Exported to CSV"]
 
 export default function CustomLabelsPage() {
   const [newLabel, setNewLabel] = useState("")
-  const { data: labels, isLoading } = useLabels()
+  const { data: labels, isLoading, isError, refetch } = useLabels()
   const createLabel = useCreateLabel()
   const deleteLabel = useDeleteLabel()
   const seeded = useRef(false)
@@ -38,6 +40,7 @@ export default function CustomLabelsPage() {
       { name: trimmed },
       {
         onSuccess: () => setNewLabel(""),
+        onError: (err) => appToast.error("labelCreate", err),
       }
     )
   }
@@ -102,7 +105,12 @@ export default function CustomLabelsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isError ? (
+            <ErrorState
+              message="Failed to load your custom labels."
+              onRetry={() => refetch()}
+            />
+          ) : isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading labels...
@@ -124,7 +132,11 @@ export default function CustomLabelsPage() {
                 >
                   {label.name}
                   <button
-                    onClick={() => deleteLabel.mutate(label.id)}
+                    onClick={() =>
+                      deleteLabel.mutate(label.id, {
+                        onError: (err) => appToast.error("labelDelete", err),
+                      })
+                    }
                     className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover/chip:opacity-100 hover:bg-muted-foreground/20 transition-all"
                     disabled={deleteLabel.isPending}
                     aria-label={`Remove ${label.name}`}

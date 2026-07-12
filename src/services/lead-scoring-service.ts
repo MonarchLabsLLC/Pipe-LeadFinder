@@ -129,8 +129,8 @@ function labelForScore(label: unknown, score: number): LeadScoreLabel {
   return "Low"
 }
 
-function stringValue(value: unknown) {
-  return typeof value === "string" ? value.trim() : ""
+function stringValue(value: unknown, maxLength = 500) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : ""
 }
 
 function normalizeScore(raw: RawLeadScore) {
@@ -143,10 +143,10 @@ function normalizeScore(raw: RawLeadScore) {
     leadId: stringValue(raw.leadId || raw.id),
     score,
     label: labelForScore(raw.label, score),
-    bestAngle: stringValue(raw.bestAngle),
-    why,
-    suggestedOpener: stringValue(raw.suggestedOpener),
-    nextAction: stringValue(raw.nextAction),
+    bestAngle: stringValue(raw.bestAngle, 500),
+    why: why.map((reason) => reason.slice(0, 500)),
+    suggestedOpener: stringValue(raw.suggestedOpener, 500),
+    nextAction: stringValue(raw.nextAction, 500),
   }
 }
 
@@ -176,6 +176,7 @@ export async function scoreLeadsForList({
 
   const { text, usage } = await generateText({
     model: getAiLanguageModel(LEAD_SCORING_AI_CONFIG),
+    maxOutputTokens: Math.min(8_000, 500 + leads.length * 300),
     system: `You are a senior sales strategist ranking leads for outbound prospecting.
 Score each lead from 0 to 100 based on fit to the business context, seniority, relevance, company fit, data completeness, and likely outreach quality.
 Return only a valid JSON array. Do not include markdown or prose.`,
@@ -197,7 +198,11 @@ Return one JSON object for every lead using this exact shape:
 }`,
   })
 
-  const parsed = JSON.parse(extractJsonArray(text)) as RawLeadScore[]
+  const parsedValue: unknown = JSON.parse(extractJsonArray(text))
+  if (!Array.isArray(parsedValue)) {
+    throw new Error("AI scoring response was not an array")
+  }
+  const parsed = parsedValue as RawLeadScore[]
   const leadIds = new Set(leads.map((lead) => lead.id))
   const leadScores = parsed
     .map(normalizeScore)
@@ -208,18 +213,36 @@ Return one JSON object for every lead using this exact shape:
       model: LEAD_SCORING_AI_CONFIG.model,
     }))
 
-  await prisma.aiResult.createMany({
-    data: leadScores.map((score) => ({
-      leadId: score.leadId,
-      actionType: "CUSTOM",
-      prompt: promptTag,
-      result: JSON.stringify(score),
-      model: LEAD_SCORING_AI_CONFIG.model,
-    })),
-  })
+  const scoredIds = new Set(leadScores.map((score) => score.leadId))
+  if (scoredIds.size !== leadIds.size || leadScores.length !== leadIds.size) {
+    throw new Error(
+      `AI scoring returned ${scoredIds.size} unique results for ${leadIds.size} leads`
+    )
+  }
+
+  if (leadScores.length > 0) {
+    await prisma.$transaction([
+      prisma.aiResult.deleteMany({
+        where: {
+          leadId: { in: leadScores.map((score) => score.leadId) },
+          actionType: "CUSTOM",
+          prompt: promptTag,
+        },
+      }),
+      prisma.aiResult.createMany({
+        data: leadScores.map((score) => ({
+          leadId: score.leadId,
+          actionType: "CUSTOM",
+          prompt: promptTag,
+          result: JSON.stringify(score),
+          model: LEAD_SCORING_AI_CONFIG.model,
+        })),
+      }),
+    ])
+  }
 
   if (usage?.inputTokens || usage?.outputTokens) {
-    consumeTokenCredits(
+    await consumeTokenCredits(
       userId,
       {
         provider: LEAD_SCORING_AI_CONFIG.provider,
@@ -228,7 +251,7 @@ Return one JSON object for every lead using this exact shape:
         outputTokens: usage.outputTokens ?? 0,
       },
       email
-    ).catch(() => {})
+    )
   }
 
   return {

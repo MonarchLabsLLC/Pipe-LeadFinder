@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ArrowRight, Lightbulb, Coins } from "lucide-react"
 
@@ -51,10 +51,7 @@ const MANAGEMENT_LEVEL_OPTIONS = [
 ]
 
 const CHANGED_JOBS_OPTIONS = [
-  { value: "30", label: "Last 30 days" },
   { value: "90", label: "Last 90 days" },
-  { value: "180", label: "Last 6 months" },
-  { value: "365", label: "Last 12 months" },
 ]
 
 const YEARS_EXPERIENCE_OPTIONS = [
@@ -74,23 +71,6 @@ const EMPLOYEE_COUNT_OPTIONS = [
   { value: "1001-5000", label: "1,001-5,000" },
   { value: "5001-10000", label: "5,001-10,000" },
   { value: "10001+", label: "10,001+" },
-]
-
-const REVENUE_OPTIONS = [
-  { value: "0-1M", label: "$0 - $1M" },
-  { value: "1M-10M", label: "$1M - $10M" },
-  { value: "10M-50M", label: "$10M - $50M" },
-  { value: "50M-100M", label: "$50M - $100M" },
-  { value: "100M-500M", label: "$100M - $500M" },
-  { value: "500M-1B", label: "$500M - $1B" },
-  { value: "1B+", label: "$1B+" },
-]
-
-const CONTACT_METHOD_OPTIONS = [
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "email_and_phone", label: "Email & Phone" },
-  { value: "linkedin", label: "LinkedIn" },
 ]
 
 // ─── Helper components ─────────────────────────────────────
@@ -150,7 +130,6 @@ interface PeopleSearchFormProps {
 
 export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearchFormProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [listId, setListId] = useState<string | undefined>(undefined)
   const { pricingMap } = usePipeLeadsPricing()
   const peopleSearchCreditText = formatScaledCreditText(
     getPipeLeadsCreditCost("search:people", pricingMap),
@@ -161,6 +140,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<PeopleSearchInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,11 +149,13 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
       description: "",
       location: "",
       resultsLimit: 10,
+      listId: "",
     },
   })
+  const listId = useWatch({ control, name: "listId" })
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit({ ...data, listId }))}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
@@ -327,62 +309,12 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
                     />
                   </FormField>
 
-                  <FormField label="Revenue" error={errors.revenue?.message}>
-                    <Controller
-                      control={control}
-                      name="revenue"
-                      render={({ field }) => (
-                        <SelectField
-                          placeholder="Choose Revenue"
-                          options={REVENUE_OPTIONS}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        />
-                      )}
-                    />
-                  </FormField>
-
                   <FormField label="Industry" error={errors.industry?.message}>
                     <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("industry")} />
                   </FormField>
 
-                  <FormField label="Contact Method" error={errors.contactMethod?.message}>
-                    <Controller
-                      control={control}
-                      name="contactMethod"
-                      render={({ field }) => (
-                        <SelectField
-                          placeholder="Select"
-                          options={CONTACT_METHOD_OPTIONS}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        />
-                      )}
-                    />
-                  </FormField>
-
-                  <FormField label="Major" error={errors.major?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("major")} />
-                  </FormField>
-
                   <FormField label="School" error={errors.school?.message}>
                     <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("school")} />
-                  </FormField>
-
-                  <FormField label="Degree" error={errors.degree?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("degree")} />
-                  </FormField>
-
-                  <FormField label="Social Link" error={errors.socialLink?.message}>
-                    <Input placeholder="Eg: https://www.linkedin.com/" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("socialLink")} />
-                  </FormField>
-
-                  <FormField label="Contact Info Email" error={errors.contactEmail?.message}>
-                    <Input placeholder="Eg: example@example.com" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("contactEmail")} />
-                  </FormField>
-
-                  <FormField label="Contact Info Phone" error={errors.contactPhone?.message}>
-                    <Input placeholder="Eg: +1 111-111-1111" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("contactPhone")} />
                   </FormField>
                 </div>
               </div>
@@ -399,7 +331,13 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
           </h3>
           <Separator className="mt-2 mb-4" />
 
-          <ListSelector value={listId} onChange={setListId} searchType={SearchType.PEOPLE} />
+          <ListSelector
+            value={listId || undefined}
+            onChange={(value) =>
+              setValue("listId", value, { shouldDirty: true, shouldValidate: true })
+            }
+            searchType={SearchType.PEOPLE}
+          />
 
           {/* Credit Info */}
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
@@ -416,7 +354,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !listId}
               className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
             >
               {isLoading ? "Searching..." : "Continue"}

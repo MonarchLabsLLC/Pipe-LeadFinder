@@ -55,14 +55,17 @@ interface ListDetailResponse {
     total: number
     totalPages: number
   }
+  counts: Record<EmailFilter | "UNKNOWN", number>
 }
 
 async function fetchListDetail(
   listId: string,
-  emailFilter?: EmailFilter
+  emailFilter: EmailFilter,
+  page: number
 ): Promise<ListDetailResponse> {
   const params = new URLSearchParams()
   params.set("limit", "100")
+  params.set("page", String(page))
   if (emailFilter && emailFilter !== "ALL") {
     params.set("emailFilter", emailFilter)
   }
@@ -75,34 +78,26 @@ export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>()
   const router = useRouter()
   const [emailFilter, setEmailFilter] = useState<EmailFilter>("ALL")
+  const [page, setPage] = useState(1)
   const [isExporting, setIsExporting] = useState(false)
 
   const bulkEnrich = useEnrichBulk()
   const scoreLeads = useScoreLeads()
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["list-detail", listId, emailFilter],
-    queryFn: () => fetchListDetail(listId, emailFilter),
-    enabled: !!listId,
-  })
-
-  // Compute counts from the full (ALL) data for the filter tabs
-  // We always keep a separate query for ALL to get counts
-  const { data: allData } = useQuery({
-    queryKey: ["list-detail", listId, "ALL"],
-    queryFn: () => fetchListDetail(listId, "ALL"),
+    queryKey: ["list-detail", listId, emailFilter, page],
+    queryFn: () => fetchListDetail(listId, emailFilter, page),
     enabled: !!listId,
   })
 
   const counts = useMemo(() => {
-    const leads = allData?.leads ?? []
     return {
-      ALL: leads.length,
-      FOUND: leads.filter((l) => l.emailStatus === "FOUND").length,
-      NOT_FOUND: leads.filter((l) => l.emailStatus === "NOT_FOUND").length,
-      POTENTIAL: leads.filter((l) => l.emailStatus === "POTENTIAL").length,
+      ALL: data?.counts.ALL ?? 0,
+      FOUND: data?.counts.FOUND ?? 0,
+      NOT_FOUND: data?.counts.NOT_FOUND ?? 0,
+      POTENTIAL: data?.counts.POTENTIAL ?? 0,
     }
-  }, [allData])
+  }, [data])
 
   const displayLeads = useMemo(() => {
     const leads = data?.leads ?? []
@@ -179,7 +174,10 @@ export default function ListDetailPage() {
               key={tab.value}
               variant={emailFilter === tab.value ? "default" : "outline"}
               size="sm"
-              onClick={() => setEmailFilter(tab.value)}
+              onClick={() => {
+                setEmailFilter(tab.value)
+                setPage(1)
+              }}
             >
               {tab.label}
               <Badge
@@ -228,7 +226,7 @@ export default function ListDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          disabled={scoreLeads.isPending || !data?.leads.length}
+          disabled={scoreLeads.isPending || !data?.counts.ALL}
           onClick={() => {
             scoreLeads.mutate(
               { listId },
@@ -320,6 +318,33 @@ export default function ListDetailPage() {
           description="Run a search to add leads to this list, or use the enrichment tools to populate contact data."
         />
       )}
+
+      {data && data.pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Page {data.pagination.page} of {data.pagination.totalPages} ·{" "}
+            {data.pagination.total} leads
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= data.pagination.totalPages || isLoading}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -341,7 +366,7 @@ function SearchHistorySheet({ listId }: { listId: string }) {
     queryKey: ["history", listId, open],
     queryFn: async (): Promise<HistoryEntry[]> => {
       const res = await fetch(`/api/lists/${listId}/history`)
-      if (!res.ok) return []
+      if (!res.ok) throw new Error("Failed to load search history")
       return res.json()
     },
     enabled: open,
@@ -395,6 +420,14 @@ function SearchHistorySheet({ listId }: { listId: string }) {
           {historyQuery.isLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {historyQuery.isError && (
+            <div className="py-8 text-center text-sm text-destructive">
+              Search history could not be loaded.
+              <Button variant="link" className="ml-1 h-auto p-0" onClick={() => historyQuery.refetch()}>
+                Try again
+              </Button>
             </div>
           )}
           {historyQuery.data && historyQuery.data.length === 0 && (

@@ -9,12 +9,23 @@ type AppErrorToast =
   | "applyLabel"
   | "agentSave"
   | "agentRun"
+  | "agentAutoSave"
+  | "agentWebhook"
+  | "agentCreate"
+  | "agentStatus"
+  | "agentDelete"
   | "businessProfile"
   | "dataSource"
   | "pdfSource"
   | "deleteDataSource"
   | "leadScoring"
   | "exportCsv"
+  | "listCreate"
+  | "listRename"
+  | "listStatus"
+  | "listDelete"
+  | "labelCreate"
+  | "labelDelete"
 
 interface ToastCopy {
   title: string
@@ -62,6 +73,26 @@ const ERROR_COPY: Record<AppErrorToast, ToastCopy> = {
     description:
       "The agent did not run. Check the agent setup, credits, and connected actions before retrying.",
   },
+  agentAutoSave: {
+    title: "Agent changes were not auto-saved",
+    description: "Your changes are still on screen. Use Save before leaving this page.",
+  },
+  agentWebhook: {
+    title: "Webhook was not added",
+    description: "Enter a complete HTTP or HTTPS URL and try again.",
+  },
+  agentCreate: {
+    title: "Agent was not created",
+    description: "Review the agent name and try again.",
+  },
+  agentStatus: {
+    title: "Agent status was not changed",
+    description: "The agent kept its previous status. Try again.",
+  },
+  agentDelete: {
+    title: "Agent was not deleted",
+    description: "The agent is still available. Try deleting it again.",
+  },
   businessProfile: {
     title: "Business profile was not updated",
     description:
@@ -91,6 +122,30 @@ const ERROR_COPY: Record<AppErrorToast, ToastCopy> = {
     title: "CSV export was not created",
     description:
       "The download did not start. Refresh the list and try exporting again.",
+  },
+  listCreate: {
+    title: "List was not created",
+    description: "Review the name and list type, then try again.",
+  },
+  listRename: {
+    title: "List was not renamed",
+    description: "The previous name is still in place. Try again.",
+  },
+  listStatus: {
+    title: "List status was not changed",
+    description: "The list stayed in its previous section. Try again.",
+  },
+  listDelete: {
+    title: "List was not deleted",
+    description: "The list and its leads are still available. Try again.",
+  },
+  labelCreate: {
+    title: "Label was not created",
+    description: "Review the label name and try again.",
+  },
+  labelDelete: {
+    title: "Label was not deleted",
+    description: "The label is still available. Try again.",
   },
 }
 
@@ -127,6 +182,10 @@ function isUsefulDetail(message: string) {
 export const appToast = {
   success(title: string, description?: string) {
     toast.success(title, { description })
+  },
+
+  info(title: string, description?: string) {
+    toast.info(title, { description })
   },
 
   error(context: AppErrorToast, error?: unknown) {

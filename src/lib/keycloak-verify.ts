@@ -76,7 +76,6 @@ export async function verifyToken(
   if (
     !skipAzpCheck &&
     KEYCLOAK_CLIENT_ID &&
-    payload.azp &&
     payload.azp !== KEYCLOAK_CLIENT_ID
   ) {
     throw new Error(
@@ -96,7 +95,8 @@ export function decodeTokenUnsafe(token: string): KeycloakClaims {
 
 /**
  * Verify a Keycloak JWT and check for the required Pipe-LeadFinder role.
- * In dev mode, falls back to decode-only if JWKS is unreachable.
+ * A decode-only fallback is available only behind an explicit local debugging
+ * flag; it is never enabled merely because NODE_ENV is development.
  * Returns the verified claims or throws.
  */
 export async function verifyKeycloakToken(token: string): Promise<KeycloakClaims> {
@@ -105,7 +105,10 @@ export async function verifyKeycloakToken(token: string): Promise<KeycloakClaims
   try {
     claims = await verifyToken(token)
   } catch (verifyError) {
-    if (process.env.NODE_ENV !== "production") {
+    if (
+      process.env.NODE_ENV === "development" &&
+      process.env.KEYCLOAK_ALLOW_UNVERIFIED_DEV_TOKENS === "true"
+    ) {
       console.warn(
         "[KeycloakVerify] JWT verification failed, falling back to decode-only (dev mode):",
         verifyError
@@ -116,13 +119,21 @@ export async function verifyKeycloakToken(token: string): Promise<KeycloakClaims
     }
   }
 
+  if (!claims.sub || typeof claims.sub !== "string") {
+    throw new Error("Keycloak token is missing a valid subject claim")
+  }
+
   const roles = claims.realm_access?.roles || []
   const resourceRoles =
     (KEYCLOAK_CLIENT_ID && claims.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles) ||
     []
 
+  const normalizedRoles = new Set(
+    [...roles, ...resourceRoles].map((role) => role.toLowerCase())
+  )
+
   const hasRequiredRole = ACCEPTED_ROLES.some(
-    (role) => roles.includes(role) || resourceRoles.includes(role)
+    (role) => normalizedRoles.has(role.toLowerCase())
   )
 
   if (!hasRequiredRole) {

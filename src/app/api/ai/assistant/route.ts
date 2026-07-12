@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
+import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { AiActionType } from "@/generated/prisma/enums"
@@ -14,6 +15,7 @@ import {
   getAiRuntimeConfig,
 } from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
+import { guardCredits } from "@/lib/credit-guard"
 
 const ASSISTANT_AI_CONFIG = getAiRuntimeConfig("assistant")
 
@@ -27,6 +29,25 @@ const VALID_ACTION_TYPES: AiActionType[] = [
   "LIBRARY",
 ]
 
+const assistantRequestSchema = z
+  .object({
+    leadId: z.string().trim().min(1).max(200),
+    actionType: z.enum(VALID_ACTION_TYPES as [AiActionType, ...AiActionType[]]),
+    customPrompt: z.string().trim().min(1).max(20_000).optional(),
+  })
+  .superRefine((value, context) => {
+    if (
+      (value.actionType === "CUSTOM" || value.actionType === "LIBRARY") &&
+      !value.customPrompt
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["customPrompt"],
+        message: "A prompt is required for this action",
+      })
+    }
+  })
+
 export async function POST(request: NextRequest) {
   // 1. Auth check
   const session = await auth()
@@ -38,9 +59,9 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. Parse body
-  let body: { leadId: string; actionType: AiActionType; customPrompt?: string }
+  let rawBody: unknown
   try {
-    body = await request.json()
+    rawBody = await request.json()
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
@@ -48,28 +69,27 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  const { leadId, actionType, customPrompt } = body
-
-  if (!leadId || !actionType) {
+  const parsed = assistantRequestSchema.safeParse(rawBody)
+  if (!parsed.success) {
     return new Response(
-      JSON.stringify({ error: "leadId and actionType are required" }),
+      JSON.stringify({
+        error: "Invalid AI assistant request",
+        details: parsed.error.flatten(),
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     )
   }
+  const { leadId, actionType, customPrompt } = parsed.data
 
-  if (!VALID_ACTION_TYPES.includes(actionType)) {
-    return new Response(
-      JSON.stringify({ error: `Invalid actionType: ${actionType}` }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    )
-  }
+  const blocked = await guardCredits(session.user.id, session.user.email)
+  if (blocked) return blocked
 
   // 3. Load contexts
   let leadContext: string
   let businessContext: string
   try {
     ;[leadContext, businessContext] = await Promise.all([
-      getLeadContext(leadId),
+      getLeadContext(leadId, session.user.id),
       getBusinessContext(session.user.id),
     ])
   } catch (err) {
@@ -89,10 +109,10 @@ export async function POST(request: NextRequest) {
     model: getAiLanguageModel(ASSISTANT_AI_CONFIG),
     system: systemPrompt,
     prompt: userPrompt,
+    maxOutputTokens: 1_500,
     onFinish: async ({ text, usage }) => {
-      // 6. Save result to AiResult table
-      try {
-        await prisma.aiResult.create({
+      const operations: Promise<unknown>[] = [
+        prisma.aiResult.create({
           data: {
             leadId,
             actionType,
@@ -100,23 +120,29 @@ export async function POST(request: NextRequest) {
             result: text,
             model: ASSISTANT_AI_CONFIG.model,
           },
-        })
-      } catch (err) {
-        console.error("Failed to save AI result:", err)
+        }),
+      ]
+
+      if (usage?.inputTokens || usage?.outputTokens) {
+        operations.push(
+          consumeTokenCredits(
+            session.user.id,
+            {
+              provider: ASSISTANT_AI_CONFIG.provider,
+              model: ASSISTANT_AI_CONFIG.model,
+              inputTokens: usage.inputTokens ?? 0,
+              outputTokens: usage.outputTokens ?? 0,
+            },
+            session.user.email
+          )
+        )
       }
 
-      // 7. Consume token-based credits (fire-and-forget)
-      if (usage?.inputTokens || usage?.outputTokens) {
-        consumeTokenCredits(
-          session.user.id,
-          {
-            provider: ASSISTANT_AI_CONFIG.provider,
-            model: ASSISTANT_AI_CONFIG.model,
-            inputTokens: usage.inputTokens ?? 0,
-            outputTokens: usage.outputTokens ?? 0,
-          },
-          session.user.email
-        ).catch(() => {})
+      const settled = await Promise.allSettled(operations)
+      for (const operation of settled) {
+        if (operation.status === "rejected") {
+          console.error("Failed to finalize AI assistant operation", operation.reason)
+        }
       }
     },
   })

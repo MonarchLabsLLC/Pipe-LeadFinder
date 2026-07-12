@@ -34,8 +34,7 @@ const SEARCH_TYPE_LABELS: Record<SearchType, string> = {
 export function ListSelector({ value, onChange, searchType }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [newListName, setNewListName] = useState("")
-
-  const { data: lists, isLoading: listsLoading } = useLists()
+  const { data: lists, isLoading: listsLoading } = useLists(searchType)
   const createList = useCreateList()
 
   function handleSelectChange(val: string) {
@@ -56,7 +55,11 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
       })
       setNewListName("")
       setIsCreating(false)
-      onChange(created.id)
+      // useCreateList waits for the refreshed options before resolving, which
+      // lets Radix retain this controlled value. Select after its create mode
+      // has committed so Radix cannot replace the new ID with the closing
+      // sentinel value in the same render batch.
+      setTimeout(() => onChange(created.id), 0)
     } catch {
       // error is handled by the mutation
     }

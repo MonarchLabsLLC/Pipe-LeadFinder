@@ -16,7 +16,7 @@ export function useScoreLeads() {
       const res = await fetch(`/api/lists/${listId}/score`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ limit: 100 }),
+        body: JSON.stringify({}),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))

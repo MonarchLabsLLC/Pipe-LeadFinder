@@ -7,11 +7,14 @@ type RouteContext = { params: Promise<{ id: string }> }
 function escapeCsvField(value: string | null | undefined): string {
   if (value == null || value === "") return ""
   const str = String(value)
+  // Prevent spreadsheet applications from interpreting exported lead data as
+  // a formula when a cell begins with a formula control character.
+  const safe = /^\s*[=+\-@]/.test(str) ? `'${str}` : str
   // Wrap in double quotes if the field contains commas, quotes, or newlines
-  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-    return `"${str.replace(/"/g, '""')}"`
+  if (safe.includes(",") || safe.includes('"') || safe.includes("\n") || safe.includes("\r")) {
+    return `"${safe.replace(/"/g, '""')}"`
   }
-  return str
+  return safe
 }
 
 // GET /api/lists/[id]/export — download CSV of all leads in the list
@@ -114,6 +117,8 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     status: 200,
     headers: {
       "Content-Type": "text/csv",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "private, no-store",
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   })

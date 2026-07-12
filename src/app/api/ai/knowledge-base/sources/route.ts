@@ -8,6 +8,7 @@ import {
   crawlLink,
 } from "@/services/knowledge-base-service"
 import { DataSourceType } from "@/generated/prisma/enums"
+import { dataSourceSchema } from "@/lib/validators/knowledge-base"
 
 // GET /api/ai/knowledge-base/sources — list data sources
 export async function GET() {
@@ -29,18 +30,15 @@ export async function POST(req: NextRequest) {
   }
 
   const profile = await getOrCreateProfile(session.user.id)
-  const body = await req.json()
-  const { type, content, sourceUrl, name, crawlMode } = body as {
-    type: DataSourceType
-    content?: string
-    sourceUrl?: string
-    name?: string
-    crawlMode?: "website" | "link"
+  const body = await req.json().catch(() => null)
+  const parsed = dataSourceSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid data source", details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
-
-  if (!type) {
-    return NextResponse.json({ error: "type is required" }, { status: 400 })
-  }
+  const { type, content, sourceUrl, name, crawlMode } = parsed.data
 
   try {
     if (type === DataSourceType.WEBSITE) {
@@ -61,7 +59,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(source, { status: 201 })
     }
 
-    // TEXT, QA, PDF — store content directly
+    // TEXT and Q&A sources store user-supplied context directly. PDFs use the
+    // dedicated upload route so file validation and private storage are applied.
     if (!content) {
       return NextResponse.json({ error: "content is required" }, { status: 400 })
     }

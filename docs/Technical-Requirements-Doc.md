@@ -40,9 +40,7 @@
 
 ### AI Services
 - **Vercel AI SDK** (v6) — `ai` package for streaming AI responses
-- **@ai-sdk/openai** — OpenAI provider (GPT-4o, GPT-4o-mini)
-- **@ai-sdk/google** — Google Gemini provider
-- **@google/generative-ai** — direct Gemini API access
+- **@ai-sdk/openai** — OpenAI provider using `gpt-5.4-nano`
 
 ### Data Sourcing
 - **apify-client** — Apify actor execution for all 5 search types + enrichment
@@ -322,7 +320,7 @@ model AiResult {
   actionType AiActionType
   prompt    String?
   result    String   @db.Text
-  model     String?  // e.g., "gpt-4o", "gemini-pro"
+  model     String?  // "gpt-5.4-nano"
   createdAt DateTime @default(now())
 }
 

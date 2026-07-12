@@ -41,7 +41,7 @@ npx shadcn@latest add <component>    # Add component (button, card, etc.)
 - **TypeScript 5**, **Tailwind 4**, **shadcn/ui**
 - **NextAuth 5** (Auth.js), **Prisma 7** (PostgreSQL)
 - **React Query**, **Zod**, **React Hook Form**
-- **Vercel AI SDK 6** with OpenAI (`@ai-sdk/openai`) + Google Gemini (`@ai-sdk/google`)
+- **Vercel AI SDK 6** with OpenAI (`@ai-sdk/openai`), hard-locked to `gpt-5.4-nano`
 - **Tiptap 3** (rich text editor), **Firecrawl** (web scraping), **Apify** (web automation), **Pexels** (stock photos)
 
 ### Authentication Pattern
@@ -130,7 +130,6 @@ Copy `.env.example` to `.env`. Key required variables:
 - `DEV_AUTO_LOGIN=true` — enables dev auto-login
 - `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production Keycloak configuration
 - `OPENAI_API_KEY` — for AI assistant features
-- `GOOGLE_GENERATIVE_AI_API_KEY` — for Gemini (also aliased as `GEMINI_API_KEY`, `GOOGLE_API_KEY`)
 - `APIFY_API_KEY` — Apify platform API key
 - `APIFY_ACTOR_ENRICH_EMAIL=code_crafter/personal-email-finder` — person-level email enrichment actor
 - `APIFY_ACTOR_ENRICH_PHONE=code_crafter/mobile-finder` — person-level phone enrichment actor

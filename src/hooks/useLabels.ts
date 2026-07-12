@@ -80,6 +80,7 @@ export function useApplyLabel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 }
@@ -102,6 +103,7 @@ export function useRemoveLabel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] })
+      queryClient.invalidateQueries({ queryKey: ["list-detail"] })
     },
   })
 }

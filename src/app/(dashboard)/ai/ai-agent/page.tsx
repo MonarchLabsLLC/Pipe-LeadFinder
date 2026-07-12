@@ -28,6 +28,7 @@ import { Plus, Play, Pause, Trash2, Bot } from "lucide-react"
 import { ListCardSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
+import { appToast } from "@/lib/app-toast"
 
 type StatusFilter = "ALL" | AgentStatus
 
@@ -106,18 +107,24 @@ export default function AiAgentPage() {
           setNewAutoSave(false)
           router.push(`/ai/ai-agent/${agent.id}`)
         },
+        onError: (err) => appToast.error("agentCreate", err),
       }
     )
   }
 
   const handleToggleStatus = (id: string, currentStatus: AgentStatus) => {
     const newStatus = currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE"
-    updateAgent.mutate({ id, status: newStatus })
+    updateAgent.mutate(
+      { id, status: newStatus },
+      { onError: (err) => appToast.error("agentStatus", err) }
+    )
   }
 
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this agent?")) {
-      deleteAgent.mutate(id)
+      deleteAgent.mutate(id, {
+        onError: (err) => appToast.error("agentDelete", err),
+      })
     }
   }
 

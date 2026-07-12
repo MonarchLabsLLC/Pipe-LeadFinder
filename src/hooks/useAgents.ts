@@ -116,6 +116,8 @@ export function useDeleteAgent() {
 }
 
 export function useRunAgent() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/ai/agent/${id}/run`, {
@@ -126,6 +128,11 @@ export function useRunAgent() {
         throw new Error(err.error || "Failed to run agent")
       }
       return res.json()
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] })
+      queryClient.invalidateQueries({ queryKey: ["agents", id] })
+      queryClient.invalidateQueries({ queryKey: ["lists"] })
     },
   })
 }
