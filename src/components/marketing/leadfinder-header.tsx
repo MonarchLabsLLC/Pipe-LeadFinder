@@ -41,10 +41,13 @@ export function LeadFinderHeader() {
   return (
     <header className="pl-header">
       <div className="pl-shell pl-header__inner">
-        <Link className="pl-brand" href="/" aria-label="PipeLeads LeadFinder home">
-          <PipeLeadsMark />
-          <span>PipeLeads <b>LeadFinder</b></span>
-        </Link>
+        <div className="pl-brand-lockup">
+          <Link className="pl-brand" href="/" aria-label="PipeLeads LeadFinder home">
+            <PipeLeadsMark />
+            <span>PipeLeads <b>LeadFinder</b></span>
+          </Link>
+          <a className="pl-brand-family" href="https://scale.gg/">Part of Scale.gg <ArrowRight aria-hidden="true" /></a>
+        </div>
 
         <nav className="pl-nav" aria-label="Primary navigation">
           {navItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}

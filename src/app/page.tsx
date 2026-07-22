@@ -23,21 +23,21 @@ import { LeadFinderHeader, PipeLeadsMark } from "@/components/marketing/leadfind
 import { AgentPreview, KnowledgePreview, SavedListPreview, SearchWorkspacePreview } from "@/components/marketing/leadfinder-visuals"
 
 export const metadata: Metadata = {
-  title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
-  description: "Search people, local businesses, companies, domains, or influencers. Enrich selected records when available, score fit, organize lists, and review AI-written guidance.",
+  title: "PipeLeads LeadFinder — AI Prospect Discovery Software",
+  description: "Search five prospect types, enrich selected records when available, organize lists, and review AI fit guidance and drafts before anything moves forward.",
   alternates: { canonical: "https://pipeleads.ai/" },
   openGraph: {
     type: "website",
     siteName: "PipeLeads LeadFinder",
-    title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
-    description: "Five prospect search modes, optional enrichment, knowledge-based fit guidance, saved lists, reviewable drafts, and CSV or webhook handoff.",
+    title: "PipeLeads LeadFinder — AI Prospect Discovery Software",
+    description: "Search five prospect types, enrich selected records when available, organize lists, and review AI fit guidance and drafts before anything moves forward.",
     url: "https://pipeleads.ai/",
     images: [{ url: "https://pipeleads.ai/social/pipeleads.webp", width: 1200, height: 630, alt: "PipeLeads LeadFinder prospect discovery workspace" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
-    description: "Search five prospect types, add business context, and review fit guidance and outreach drafts before anything moves forward.",
+    title: "PipeLeads LeadFinder — AI Prospect Discovery Software",
+    description: "Search five prospect types, add business context, and review AI fit guidance and outreach drafts before anything moves forward.",
     images: ["https://pipeleads.ai/social/pipeleads.webp"],
   },
 }
@@ -97,7 +97,7 @@ export default function LandingPage() {
           <div className="pl-shell pl-hero__grid">
             <div className="pl-hero__copy">
               <span className="pl-eyebrow"><i /> PIPELEADS · PROSPECT DISCOVERY</span>
-              <h1>Build a prospect list you can actually explain.</h1>
+              <h1>Prospect discovery software with five search modes and reviewable AI fit guidance.</h1>
               <p className="pl-hero__definition">Search people, local businesses, companies, domains, or influencers. Keep the criteria, returned records, business context, and next-action guidance in one reviewable workspace.</p>
               <p className="pl-hero__mechanism">Choose the market. Save the records worth examining. Enrich selected fields when available, score fit against your context, and decide what moves forward.</p>
               <div className="pl-button-row">
@@ -177,7 +177,7 @@ export default function LandingPage() {
         </section>
 
         <section className="pl-final-cta">
-          <div className="pl-shell pl-final-cta__inner"><div><span className="pl-section-label">INCLUDED IN SCALE.GG PRO</span><h2>Build the list. Keep the judgment.</h2></div><div><p>Open LeadFinder to define the market, or review current Scale.gg Pro pricing, credits, and application availability.</p><div className="pl-button-row"><a className="pl-button pl-button--coral" href="/lead-search/new-search">Open LeadFinder <ArrowRight /></a><a className="pl-button pl-button--light" href="https://scale.gg/pricing/">See Pro access</a></div></div></div>
+          <div className="pl-shell pl-final-cta__inner"><div><span className="pl-section-label">THE SCALE.GG FAMILY</span><h2>One membership. A focused app for every marketing job.</h2></div><div><p>PipeLeads LeadFinder is included in Scale.gg—the AI-powered marketing suite for planning, creating, publishing, selling, and supporting your business.</p><div className="pl-button-row"><a className="pl-button pl-button--coral" href="https://scale.gg/">Explore Scale.gg <ArrowRight /></a><a className="pl-button pl-button--light" href="https://app.scaleplus.gg/apps">See all apps</a></div></div></div>
         </section>
       </main>
 
@@ -187,10 +187,10 @@ export default function LandingPage() {
           <div className="pl-footer__links">
             <div><strong>Product</strong><a href="#features">Features</a><a href="#how-it-works">How It Works</a><a href="#ai-tools">AI Tools</a><a href="/lead-search/new-search">Open LeadFinder</a></div>
             <div><strong>PipeLeads</strong><a href="https://scale.gg/pipeleads/">Compare both apps</a><a href="https://scale.gg/pipeleads-leadfinder/">LeadFinder overview</a><a href="https://scale.gg/pipeleads-crm/">CRM overview</a></div>
-            <div><strong>Scale.gg</strong><a href="https://scale.gg/pricing/">Pricing</a><a href="https://scale.gg/products/">All products</a><a href="https://scale.gg/">Scale.gg home</a></div>
+            <div><strong>Scale.gg family</strong><a href="https://scale.gg/">Scale.gg</a><a href="https://app.scaleplus.gg/apps">Explore all apps</a><a href="https://scale.gg/pricing/">Pricing</a><a href="https://app.scaleplus.gg/">Sign in</a></div>
           </div>
         </div>
-        <div className="pl-shell pl-footer__bottom"><span>© {new Date().getFullYear()} PipeLeads LeadFinder</span><div><a href="https://scale.gg/privacy-policy/">Privacy</a><a href="https://scale.gg/terms-of-service/">Terms</a></div></div>
+        <div className="pl-shell pl-footer__bottom"><span>© 2026 PipeLeads LeadFinder — A Scale.gg product</span><div><a href="https://scale.gg/privacy-policy/">Privacy</a><a href="https://scale.gg/terms-of-service/">Terms</a></div></div>
       </footer>
     </div>
   )
