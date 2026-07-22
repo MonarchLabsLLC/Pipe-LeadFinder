@@ -1,511 +1,196 @@
-import {
-  Search,
-  Users,
-  Building2,
-  Globe,
-  Video,
-  MapPin,
-  Mail,
-  Phone,
-  Linkedin,
-  AtSign,
-  BriefcaseBusiness,
-  ShieldCheck,
-  Bot,
-  MessageSquare,
-  FileText,
-  Sparkles,
-  PenLine,
-  Lightbulb,
-  ArrowRight,
-  Zap,
-  Send,
-  BookOpenCheck,
-  ChevronRight,
-  Star,
-} from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
-import { CREDIT_COSTS, formatScaledCreditText } from "@/lib/pipeleads-credit-pricing"
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  ChevronDown,
+  Database,
+  Download,
+  Globe,
+  History,
+  ListFilter,
+  MapPin,
+  MessageSquareText,
+  Search,
+  Sparkles,
+  Star,
+  Tags,
+  Users,
+  Webhook,
+} from "lucide-react"
+import { LeadFinderHeader, PipeLeadsMark } from "@/components/marketing/leadfinder-header"
+import { AgentPreview, KnowledgePreview, SavedListPreview, SearchWorkspacePreview } from "@/components/marketing/leadfinder-visuals"
 
-const PEOPLE_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:people"], "lead")
-const LOCAL_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:local"], "business")
-const COMPANY_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:company"], "company")
-const DOMAIN_SEARCH_PRICE = formatScaledCreditText(CREDIT_COSTS["search:domain"], "contact")
-const INFLUENCER_SEARCH_PRICE = formatScaledCreditText(
-  CREDIT_COSTS["search:influencer"],
-  "profile"
-)
+export const metadata: Metadata = {
+  title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
+  description: "Search people, local businesses, companies, domains, or influencers. Enrich selected records when available, score fit, organize lists, and review AI-written guidance.",
+  alternates: { canonical: "https://pipeleads.ai/" },
+  openGraph: {
+    type: "website",
+    siteName: "PipeLeads LeadFinder",
+    title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
+    description: "Five prospect search modes, optional enrichment, knowledge-based fit guidance, saved lists, reviewable drafts, and CSV or webhook handoff.",
+    url: "https://pipeleads.ai/",
+    images: [{ url: "https://pipeleads.ai/social/pipeleads.webp", width: 1200, height: 630, alt: "PipeLeads LeadFinder prospect discovery workspace" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PipeLeads LeadFinder — Search, Score, and Organize Prospects",
+    description: "Search five prospect types, add business context, and review fit guidance and outreach drafts before anything moves forward.",
+    images: ["https://pipeleads.ai/social/pipeleads.webp"],
+  },
+}
+
+const searchModes = [
+  { number: "01", icon: Users, label: "People Search", copy: "Find professional records by role, location, company, skills, experience, industry, and other supported filters.", tone: "coral" },
+  { number: "02", icon: MapPin, label: "Local Search", copy: "Look for local businesses by business type and location, then review the fields the source returned.", tone: "mint" },
+  { number: "03", icon: Building2, label: "Company Search", copy: "Research companies by market, location, size, technology, revenue range, domain, and related criteria.", tone: "lilac" },
+  { number: "04", icon: Globe, label: "Domain Search", copy: "Start with a company name or domain and look for associated professional contact records.", tone: "lime" },
+  { number: "05", icon: Star, label: "Influencer Search", copy: "Explore Instagram, TikTok, or YouTube profiles by niche, audience, engagement, and platform criteria.", tone: "peach" },
+]
+
+const workflow = [
+  { number: "01", label: "INPUT", title: "Define the market", copy: "Choose a search mode, enter the useful filters, and select or create the list where returned records should live." },
+  { number: "02", label: "PROVIDER WORK", title: "Search for records", copy: "PipeLeads sends the criteria to the configured data provider and stores the supported fields it returns." },
+  { number: "03", label: "YOUR REVIEW", title: "Inspect and organize", copy: "Review each record, optional enrichment result, label, search history entry, and fit explanation before acting." },
+  { number: "04", label: "HANDOFF", title: "Export what matters", copy: "Download an approved list as CSV or configure a webhook handoff. Native message sending is not assumed." },
+]
+
+const faqs = [
+  { question: "What is PipeLeads LeadFinder?", answer: "It is a prospect discovery workspace for searching five record types, organizing results into lists, optionally enriching selected records, scoring fit against business context, and preparing reviewable AI guidance." },
+  { question: "Is every record complete, current, or verified?", answer: "No. Coverage, freshness, and enrichment availability depend on the configured provider and the specific record. PipeLeads shows what was returned so you can review it." },
+  { question: "Does LeadFinder contact prospects automatically?", answer: "No native sending workflow has been established. AI actions produce drafts or guidance that you review and copy; webhook handoffs run only when you configure them." },
+  { question: "How does lead scoring work?", answer: "PipeLeads compares a saved record with the business profile and knowledge sources you supplied, then returns a 0–100 fit score, label, reasons, suggested angle or opener, and next-action guidance. It is not a conversion prediction." },
+  { question: "Is LeadFinder the same as PipeLeads CRM?", answer: "No. LeadFinder discovers, enriches, scores, organizes, and exports prospect records. PipeLeads CRM is the separate product intended for managing sales relationships and deals." },
+  { question: "Where is PipeLeads LeadFinder included?", answer: "PipeLeads LeadFinder is included in the Scale.gg Pro membership. Current plan pricing, credits, and application availability live on Scale.gg." },
+]
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://pipeleads.ai/#software",
+      name: "PipeLeads LeadFinder",
+      url: "https://pipeleads.ai/",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      description: "A prospect discovery workspace with five search modes, optional enrichment, saved lists, knowledge-based fit guidance, reviewable AI drafts, CSV export, and configured webhook handoff.",
+      featureList: ["People, Local, Company, Domain, and Influencer search", "Saved lists, labels, and search history", "Optional email and phone enrichment", "0–100 business-context fit guidance", "Reviewable per-lead AI actions", "CSV export and configured webhooks"],
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })),
+    },
+  ],
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Search className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">PipeLeads</span>
-          </Link>
+    <div className="pl-marketing">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <LeadFinderHeader />
 
-          <div className="hidden items-center gap-8 md:flex">
-            <a
-              href="#features"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How It Works
-            </a>
-            <a
-              href="#ai-tools"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              AI Tools
-            </a>
+      <main>
+        <section className="pl-hero">
+          <div className="pl-shell pl-hero__grid">
+            <div className="pl-hero__copy">
+              <span className="pl-eyebrow"><i /> PIPELEADS · PROSPECT DISCOVERY</span>
+              <h1>Build a prospect list you can actually explain.</h1>
+              <p className="pl-hero__definition">Search people, local businesses, companies, domains, or influencers. Keep the criteria, returned records, business context, and next-action guidance in one reviewable workspace.</p>
+              <p className="pl-hero__mechanism">Choose the market. Save the records worth examining. Enrich selected fields when available, score fit against your context, and decide what moves forward.</p>
+              <div className="pl-button-row">
+                <a className="pl-button pl-button--coral" href="/lead-search/new-search">Open LeadFinder <ArrowRight /></a>
+                <a className="pl-button pl-button--outline" href="#how-it-works">See the workflow</a>
+              </div>
+              <p className="pl-truth-note"><Check />Source coverage, freshness, and enrichment availability vary by provider and record.</p>
+            </div>
+            <div className="pl-hero__visual"><div className="pl-hero__backdrop" aria-hidden="true" /><SearchWorkspacePreview /></div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/lead-search/new-search"
-              className="hidden rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent sm:inline-flex"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/lead-search/new-search"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Get Started
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
+        <section className="pl-facts" aria-label="Verified PipeLeads LeadFinder facts">
+          <div className="pl-shell pl-facts__grid">
+            <div><strong>5</strong><span>distinct search modes</span></div>
+            <div><strong>4</strong><span>knowledge-source types</span></div>
+            <div><strong>0–100</strong><span>explainable fit guidance</span></div>
+            <div><strong>CSV</strong><span>approved-list export</span></div>
           </div>
-        </div>
-      </nav>
+        </section>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Subtle gradient background */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--primary)_0%,transparent_50%)] opacity-[0.07]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,var(--chart-1)_0%,transparent_50%)] opacity-[0.05]" />
-
-        <div className="relative mx-auto max-w-6xl px-6 pb-20 pt-24 text-center md:pb-32 md:pt-36">
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-            100% compliant live data APIs
+        <section className="pl-section pl-problem">
+          <div className="pl-shell pl-problem__grid">
+            <div><span className="pl-section-label">THE LIST IS ONLY THE START</span><h2>A mystery spreadsheet is not a prospecting strategy.</h2><p>Rows without criteria, context, or source boundaries leave the next person guessing. PipeLeads keeps the search, the record, and the reasoning close enough to review.</p></div>
+            <div className="pl-contrast-cards"><article><small>DISCONNECTED PROSPECTING</small><strong>Search → export → lose the criteria → guess what matters</strong><p>The file travels, but the reasoning behind it disappears.</p></article><article><small>PIPELEADS LEADFINDER</small><strong>Define → search → review → organize → hand off</strong><p>The user keeps control of what is enriched, scored, drafted, exported, or sent to a webhook.</p></article></div>
           </div>
+        </section>
 
-          <h1 className="mx-auto max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight md:text-6xl lg:text-7xl">
-            Find your next customer{" "}
-            <span className="bg-gradient-to-r from-primary to-[var(--chart-1)] bg-clip-text text-transparent">
-              with AI precision
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            AI-powered lead discovery with live data enrichment. Find companies,
-            people, and influencers with real-time contact details, social
-            profiles, and deep intelligence.
-          </p>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/lead-search/new-search"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:opacity-90 hover:shadow-xl hover:shadow-primary/30"
-            >
-              Start Finding Leads
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <a
-              href="#features"
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-3.5 text-base font-medium transition-colors hover:bg-accent"
-            >
-              See How It Works
-            </a>
+        <section id="features" className="pl-section pl-modes">
+          <div className="pl-shell">
+            <div className="pl-heading pl-heading--split"><div><span className="pl-section-label">FIVE WAYS INTO THE MARKET</span><h2>Start with the record type the job actually needs.</h2></div><p>Each mode has its own criteria and provider mapping. Returned fields depend on the source and target—not a universal completeness promise.</p></div>
+            <div className="pl-mode-grid">{searchModes.map(({ icon: Icon, ...mode }) => <article key={mode.label} data-tone={mode.tone}><div><span>{mode.number}</span><Icon /></div><h3>{mode.label}</h3><p>{mode.copy}</p><a href="/lead-search/new-search">Open search <ArrowRight /></a></article>)}</div>
           </div>
+        </section>
 
-          <p className="mt-6 text-sm text-muted-foreground">
-            No credit card required. Start searching in seconds.
-          </p>
-        </div>
-      </section>
-
-      {/* Five Search Types */}
-      <section id="features" className="scroll-mt-20 bg-muted/30 py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-              Search Types
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Five Powerful Ways to Find Leads
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Unlike tools that scrape stale databases, LeadFinder pulls from
-              live data sources through compliant APIs -- giving you fresh,
-              accurate results every time.
-            </p>
+        <section id="how-it-works" className="pl-section pl-workflow">
+          <div className="pl-shell">
+            <div className="pl-heading pl-heading--split"><div><span className="pl-section-label">INPUT → WORK → OUTPUT → REVIEW</span><h2>Know what the software does—and what stays yours.</h2></div><p>Search is provider-backed. AI does not invent the source record, and a score does not turn into a promised outcome.</p></div>
+            <div className="pl-workflow-grid">{workflow.map((step) => <article key={step.number}><div><span>{step.number}</span><small>{step.label}</small></div><h3>{step.title}</h3><p>{step.copy}</p></article>)}</div>
           </div>
+        </section>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* People Search */}
-            <div className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold">People Search</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Find decision-makers by role, location, skills, and experience.
-                Target by department, management level, company size, and
-                revenue.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
-                {PEOPLE_SEARCH_PRICE}
-              </div>
-            </div>
+        <section className="pl-section pl-lists">
+          <div className="pl-shell pl-lists__grid">
+            <div className="pl-lists__copy"><span className="pl-section-label">FROM RESULT TO WORKING LIST</span><h2>Keep the evidence beside the recommendation.</h2><p>Saved lists hold the returned record, its labels, the search history, enrichment status, and any business-context score. Open the score to inspect the reasons, suggested opener, and next action.</p><ul><li><History />Review the last searches run into a list</li><li><Tags />Apply custom labels per list entry</li><li><ListFilter />Filter by contact-data status</li><li><Download />Export the approved list as CSV</li></ul><p className="pl-truth-note"><Sparkles />Fit scores are guidance, not a guarantee that a prospect will respond or convert.</p></div>
+            <SavedListPreview />
+          </div>
+        </section>
 
-            {/* Local Search */}
-            <div className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold">Local Search</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Discover local businesses by location and category. Get phone
-                numbers, addresses, reviews, ratings, and website information
-                instantly.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
-                {LOCAL_SEARCH_PRICE}
-              </div>
-            </div>
+        <section className="pl-section pl-enrichment">
+          <div className="pl-shell pl-enrichment__grid">
+            <div><span className="pl-section-label">OPTIONAL ENRICHMENT</span><h2>Ask for more data only where it is useful.</h2><p>Run email or phone enrichment on selected records, or process eligible records in a saved list. The result updates the record when the configured provider finds a match.</p><a className="pl-text-link" href="/lead-search/new-search">Start with a search <ArrowRight /></a></div>
+            <div className="pl-enrichment-cards"><article><span><Database /></span><small>BEFORE</small><strong>Source record</strong><p>Name, role, organization, profile, or location fields returned by the selected search.</p></article><article><span><Search /></span><small>REQUEST</small><strong>Selected lookup</strong><p>The user invokes email, phone, or eligible bulk enrichment where more contact detail is needed.</p></article><article><span><Check /></span><small>AFTER</small><strong>Available result</strong><p>A found value is stored with its status. No match remains an explicit no-result—not invented data.</p></article></div>
+          </div>
+        </section>
 
-            {/* Company Search */}
-            <div className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold">Company Search</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Search by vertical, niche, or business type worldwide. Access
-                company details, websites, phone numbers, locations, social
-                profiles, and employee counts.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
-                {COMPANY_SEARCH_PRICE}
-              </div>
-            </div>
+        <section id="ai-tools" className="pl-section pl-intelligence">
+          <div className="pl-shell pl-intelligence__grid">
+            <KnowledgePreview />
+            <div><span className="pl-section-label">BUSINESS-CONTEXT INTELLIGENCE</span><h2>Give the guidance something real to compare against.</h2><p>Build a business profile, then add Website, pasted Text, Q&amp;A, or PDF sources. PipeLeads combines that approved context with a selected record to explain fit or prepare the chosen draft.</p><div className="pl-output-list"><article><Sparkles /><div><strong>Fit guidance</strong><span>Score, label, reasons, angle, opener, next action</span></div></article><article><MessageSquareText /><div><strong>Per-lead drafts</strong><span>Summary, direct message, subject line, intro, custom prompt, or saved template</span></div></article><article><Check /><div><strong>User review</strong><span>Inspect and copy the output before it leaves the workspace</span></div></article></div></div>
+          </div>
+        </section>
 
-            {/* Domain Search */}
-            <div className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <Globe className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold">Domain Search</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Enter any company website to discover multiple contacts. Perfect
-                for account-based marketing strategies and targeted outreach
-                campaigns.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
-                {DOMAIN_SEARCH_PRICE}
-              </div>
-            </div>
+        <section className="pl-section pl-agents">
+          <div className="pl-shell pl-agents__grid">
+            <div><span className="pl-section-label">CONFIGURED AGENTS</span><h2>Automate the preparation. Keep the judgment.</h2><p>Configure a manual or scheduled sequence that combines a search, optional enrichment, selected AI work, and a webhook handoff. Scheduled execution depends on the application runtime and cron configuration.</p><div className="pl-pill-list"><span>Manual</span><span>Daily</span><span>Weekly</span><span>Monthly</span><span><Webhook />Configured webhooks</span></div></div>
+            <AgentPreview />
+          </div>
+        </section>
 
-            {/* Influencer Search */}
-            <div className="group rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                <Video className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold">Influencer Search</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Find Instagram, TikTok, and YouTube influencers by follower
-                count, engagement rate, audience demographics, and hashtags.
-              </p>
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
-                {INFLUENCER_SEARCH_PRICE}
-              </div>
-            </div>
+        <section className="pl-section pl-separation">
+          <div className="pl-shell pl-separation__inner"><div><span className="pl-section-label">TWO PIPELEADS PRODUCTS</span><h2>LeadFinder discovers. CRM manages the sales relationship.</h2></div><div><p>This page is only about prospect discovery, enrichment, fit guidance, organization, drafts, and handoff. Deal stages, activities, inboxes, and pipelines belong to the separate PipeLeads CRM.</p><a className="pl-text-link" href="https://scale.gg/pipeleads/">Compare both PipeLeads products <ArrowRight /></a></div></div>
+        </section>
 
-            {/* Highlight Card */}
-            <div className="flex flex-col items-center justify-center rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center">
-              <Star className="mb-3 h-8 w-8 text-primary" />
-              <h3 className="text-lg font-semibold">Live Data</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Every search pulls fresh, real-time data from compliant APIs.
-                No stale databases. No outdated records.
-              </p>
-            </div>
+        <section className="pl-section pl-faq">
+          <div className="pl-shell pl-faq__grid"><div><span className="pl-section-label">STRAIGHT ANSWERS</span><h2>Before you run the first search.</h2></div><div className="pl-faq-list">{faqs.map((faq) => <details key={faq.question}><summary>{faq.question}<ChevronDown /></summary><p>{faq.answer}</p></details>)}</div></div>
+        </section>
+
+        <section className="pl-final-cta">
+          <div className="pl-shell pl-final-cta__inner"><div><span className="pl-section-label">INCLUDED IN SCALE.GG PRO</span><h2>Build the list. Keep the judgment.</h2></div><div><p>Open LeadFinder to define the market, or review current Scale.gg Pro pricing, credits, and application availability.</p><div className="pl-button-row"><a className="pl-button pl-button--coral" href="/lead-search/new-search">Open LeadFinder <ArrowRight /></a><a className="pl-button pl-button--light" href="https://scale.gg/pricing/">See Pro access</a></div></div></div>
+        </section>
+      </main>
+
+      <footer className="pl-footer">
+        <div className="pl-shell pl-footer__top">
+          <div className="pl-footer__brand"><Link className="pl-brand" href="/"><PipeLeadsMark /><span>PipeLeads <b>LeadFinder</b></span></Link><p>Prospect discovery, optional enrichment, business-context guidance, and a reviewable handoff.</p><span>Part of the Scale.gg product family</span></div>
+          <div className="pl-footer__links">
+            <div><strong>Product</strong><a href="#features">Features</a><a href="#how-it-works">How It Works</a><a href="#ai-tools">AI Tools</a><a href="/lead-search/new-search">Open LeadFinder</a></div>
+            <div><strong>PipeLeads</strong><a href="https://scale.gg/pipeleads/">Compare both apps</a><a href="https://scale.gg/pipeleads-leadfinder/">LeadFinder overview</a><a href="https://scale.gg/pipeleads-crm/">CRM overview</a></div>
+            <div><strong>Scale.gg</strong><a href="https://scale.gg/pricing/">Pricing</a><a href="https://scale.gg/products/">All products</a><a href="https://scale.gg/">Scale.gg home</a></div>
           </div>
         </div>
-      </section>
-
-      {/* Data Enrichment */}
-      <section id="how-it-works" className="scroll-mt-20 py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-                Enrichment
-              </p>
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Enrich any lead in one click
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-                Go beyond basic contact info. Our enrichment engine verifies
-                emails, finds direct phone numbers, and uncovers social profiles
-                -- all in a single click.
-              </p>
-              <div className="mt-8">
-                <Link
-                  href="/lead-search/new-search"
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  Try Enrichment Free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Mail, label: "Verified Emails", desc: "Multiple addresses per contact" },
-                { icon: Phone, label: "Phone Numbers", desc: "Direct dials and cell phones" },
-                { icon: Linkedin, label: "Social Profiles", desc: "LinkedIn, X, Instagram, Facebook" },
-                { icon: BriefcaseBusiness, label: "Job History", desc: "Career progression and titles" },
-                { icon: Building2, label: "Company Intel", desc: "Employee count, tech stack, revenue" },
-                { icon: AtSign, label: "Lookalikes", desc: "Similar companies and contacts" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-border bg-card p-4 shadow-sm"
-                >
-                  <item.icon className="mb-2 h-5 w-5 text-primary" />
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Assistant */}
-      <section id="ai-tools" className="scroll-mt-20 bg-muted/30 py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-            <div className="order-2 lg:order-1">
-              <div className="space-y-4">
-                {[
-                  {
-                    icon: MessageSquare,
-                    title: "Personalized DMs",
-                    desc: "Craft unique direct messages for each prospect based on their profile and interests.",
-                  },
-                  {
-                    icon: FileText,
-                    title: "Company Summaries",
-                    desc: "Get instant AI-generated briefs on any company before you reach out.",
-                  },
-                  {
-                    icon: PenLine,
-                    title: "Email Subject Lines",
-                    desc: "Generate high-open-rate subject lines tailored to each prospect.",
-                  },
-                  {
-                    icon: Lightbulb,
-                    title: "ICP Suggestions",
-                    desc: "AI analyzes your business and suggests new markets you should target.",
-                  },
-                  {
-                    icon: Sparkles,
-                    title: "Custom Prompts",
-                    desc: "Build your own AI workflows for any research or writing task.",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:border-primary/30"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <item.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{item.title}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="order-1 lg:order-2">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-                AI Assistant
-              </p>
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Let AI do the research and writing
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-                Write personalized DMs, emails, subject lines, or conduct deep
-                research on any lead -- all powered by AI. Pre-built prompts get
-                you started instantly.
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
-                <Sparkles className="h-4 w-4" />
-                Uses regular AI credits by token usage
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Agents */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-              AI Agents
-            </p>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Automate your entire prospecting pipeline
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Set your ideal prospect criteria once, and let AI agents
-              continuously find, enrich, research, and prepare outreach -- on
-              autopilot.
-            </p>
-          </div>
-
-          <div className="mt-14 flex flex-col items-center gap-4 md:flex-row md:gap-0">
-            {[
-              { icon: Search, label: "Search", desc: "Define your ideal customer profile" },
-              { icon: BookOpenCheck, label: "Enrich", desc: "Verify emails and phone numbers" },
-              { icon: Bot, label: "Research", desc: "AI deep-dives on every prospect" },
-              { icon: Send, label: "Outreach", desc: "Personalized messages at scale" },
-            ].map((step, i) => (
-              <div key={step.label} className="flex items-center">
-                <div className="flex w-56 flex-col items-center rounded-xl border border-border bg-card p-6 text-center shadow-sm">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <step.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <p className="font-semibold">{step.label}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {step.desc}
-                  </p>
-                </div>
-                {i < 3 && (
-                  <ArrowRight className="mx-2 hidden h-5 w-5 shrink-0 text-muted-foreground/50 md:block" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Integrations */}
-      <section className="bg-muted/30 py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-            Integrations
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Connect to your existing stack
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Native Zapier integration connects PipeLeads to 5,000+ apps.
-            Automatically sync leads, trigger workflows, and push data to your
-            CRM, email tools, or spreadsheets.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            {["Zapier", "Webhooks", "CRM Sync", "Email Tools", "Spreadsheets"].map(
-              (name) => (
-                <div
-                  key={name}
-                  className="rounded-xl border border-border bg-card px-6 py-3 text-sm font-medium shadow-sm"
-                >
-                  {name}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="relative overflow-hidden py-20 md:py-28">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--primary)_0%,transparent_60%)] opacity-[0.06]" />
-        <div className="relative mx-auto max-w-6xl px-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-5xl">
-            Ready to find your next customer?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Join thousands of sales teams using PipeLeads to discover and
-            connect with their ideal prospects.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/lead-search/new-search"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:opacity-90 hover:shadow-xl hover:shadow-primary/30"
-            >
-              Get Started Free
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            No credit card required. Set up in under 60 seconds.
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-12">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                <Search className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold tracking-tight">PipeLeads</span>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <a href="#features" className="transition-colors hover:text-foreground">
-                Features
-              </a>
-              <a href="#how-it-works" className="transition-colors hover:text-foreground">
-                How It Works
-              </a>
-              <a href="#ai-tools" className="transition-colors hover:text-foreground">
-                AI Tools
-              </a>
-              <span className="transition-colors hover:text-foreground">
-                Privacy
-              </span>
-              <span className="transition-colors hover:text-foreground">
-                Terms
-              </span>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} PipeLeads. All rights reserved.
-            </p>
-          </div>
-        </div>
+        <div className="pl-shell pl-footer__bottom"><span>© {new Date().getFullYear()} PipeLeads LeadFinder</span><div><a href="https://scale.gg/privacy-policy/">Privacy</a><a href="https://scale.gg/terms-of-service/">Terms</a></div></div>
       </footer>
     </div>
   )

@@ -1,6 +1,7 @@
 "use client"
 
 import { SessionProvider as NextAuthSessionProvider } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { KeycloakProvider } from "@/contexts/keycloak-context"
 
 export function SessionProvider({
@@ -10,8 +11,12 @@ export function SessionProvider({
   children: React.ReactNode
   useDevAuth: boolean
 }) {
+  const pathname = usePathname()
+
   // In dev mode, skip Keycloak entirely — dev-auto-login handles auth
-  if (useDevAuth) {
+  // The marketing homepage is public in every environment and must not wait on
+  // the logged-in app's Keycloak bootstrap before it can render.
+  if (useDevAuth || pathname === "/") {
     return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>
   }
 

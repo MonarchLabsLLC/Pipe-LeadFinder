@@ -16,6 +16,7 @@ import {
   useRef,
   useState,
 } from "react"
+import { useSession } from "next-auth/react"
 import type { CreditBalance, CreditsContextValue } from "@/types/credits"
 
 const PURCHASE_URL =
@@ -26,6 +27,7 @@ const POLL_ACTIVE_MS = 5_000
 const CreditsContext = createContext<CreditsContextValue | null>(null)
 
 export function CreditsProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
   const [balance, setBalance] = useState<CreditBalance | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -40,6 +42,14 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
   )
 
   const fetchBalance = useCallback(async (showLoading = false) => {
+    if (status !== "authenticated") {
+      balanceRef.current = null
+      setBalance(null)
+      setError(null)
+      if (showLoading) setIsLoading(status === "loading")
+      return
+    }
+
     try {
       if (showLoading) setIsLoading(true)
 
@@ -77,23 +87,36 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (showLoading) setIsLoading(false)
     }
-  }, [])
+  }, [status])
 
   // Start/restart polling
   const startPolling = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current)
+    pollRef.current = null
+    if (status !== "authenticated") return
     const ms = isActiveRef.current ? POLL_ACTIVE_MS : POLL_IDLE_MS
     pollRef.current = setInterval(() => fetchBalance(false), ms)
-  }, [fetchBalance])
+  }, [fetchBalance, status])
 
   useEffect(() => {
+    if (status !== "authenticated") {
+      startPolling()
+      const resetBalance = setTimeout(() => {
+        balanceRef.current = null
+        setBalance(null)
+        setError(null)
+        setIsLoading(status === "loading")
+      }, 0)
+      return () => clearTimeout(resetBalance)
+    }
+
     const initialFetch = setTimeout(() => fetchBalance(true), 0)
     startPolling()
     return () => {
       clearTimeout(initialFetch)
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [fetchBalance, startPolling])
+  }, [fetchBalance, startPolling, status])
 
   const setActivePolling = useCallback(
     (active: boolean) => {
