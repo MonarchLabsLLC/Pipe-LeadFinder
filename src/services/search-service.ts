@@ -26,6 +26,7 @@ export function assertSearchConfigured(
   type: SearchType,
   params: Record<string, unknown> = {}
 ) {
+  void params
   if (type === "DOMAIN") {
     if (!process.env.APIFY_ACTOR_COMPANY || !process.env.APIFY_ACTOR_PEOPLE) {
       throw new Error(
@@ -35,7 +36,10 @@ export function assertSearchConfigured(
     return
   }
 
-  if (type === "INFLUENCER" && params.platform === "youtube") return
+  // Influencer discovery is routed to a dedicated, platform-specific actor.
+  // Keep the legacy APIFY_ACTOR_INFLUENCER setting available for existing
+  // deployments, but do not require it for new searches.
+  if (type === "INFLUENCER") return
   getActorId(type)
 }
 
@@ -437,6 +441,171 @@ function influencerQuery(params: Record<string, unknown>): string | undefined {
   ].filter(Boolean)
 
   return parts.length ? parts.join(" ") : undefined
+}
+
+const INSTAGRAM_INFLUENCER_ACTOR = "apify/instagram-search-scraper"
+const TIKTOK_INFLUENCER_ACTOR = "coregent/tiktok-influencer-finder"
+
+function influencerFollowerBounds(params: Record<string, unknown>) {
+  return {
+    min: asNumber(params.minFollowers ?? params.followersFrom),
+    max: asNumber(params.maxFollowers ?? params.followersTo),
+  }
+}
+
+function influencerEngagementRate(item: Record<string, unknown>): number | null {
+  const direct = asNumber(item.engagementRate) ?? asNumber(item.estimatedEngagementRate)
+  if (direct !== undefined) return direct <= 1 ? Number((direct * 100).toFixed(2)) : direct
+
+  const followers = asNumber(item.followersCount) ?? asNumber(item.followerCount)
+  const posts = item.latestPosts
+  if (!followers || !Array.isArray(posts) || posts.length === 0) return null
+
+  const interactions = posts.map((post) => {
+    if (!post || typeof post !== "object") return 0
+    const record = post as Record<string, unknown>
+    return (asNumber(record.likesCount) ?? asNumber(record.likeCount) ?? 0) +
+      (asNumber(record.commentsCount) ?? asNumber(record.commentCount) ?? 0)
+  })
+  const average = interactions.reduce((total, value) => total + value, 0) / interactions.length
+  return Number(((average / followers) * 100).toFixed(2))
+}
+
+export function buildInstagramInfluencerInput(params: Record<string, unknown>) {
+  const query = influencerQuery(params)
+  if (!query) throw new Error("Influencer search requires a niche or description")
+
+  return {
+    search: query,
+    searchType: "user",
+    searchLimit: getResultLimit(params.resultsLimit, 50, 10),
+  }
+}
+
+export function buildTikTokInfluencerInput(params: Record<string, unknown>) {
+  const hashtags = cleanArray(params.hashtags)
+  const query = influencerQuery(params)
+  if (!query) throw new Error("Influencer search requires a niche or description")
+
+  const { min, max } = influencerFollowerBounds(params)
+  const minimumEngagement = asNumber(params.engagementRate)
+  const language = asString(params.language)
+
+  return {
+    keywords: [query],
+    hashtags: hashtags.length ? hashtags : undefined,
+    maxCreators: getResultLimit(params.resultsLimit, 50, 10),
+    minFollowers: min,
+    maxFollowers: max,
+    verifiedOnly: params.verified === true ? true : undefined,
+    languages: language && language !== "any" ? [language] : undefined,
+    enrichBio: true,
+    includePerformance: minimumEngagement !== undefined,
+    campaignBrief: query,
+    sortBy: "qualificationScore",
+  }
+}
+
+function normalizeInstagramInfluencer(
+  item: Record<string, unknown>,
+  params: Record<string, unknown>
+): Record<string, unknown> | null {
+  const username = asString(item.username)
+  const profileUrl = asString(item.url) || asString(item.profileUrl)
+  if (!username && !profileUrl) return null
+
+  const { min, max } = influencerFollowerBounds(params)
+  const followerCount = asNumber(item.followersCount) ?? asNumber(item.followerCount)
+  const verified = item.verified === true || item.isVerified === true
+  const accountType = asString(params.accountType)
+  const isBusiness = item.isBusinessAccount === true
+  const engagementRate = influencerEngagementRate(item)
+  const minimumEngagement = asNumber(params.engagementRate)
+
+  if ((min !== undefined && (followerCount === undefined || followerCount < min)) ||
+      (max !== undefined && (followerCount === undefined || followerCount > max)) ||
+      (params.verified === true && !verified) ||
+      (accountType && accountType !== "any" && !isBusiness) ||
+      (minimumEngagement !== undefined && engagementRate !== null && engagementRate < minimumEngagement)) {
+    return null
+  }
+
+  return {
+    sourceType: "INFLUENCER",
+    rawData: item,
+    fullName: asString(item.fullName) || asString(item.displayName) || username || null,
+    username: username || null,
+    platform: "instagram",
+    followerCount: followerCount ?? null,
+    engagementRate,
+    bio: asString(item.biography) || asString(item.bio) || null,
+    avatarUrl: asString(item.profilePicUrl) || asString(item.profilePictureUrl) || null,
+    email: extractPrimaryEmail(item),
+    location: asString(params.location) || null,
+    instagramUrl: profileUrl || (username ? `https://www.instagram.com/${username}` : null),
+  }
+}
+
+function normalizeTikTokInfluencer(
+  item: Record<string, unknown>,
+  params: Record<string, unknown>
+): Record<string, unknown> | null {
+  const username = asString(item.username)
+  const profileUrl = asString(item.profileUrl) || asString(item.url)
+  if (!username && !profileUrl) return null
+
+  const { min, max } = influencerFollowerBounds(params)
+  const followerCount = asNumber(item.followersCount) ?? asNumber(item.followerCount)
+  const engagementRate = influencerEngagementRate(item)
+  const minimumEngagement = asNumber(params.engagementRate)
+
+  if ((min !== undefined && (followerCount === undefined || followerCount < min)) ||
+      (max !== undefined && (followerCount === undefined || followerCount > max)) ||
+      (params.verified === true && item.isVerified !== true && item.verified !== true) ||
+      (minimumEngagement !== undefined && engagementRate !== null && engagementRate < minimumEngagement)) {
+    return null
+  }
+
+  return {
+    sourceType: "INFLUENCER",
+    rawData: item,
+    fullName: asString(item.displayName) || asString(item.fullName) || username || null,
+    username: username || null,
+    platform: "tiktok",
+    followerCount: followerCount ?? null,
+    engagementRate,
+    bio: asString(item.bio) || null,
+    avatarUrl: asString(item.profilePictureUrl) || asString(item.avatarUrl) || null,
+    email: extractPrimaryEmail(item),
+    location: asString(item.country) || asString(params.location) || null,
+    tiktokUrl: profileUrl || (username ? `https://www.tiktok.com/@${username.replace(/^@/, "")}` : null),
+    instagramUrl: asString(item.instagramUrl) || null,
+    youtubeUrl: asString(item.youtubeUrl) || null,
+  }
+}
+
+async function executeInstagramInfluencerSearch(
+  params: Record<string, unknown>,
+  limit: number
+): Promise<Array<Record<string, unknown>>> {
+  const actorId = process.env.APIFY_ACTOR_INFLUENCER_INSTAGRAM || INSTAGRAM_INFLUENCER_ACTOR
+  const run = await apifyClient.actor(actorId).call(buildInstagramInfluencerInput(params))
+  const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems({ limit })
+  return (items as Record<string, unknown>[])
+    .map((item) => normalizeInstagramInfluencer(item, params))
+    .filter((item): item is Record<string, unknown> => Boolean(item))
+}
+
+async function executeTikTokInfluencerSearch(
+  params: Record<string, unknown>,
+  limit: number
+): Promise<Array<Record<string, unknown>>> {
+  const actorId = process.env.APIFY_ACTOR_INFLUENCER_TIKTOK || TIKTOK_INFLUENCER_ACTOR
+  const run = await apifyClient.actor(actorId).call(buildTikTokInfluencerInput(params))
+  const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems({ limit })
+  return (items as Record<string, unknown>[])
+    .map((item) => normalizeTikTokInfluencer(item, params))
+    .filter((item): item is Record<string, unknown> => Boolean(item))
 }
 
 async function executeYouTubeInfluencerSearch(
@@ -914,6 +1083,14 @@ export async function executeSearch(
   if (type === "INFLUENCER" && params.platform === "youtube") {
     const results = await executeYouTubeInfluencerSearch(params, limit)
     if (results.length > 0) return dedupeResults(results).slice(0, limit)
+  }
+
+  if (type === "INFLUENCER" && params.platform === "instagram") {
+    return dedupeResults(await executeInstagramInfluencerSearch(params, limit)).slice(0, limit)
+  }
+
+  if (type === "INFLUENCER" && params.platform === "tiktok") {
+    return dedupeResults(await executeTikTokInfluencerSearch(params, limit)).slice(0, limit)
   }
 
   const actorId = getActorId(type)
