@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { ensureUser } from "@/lib/ensure-user"
 import { assertSearchConfigured } from "@/services/search-service"
 import { peopleSearchSchema } from "@/lib/validators/search"
@@ -12,10 +13,17 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/search/people",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   await ensureUser(session)
 
   // Credit pre-check
-  const blocked = await guardCredits(session.user.id, session.user.email)
+  const blocked = await guardCredits(scope.tenantUserId, scope.tenantEmail)
   if (blocked) return blocked
 
   const body = await req.json().catch(() => null)
@@ -27,7 +35,7 @@ export async function POST(req: NextRequest) {
   const { listId, duplicatePolicy, ...searchParams } = parsed.data
 
   const invalidTarget = await validateSearchTarget(
-    session.user.id,
+    scope.tenantUserId,
     listId,
     "PEOPLE"
   )
@@ -48,8 +56,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const { search, job } = await enqueueSearchJob({
-      userId: session.user.id,
-      userEmail: session.user.email,
+      userId: scope.tenantUserId,
+      userEmail: scope.tenantEmail,
       searchType: "PEOPLE",
       listId,
       searchParams,

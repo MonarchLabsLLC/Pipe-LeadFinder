@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { createLabelSchema } from "@/lib/validators/label"
 
@@ -9,9 +10,16 @@ export async function GET() {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/labels",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const labels = await prisma.customLabel.findMany({
-    where: { userId: session.user.id },
+    where: { userId: scope.tenantUserId },
     orderBy: { createdAt: "asc" },
   })
 
@@ -23,6 +31,13 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/labels",
+  })
+  if (!scope.ok) {
+    return scope.response
   }
 
   const body = await req.json().catch(() => null)
@@ -39,7 +54,7 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.customLabel.findUnique({
     where: {
       userId_name: {
-        userId: session.user.id,
+        userId: scope.tenantUserId,
         name: parsed.data.name,
       },
     },
@@ -55,7 +70,7 @@ export async function POST(req: NextRequest) {
   const label = await prisma.customLabel.create({
     data: {
       name: parsed.data.name,
-      userId: session.user.id,
+      userId: scope.tenantUserId,
     },
   })
 

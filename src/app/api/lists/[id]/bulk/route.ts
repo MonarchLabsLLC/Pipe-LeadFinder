@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { bulkActionSchema } from "@/lib/validators/bulk"
 import { guardCredits } from "@/lib/credit-guard"
@@ -10,6 +11,13 @@ type RouteContext = { params: Promise<{ id: string }> }
 export async function POST(req: NextRequest, context: RouteContext) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/lists/[id]/bulk",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   const { id: listId } = await context.params
   const parsed = bulkActionSchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
@@ -17,7 +25,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
 
   const list = await prisma.leadList.findFirst({
-    where: { id: listId, userId: session.user.id },
+    where: { id: listId, userId: scope.tenantUserId },
   })
   if (!list) return NextResponse.json({ error: "List not found" }, { status: 404 })
   const entryIds = [...new Set(parsed.data.entryIds)]
@@ -30,11 +38,11 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
 
   if (["ENRICH_EMAIL", "ENRICH_PHONE", "SCORE"].includes(parsed.data.action)) {
-    const blocked = await guardCredits(session.user.id, session.user.email)
+    const blocked = await guardCredits(scope.tenantUserId, scope.tenantEmail)
     if (blocked) return blocked
     const job = await enqueueBulkJob({
-      userId: session.user.id,
-      userEmail: session.user.email,
+      userId: scope.tenantUserId,
+      userEmail: scope.tenantEmail,
       listId,
       entryIds,
       action: parsed.data.action as "ENRICH_EMAIL" | "ENRICH_PHONE" | "SCORE",
@@ -51,7 +59,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   if (parsed.data.action === "APPLY_LABEL" || parsed.data.action === "REMOVE_LABEL") {
     if (!labelId) return NextResponse.json({ error: "labelId is required" }, { status: 400 })
     const label = await prisma.customLabel.findFirst({
-      where: { id: labelId, userId: session.user.id },
+      where: { id: labelId, userId: scope.tenantUserId },
     })
     if (!label) return NextResponse.json({ error: "Label not found" }, { status: 404 })
     if (parsed.data.action === "APPLY_LABEL") {
@@ -84,7 +92,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const target = await prisma.leadList.findFirst({
     where: {
       id: targetListId,
-      userId: session.user.id,
+      userId: scope.tenantUserId,
       status: "ACTIVE",
       type: list.type,
     },

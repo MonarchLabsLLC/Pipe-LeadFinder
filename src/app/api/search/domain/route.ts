@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { ensureUser } from "@/lib/ensure-user"
 import { assertSearchConfigured } from "@/services/search-service"
 import { domainSearchSchema } from "@/lib/validators/search"
@@ -10,20 +11,27 @@ import { enqueueSearchJob } from "@/services/search-job"
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/search/domain",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   await ensureUser(session)
-  const blocked = await guardCredits(session.user.id, session.user.email)
+  const blocked = await guardCredits(scope.tenantUserId, scope.tenantEmail)
   if (blocked) return blocked
 
   const parsed = domainSearchSchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   const { listId, duplicatePolicy, ...searchParams } = parsed.data
-  const invalidTarget = await validateSearchTarget(session.user.id, listId, "DOMAIN")
+  const invalidTarget = await validateSearchTarget(scope.tenantUserId, listId, "DOMAIN")
   if (invalidTarget) return invalidTarget
   try {
     assertSearchConfigured("DOMAIN", searchParams)
     const { search, job } = await enqueueSearchJob({
-      userId: session.user.id,
-      userEmail: session.user.email,
+      userId: scope.tenantUserId,
+      userEmail: scope.tenantEmail,
       searchType: "DOMAIN",
       listId,
       searchParams,

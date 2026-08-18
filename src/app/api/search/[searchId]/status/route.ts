@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(
@@ -9,6 +10,13 @@ export async function GET(
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/search/[searchId]/status",
+  })
+  if (!scope.ok) {
+    return scope.response
   }
 
   const { searchId } = await params
@@ -21,7 +29,7 @@ export async function GET(
     return NextResponse.json({ error: "Search not found" }, { status: 404 })
   }
 
-  if (search.userId !== session.user.id) {
+  if (search.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
 

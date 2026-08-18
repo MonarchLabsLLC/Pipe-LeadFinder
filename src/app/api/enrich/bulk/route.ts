@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { guardCredits } from "@/lib/credit-guard"
 import { enqueueBulkJob } from "@/services/bulk-job"
@@ -7,16 +8,23 @@ import { enqueueBulkJob } from "@/services/bulk-job"
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/enrich/bulk",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   const body = await req.json().catch(() => null)
   const listId = body && typeof body === "object" ? (body as { listId?: unknown }).listId : null
   if (typeof listId !== "string") {
     return NextResponse.json({ error: "listId is required" }, { status: 400 })
   }
   const list = await prisma.leadList.findFirst({
-    where: { id: listId, userId: session.user.id },
+    where: { id: listId, userId: scope.tenantUserId },
   })
   if (!list) return NextResponse.json({ error: "List not found" }, { status: 404 })
-  const blocked = await guardCredits(session.user.id, session.user.email)
+  const blocked = await guardCredits(scope.tenantUserId, scope.tenantEmail)
   if (blocked) return blocked
 
   const entries = await prisma.leadListEntry.findMany({
@@ -36,8 +44,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ attempted: 0, enriched: 0, message: "No leads need enrichment" })
   }
   const job = await enqueueBulkJob({
-    userId: session.user.id,
-    userEmail: session.user.email,
+    userId: scope.tenantUserId,
+    userEmail: scope.tenantEmail,
     listId,
     entryIds: entries.map((entry) => entry.id),
     action: "ENRICH_EMAIL",

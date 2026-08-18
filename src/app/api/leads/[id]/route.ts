@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { publicLead } from "@/lib/public-lead"
 
@@ -19,6 +20,13 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "PATCH",
+    path: "/api/leads/[id]",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id } = await context.params
   const body = await req.json().catch(() => null)
@@ -32,9 +40,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 
   const lead = await prisma.lead.findFirst({
-    where: session.user.role === "admin"
+    where: scope.effectiveRole === "admin"
       ? { id }
-      : { id, listEntries: { some: { list: { userId: session.user.id } } } },
+      : { id, listEntries: { some: { list: { userId: scope.tenantUserId } } } },
   })
 
   if (!lead) {

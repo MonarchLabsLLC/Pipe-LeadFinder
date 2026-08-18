@@ -459,3 +459,31 @@ model FileUpload {
   @@index([userId])
   @@index([userId, folder])
 }
+
+// =============================================================================
+// Scale Plus Team Workspaces (DISABLED-BY-DEFAULT ROLLOUT — DO NOT UNCOMMENT
+// until prisma/manual-migrations/2026-08-18-scale-workspace-bindings.DO-NOT-APPLY.sql
+// is reviewed, approved, and applied). Kept commented so `prisma db push`
+// cannot create these tables accidentally. Runtime code uses raw SQL and
+// fails closed while the tables are absent.
+// =============================================================================
+// model ScaleWorkspaceBinding {
+//   workspaceId String   @id
+//   ownerUserId String   @unique
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   owner       User     @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+// }
+//
+// model ScaleWorkspaceAuditEvent {
+//   id                   String   @id @default(cuid())
+//   workspaceId          String
+//   actorUserId          String
+//   ownerUserId          String
+//   actorKeycloakSubject String
+//   method               String   @db.VarChar(10)
+//   path                 String
+//   createdAt            DateTime @default(now())
+//
+//   @@index([workspaceId, createdAt])
+// }
