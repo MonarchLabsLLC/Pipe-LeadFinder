@@ -39,6 +39,8 @@ Pro Max unlocks access; Scale Credits meter AI usage and existing paid product o
 
 **Connect to Superpowers** opens the private Codex/Claude installation and ClickCampaigns OAuth guide. No customer API key is required. Sharing your selected list is optional; external conversations remain in Codex or Claude. Your app history remains private. This Agent requires a verified Keycloak sign-in, even in development; the existing automatic development login does not unlock it. See [Focused Agent operations](Focused-Agent.md) for rollout prerequisites.
 
+When CRM transfers are enabled, select saved leads, open **Send selected leads to CRM**, and choose an authorized CRM workspace, pipeline, and stage. Review the exact contact/deal fields, skipped rows, duplicates, and possible workflow effects. **Review and approve in CRM** opens the destination approval card; nothing is created until you approve it there (or through the external client's human approval form). Existing matches are skipped, not overwritten. Records need a name and email; incomplete or ambiguous matches stay flagged. Use **Refresh progress** or **Restore transfer** to return to results and record links. Do not repeat an uncertain transfer: review its saved outcome first.
+
 ### Starting a New Search
 
 Navigate to **Lead Search → New Search**. You'll see five search type cards:

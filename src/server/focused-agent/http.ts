@@ -21,6 +21,7 @@ import {
   validateResources,
 } from "./runtime"
 import { FocusedAgentError, verifyFocusedRequest } from "./security"
+import { exportTransfer, crmDestinations, prepareCrmTransfer, crmTransferStatus, handoffEnabled } from "./handoff"
 
 const uuid = z.string().uuid()
 const envelope = z
@@ -90,11 +91,16 @@ export async function handleNative(
   try {
     const a = await nativeActor(request)
     if (request.method === "GET") {
+      if (path.length === 2 && path[0] === "handoff" && path[1] === "history") {
+        return ok(await db.focusedAgentAudit.findMany({ where: { userId: a.userId, workspaceId: a.workspaceId, action: "crm_transfer" },
+          orderBy: { createdAt: "desc" }, take: 20, select: { id: true, metadata: true, createdAt: true } }))
+      }
       if (path.length === 1 && path[0] === "access")
         return ok({
           userId: a.userId,
           workspaceId: a.workspaceId,
           writesEnabled: writesEnabled(),
+          handoffEnabled: handoffEnabled(),
         })
       if (path.length === 1 && path[0] === "resources")
         return ok(
@@ -131,6 +137,12 @@ export async function handleNative(
       }
     } else if (request.method === "POST") {
       const input = await body(request)
+      if (path.length === 2 && path[0] === "handoff") {
+        const v = z.object({ requestId: uuid, input: z.unknown() }).strict().parse(input)
+        if (path[1] === "destinations") return ok(await crmDestinations(a, v.input, v.requestId))
+        if (path[1] === "prepare") return ok(await prepareCrmTransfer(a, v.input, v.requestId))
+        if (path[1] === "status") return ok(await crmTransferStatus(a, z.object({ proposalId: uuid }).strict().parse(v.input).proposalId, v.requestId))
+      }
       if (path.length === 1 && path[0] === "threads") {
         z.object({}).strict().parse(input)
         return ok({ thread: await createThread(a) }, 201)
@@ -228,7 +240,7 @@ export async function handleService(
       request.method === "POST" &&
       path.length === 2 &&
       path[0] === "actions" &&
-      (Object.hasOwn(actions, path[1]) || path[1] === "get_run")
+      (Object.hasOwn(actions, path[1]) || path[1] === "get_run" || path[1] === "export_transfer")
     )
       action = path[1]
     else if (
@@ -356,6 +368,7 @@ export async function handleService(
       if (run.status === "queued") schedule(run.runId)
       return ok(run)
     }
+    if (action === "export_transfer") return ok(await exportTransfer(a, input!.input))
     const result = await dispatch(a, action, input!.input, {
       key: input!.idempotencyKey,
     })

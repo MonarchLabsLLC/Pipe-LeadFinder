@@ -16,8 +16,9 @@ import {
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
+import { CrmHandoff } from "./crm-handoff"
 
-type Access = { userId: string; workspaceId: string; writesEnabled: boolean }
+type Access = { userId: string; workspaceId: string; writesEnabled: boolean; handoffEnabled?: boolean }
 type Resource = {
   id: string
   name: string
@@ -484,6 +485,7 @@ export function AgentPanel({ access }: { access: Access }) {
                 them.
               </p>
             )}
+            {access.handoffEnabled && resourceIds[0] && <CrmHandoff key={`handoff:${resourceIds[0]}`} listId={resourceIds[0]} leadIds={leadIds} />}
             {state?.messages.map((m) => (
               <article
                 key={m.id}

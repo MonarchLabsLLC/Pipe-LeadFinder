@@ -7,8 +7,12 @@ import { prepareProposal } from "./proposals"
 import { FocusedAgentError } from "./security"
 import type { AgentActor } from "./access"
 import { recoverApprovedJob } from "./job-recovery"
+import { crmDestinations, prepareCrmTransfer, crmTransferStatus, handoffDestinationSchema, handoffPrepareSchema } from "./handoff"
 
 export const actions = {
+  get_crm_destinations: { description: "List authorized CRM workspaces, pipelines and stages for a lead handoff. Ask which destination the user wants.", schema: handoffDestinationSchema },
+  get_crm_transfer_status: { description: "Read an owned CRM transfer's approval state, background progress, failures and completed record links. Never automatically repeat uncertain rows.", schema: z.object({ proposalId: z.string().uuid() }).strict() },
+  prepare_crm_transfer: { description: "Prepare an exact CRM-owned preview for selected saved leads. Skip existing matches, flag incomplete records, never overwrite. Return the CRM approval link; only a human can approve there. Nothing is transferred by this tool.", schema: handoffPrepareSchema },
   list_resources: {
     description:
       "Find your existing saved prospect lists. No paid search is started.",
@@ -132,6 +136,9 @@ export async function dispatch(
   }
   if (name === "get_run")
     return getApprovedJob(a, (input as { runId: string }).runId)
+  if (name === "get_crm_destinations") return crmDestinations(a, input, context.key)
+  if (name === "get_crm_transfer_status") return crmTransferStatus(a, (input as { proposalId: string }).proposalId, context.key)
+  if (name === "prepare_crm_transfer") return prepareCrmTransfer(a, input, context.key)
   return prepareProposal(
     a,
     name === "prepare_search"

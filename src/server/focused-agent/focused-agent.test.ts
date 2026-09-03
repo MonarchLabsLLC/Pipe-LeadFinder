@@ -13,7 +13,8 @@ import { resolveActor } from "./access"
 import { dispatch } from "./actions"
 import { decideProposal, proposalView } from "./proposals"
 import { handleNative, handleService } from "./http"
-import { signFocusedRequest } from "./security"
+import { signFocusedRequest, verifyFocusedRequest, hashCanonical } from "./security"
+import { exportTransfer } from "./handoff"
 import { createThread, enqueueChat, getState, runChat, getRun } from "./runtime"
 import { requireApprovedJob } from "./job-guard"
 import { processSearchJob } from "@/services/search-job"
@@ -144,6 +145,7 @@ describe.skipIf(!enabled)(
         "LEADFINDER_AGENT_ENABLED",
         "LEADFINDER_GODMODE_ENABLED",
         "LEADFINDER_AGENT_WRITES_ENABLED",
+        "LEADFINDER_AGENT_HANDOFF_ENABLED",
       ])
         vi.stubEnv(key, "true")
       vi.stubEnv(
@@ -158,6 +160,18 @@ describe.skipIf(!enabled)(
       vi.stubGlobal(
         "fetch",
         vi.fn(async (url: URL | string, init?: RequestInit) => {
+          if (String(url).includes('/handoff/leadfinder/')) {
+            const body = JSON.parse(init?.body as string)
+            const action = String(url).split('/').at(-1)!
+            await verifyFocusedRequest({ authorization: (init?.headers as Record<string, string>).Authorization,
+              secret: process.env.LEADFINDER_GODMODE_SERVICE_SECRET, issuer: 'leadfinder-godmode-service', audience: 'clickcampaigns-godmode-handoff',
+              action: `handoff:${action}`, path: new URL(String(url)).pathname, body, consumeNonce: async () => true })
+            if (!state.allowed) return Response.json({ error: { code: 'ACCESS_DENIED', message: 'Access revoked' } }, { status: 403 })
+            if (action === 'destinations') return Response.json({ protocolVersion: '1', data: { workspaces: [{ id: 'crm-tenant', name: 'CRM workspace' }], workspaceId: 'crm-tenant', pipelines: { resources: [{ id: '10', name: 'Pipeline', stages: [{ id: '11', name: 'New' }] }] } } })
+            expect(body.input.sourceWorkspaceId).toBe(userId)
+            expect(body.input).not.toHaveProperty('records')
+            return Response.json({ protocolVersion: '1', data: { id: '0bc71393-dad0-422f-9be3-8d377a31852e', proposalHash: 'a'.repeat(64), status: 'pending', approvalUrl: 'https://crm.test/admin/dashboard?agentProposal=0bc71393-dad0-422f-9be3-8d377a31852e' } })
+          }
           if (!String(url).includes("/entitlement/"))
             throw new Error(`Unexpected network request: ${url}`)
           const body = JSON.parse(init?.body as string)
@@ -351,6 +365,27 @@ describe.skipIf(!enabled)(
         replay: () => handleService(req(), path.split("/").slice(5)),
       }
     }
+    it("exports actual owned leads and prepares the same source-backed native handoff without accepting invented records", async () => {
+      const a = await actor()
+      const source = await exportTransfer(a, { listId, leadIds: [completeId, leadId] })
+      expect(source.sourceHash).toBe(hashCanonical(source.snapshot))
+      expect(source.snapshot.records.map(r => r.id).sort()).toEqual([completeId, leadId].sort())
+      await expect(exportTransfer(a, { listId, leadIds: [otherLead] })).rejects.toMatchObject({ code: 'LEAD_NOT_FOUND' })
+      const remote = await service('export_transfer', { listId, leadIds: [completeId] })
+      expect(remote.response.status).toBe(200)
+      expect((await remote.response.json()).data.snapshot.records[0].email).toBe('complete@test.invalid')
+      expect((await remote.replay()).status).toBe(409)
+      const destinations = await native('handoff/destinations', { requestId: randomUUID(), input: {} })
+      expect((await destinations.json()).data.workspaceId).toBe('crm-tenant')
+      const input = { listId, leadIds: [completeId], destinationWorkspaceId: 'crm-tenant', pipelineId: '10', stageId: '11', createDeals: true }
+      const prepared = await native('handoff/prepare', { requestId: randomUUID(), input })
+      expect(prepared.status).toBe(200)
+      expect((await prepared.json()).data.status).toBe('pending')
+      expect((await (await native('handoff/history')).json()).data[0].metadata.listId).toBe(listId)
+      expect((await native('handoff/prepare', { requestId: randomUUID(), input: { ...input, records: [{ name: 'invented' }] } })).status).toBe(400)
+      await expect(dispatch(a, 'prepare_crm_transfer', input, { key: randomUUID(), allowedIds: [otherList] })).rejects.toMatchObject({ code: 'RESOURCE_SELECTION_REQUIRED' })
+      expect(state.charges).toHaveLength(0)
+    })
     it("fails closed for forged IDs, workspace changes, revoked access, dev sessions and CSRF", async () => {
       const a = await actor()
       await expect(resolveActor(subject, "mcp", otherId)).rejects.toMatchObject(

@@ -6,6 +6,7 @@ const access = {
   userId: "fixture-user",
   workspaceId: "fixture-user",
   writesEnabled: true,
+  handoffEnabled: true,
 }
 const thread = {
   id: "c1310696-4065-492a-83d5-48d88258bcc7",
@@ -43,6 +44,8 @@ const leads = [
   },
 ]
 let status = "pending"
+const transfer = { id: '0bc71393-dad0-422f-9be3-8d377a31852e', status: 'pending', kind: 'transfer', approvalUrl: 'https://crm.test/admin/dashboard?agentProposal=0bc71393-dad0-422f-9be3-8d377a31852e',
+  preview: { title: 'Transfer saved leads', before: leads, after: [{ sourceId: 'lead-one', decision: 'create', contact: { name: 'Alex Prospect', email: 'alex@example.test' } }, { sourceId: 'lead-two', decision: 'skip', reason: 'Missing email' }], effects: ['Existing CRM workflows may react.'] }, result: null }
 window.fetch = async (input, init) => {
   const url = new URL(String(input), window.location.href)
   if (!url.pathname.startsWith("/api/focused-agent/"))
@@ -50,7 +53,11 @@ window.fetch = async (input, init) => {
   const path = url.pathname.replace("/api/focused-agent/", ""),
     body = init?.body ? JSON.parse(String(init.body)) : {}
   let data: unknown
-  if (path === "state")
+  if (path === 'handoff/destinations') data = { workspaces: [{ id: 'crm-one', name: 'CRM workspace' }], workspaceId: 'crm-one', pipelines: { resources: [{ id: 'pipe-one', name: 'Sales pipeline', stages: [{ id: 'stage-one', name: 'New' }] }], hasMore: false } }
+  else if (path === 'handoff/history') data = localStorage.getItem('lf-fixture-transfer') ? [{ id: 'transfer-history', metadata: { proposalId: transfer.id, listId: 'list-one', approvalUrl: transfer.approvalUrl }, createdAt: new Date().toISOString() }] : []
+  else if (path === 'handoff/prepare') { localStorage.setItem('lf-fixture-transfer', '1'); data = transfer }
+  else if (path === 'handoff/status') data = transfer
+  else if (path === "state")
     data = {
       ...access,
       threads: [thread],

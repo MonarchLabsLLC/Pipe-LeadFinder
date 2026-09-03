@@ -32,7 +32,13 @@ Approved searches, enrichment and scoring use existing pg-boss jobs. They have s
 4. Independently enable `LEADFINDER_AGENT_ENABLED`, `LEADFINDER_GODMODE_ENABLED` and `LEADFINDER_AGENT_WRITES_ENABLED` only after staging tests. All default to false.
 5. Use the private Superpowers installation/OAuth guide. The plugin is not listed in the public Codex plugin directory; customers do not paste developer API keys.
 
-The Lead Finder-to-CRM handoff is a separate integration layer and must pass destination-owned approval, deduplication and access-loss tests before activation. Production integration and deployment are not implied by local tests.
+The Lead Finder-to-CRM handoff is implemented as a narrow ClickCampaigns coordinator. `LEADFINDER_AGENT_HANDOFF_ENABLED` defaults false, alongside the bridge's `GODMODE_LEAD_HANDOFF_ENABLED` and CRM's `PIPELEADS_AGENT_HANDOFF_ENABLED`. Production integration and deployment are not implied by local tests.
+
+### CRM handoff
+
+The native Agent or handoff card discovers authorized CRM workspaces, pipelines and stages. Select at most 50 saved leads, then preview exact mappings, duplicate matches, missing fields and workflow effects. The source-only `export_transfer` service action retrieves actual owner-scoped active-list records; models cannot provide replacements. Signed, replay-protected coordinator requests use the same per-app service secret with audience `clickcampaigns-godmode-handoff`, never browser credentials or arbitrary URLs.
+
+CRM owns immutable approval, durable execution and source mappings. Approve through the returned CRM review URL or MCP human elicitation. `get_crm_transfer_status` reads only the actor's transfer proposals. Native history keeps private transfer references and restores progress on demand; it does not mirror external conversation transcripts. The coordinator and worker recheck access in both apps and the exact source snapshot before execution. Existing matches are skipped, not overwritten; name/email are required. Completed or uncertain rows are not automatically retried. The handoff is bounded by 50 records and service request size; use smaller selections for unusually large records.
 
 ## Verification
 
