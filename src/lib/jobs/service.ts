@@ -17,6 +17,7 @@ interface CreateJobInput {
   listId?: string
   searchId?: string
   agentId?: string
+  retryLimit?: number
 }
 
 export async function createAndEnqueueJob(input: CreateJobInput) {
@@ -45,7 +46,9 @@ export async function createAndEnqueueJob(input: CreateJobInput) {
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "P2002") {
       const raced = await prisma.jobRun.findUnique({
-        where: { userId_idempotencyKey: { userId: input.userId, idempotencyKey } },
+        where: {
+          userId_idempotencyKey: { userId: input.userId, idempotencyKey },
+        },
       })
       if (raced) return raced
     }
@@ -60,6 +63,9 @@ export async function createAndEnqueueJob(input: CreateJobInput) {
       { jobRunId: jobRun.id },
       {
         ...JOB_SEND_OPTIONS,
+        ...(input.retryLimit !== undefined
+          ? { retryLimit: input.retryLimit }
+          : {}),
         singletonKey: jobRun.id,
         group: { id: input.userId },
       }
@@ -77,7 +83,8 @@ export async function createAndEnqueueJob(input: CreateJobInput) {
         status: "FAILED",
         stage: "Queue submission failed",
         errorCode: "QUEUE_SUBMISSION_FAILED",
-        errorMessage: error instanceof Error ? error.message : "Queue submission failed",
+        errorMessage:
+          error instanceof Error ? error.message : "Queue submission failed",
         completedAt: new Date(),
       },
     })
@@ -111,6 +118,28 @@ export async function runTrackedJob<T>(
   jobRunId: string,
   handler: () => Promise<T>
 ) {
+  const existing = await prisma.jobRun.findUniqueOrThrow({
+    where: { id: jobRunId },
+  })
+  const focused = Boolean(
+    (existing.payload as { focusedAgentApprovalId?: string } | null)
+      ?.focusedAgentApprovalId
+  )
+  if (focused) {
+    if (existing.status === "COMPLETED") return existing.result as T
+    const claimed = await prisma.jobRun.updateMany({
+      where: { id: jobRunId, status: "QUEUED" },
+      data: {
+        status: "RUNNING",
+        stage: "Starting approved operation",
+        startedAt: new Date(),
+      },
+    })
+    if (!claimed.count)
+      throw new Error(
+        "This approved operation already started or needs review; it will not be automatically repeated"
+      )
+  }
   await prisma.jobRun.update({
     where: { id: jobRunId },
     data: {
@@ -123,6 +152,16 @@ export async function runTrackedJob<T>(
     },
   })
 
+  const heartbeat = focused
+    ? setInterval(() => {
+        void prisma.jobRun
+          .updateMany({
+            where: { id: jobRunId, status: "RUNNING" },
+            data: { updatedAt: new Date() },
+          })
+          .catch(() => {})
+      }, 15000)
+    : null
   try {
     const result = await handler()
     await prisma.jobRun.update({
@@ -147,6 +186,8 @@ export async function runTrackedJob<T>(
       },
     })
     throw error
+  } finally {
+    if (heartbeat) clearInterval(heartbeat)
   }
 }
 
@@ -167,9 +208,15 @@ export function publicJobRun(job: {
   startedAt: Date | null
   completedAt: Date | null
 }) {
-  const percent = job.progressTotal > 0
-    ? Math.min(100, Math.round((job.progressCurrent / job.progressTotal) * 100))
-    : job.status === "COMPLETED" ? 100 : 0
+  const percent =
+    job.progressTotal > 0
+      ? Math.min(
+          100,
+          Math.round((job.progressCurrent / job.progressTotal) * 100)
+        )
+      : job.status === "COMPLETED"
+        ? 100
+        : 0
 
   return {
     jobId: job.id,
