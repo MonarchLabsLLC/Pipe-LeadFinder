@@ -57,7 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
             create: DEV_USER,
           })
-          return DEV_USER
+          return { ...DEV_USER, authProvider: "development" }
         }
 
         // ── Keycloak token auth (production) ────────────────
@@ -118,6 +118,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             name: user.name || "",
             role: resolveSessionRole(claims, user.role),
+            // Focused Agents never use the optional decode-only development route.
+            authProvider: process.env.NODE_ENV === "development" && process.env.KEYCLOAK_ALLOW_UNVERIFIED_DEV_TOKENS === "true"
+              ? "unverified-development" : "keycloak",
           }
         } catch (error) {
           console.error("[Auth] Keycloak token verification failed:", error)
@@ -131,6 +134,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id
         token.role = (user as typeof DEV_USER).role
+        token.authProvider = user.authProvider
       }
       return token
     },
@@ -138,6 +142,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.authProvider = token.authProvider as string | undefined
       }
       return session
     },
@@ -153,8 +158,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 declare module "next-auth" {
   interface User {
     role?: string
+    authProvider?: string
   }
   interface Session {
+    authProvider?: string
     user: {
       id: string
       email: string

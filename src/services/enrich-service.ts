@@ -4,21 +4,35 @@ import { extractPrimaryEmail } from "@/lib/contact-info"
 import { findWebsiteEmails } from "@/lib/website-email-discovery"
 import type { Lead } from "@/generated/prisma/client"
 
+// Optional approval guard keeps the ordinary product API compatible while making
+// Agent writes compare-and-swap against the exact reviewed, user-owned record.
+export type EnrichmentGuard = {
+  userId: string
+  version: string
+  beforePersist: () => Promise<void>
+}
+function guardedWhere(leadId: string, guard?: EnrichmentGuard) {
+  return {
+    id: leadId,
+    ...(guard
+      ? { userId: guard.userId, updatedAt: new Date(guard.version) }
+      : {}),
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Actor IDs from environment
 // ---------------------------------------------------------------------------
 
 function getEmailActorId(): string {
   const actorId = process.env.APIFY_ACTOR_ENRICH_EMAIL
-  if (!actorId)
-    throw new Error("APIFY_ACTOR_ENRICH_EMAIL is not configured")
+  if (!actorId) throw new Error("APIFY_ACTOR_ENRICH_EMAIL is not configured")
   return actorId
 }
 
 function getPhoneActorId(): string {
   const actorId = process.env.APIFY_ACTOR_ENRICH_PHONE
-  if (!actorId)
-    throw new Error("APIFY_ACTOR_ENRICH_PHONE is not configured")
+  if (!actorId) throw new Error("APIFY_ACTOR_ENRICH_PHONE is not configured")
   return actorId
 }
 
@@ -41,9 +55,10 @@ function buildPhoneActorInput(lead: Lead): Record<string, unknown> {
 // Parse actor results
 // ---------------------------------------------------------------------------
 
-function parseEmailResult(
-  items: Record<string, unknown>[]
-): { email: string | null; emailStatus: "FOUND" | "NOT_FOUND" | "POTENTIAL" } {
+function parseEmailResult(items: Record<string, unknown>[]): {
+  email: string | null
+  emailStatus: "FOUND" | "NOT_FOUND" | "POTENTIAL"
+} {
   if (!items.length) {
     return { email: null, emailStatus: "NOT_FOUND" }
   }
@@ -56,7 +71,8 @@ function parseEmailResult(
   }
 
   // Some actors indicate confidence/verification status
-  const verified = matchedItem?.verified ?? matchedItem?.isVerified ?? matchedItem?.status
+  const verified =
+    matchedItem?.verified ?? matchedItem?.isVerified ?? matchedItem?.status
   const status =
     verified === false || verified === "unverified" || verified === "potential"
       ? "POTENTIAL"
@@ -65,9 +81,10 @@ function parseEmailResult(
   return { email, emailStatus: status }
 }
 
-function parsePhoneResult(
-  items: Record<string, unknown>[]
-): { phone: string | null; phoneStatus: "FOUND" | "NOT_FOUND" } {
+function parsePhoneResult(items: Record<string, unknown>[]): {
+  phone: string | null
+  phoneStatus: "FOUND" | "NOT_FOUND"
+} {
   if (!items.length) {
     return { phone: null, phoneStatus: "NOT_FOUND" }
   }
@@ -92,10 +109,15 @@ function parsePhoneResult(
 // Enrich email for a single lead
 // ---------------------------------------------------------------------------
 
-export async function enrichEmail(leadId: string) {
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } })
+export async function enrichEmail(leadId: string, guard?: EnrichmentGuard) {
+  const lead = await prisma.lead.findUnique({
+    where: guardedWhere(leadId, guard),
+  })
   if (!lead) throw new Error(`Lead not found: ${leadId}`)
-  if (lead.email && (lead.emailStatus === "FOUND" || lead.emailStatus === "POTENTIAL")) {
+  if (
+    lead.email &&
+    (lead.emailStatus === "FOUND" || lead.emailStatus === "POTENTIAL")
+  ) {
     return lead
   }
 
@@ -107,17 +129,17 @@ export async function enrichEmail(leadId: string) {
     try {
       const actorId = getEmailActorId()
       for (const input of inputs) {
-      const run = await apifyClient.actor(actorId).call(input)
-      const { items } = await apifyClient
-        .dataset(run.defaultDatasetId)
-        .listItems()
+        const run = await apifyClient.actor(actorId).call(input)
+        const { items } = await apifyClient
+          .dataset(run.defaultDatasetId)
+          .listItems()
 
-      const parsed = parseEmailResult(items as Record<string, unknown>[])
-      if (parsed.email) {
-        email = parsed.email
-        emailStatus = parsed.emailStatus
-        break
-      }
+        const parsed = parseEmailResult(items as Record<string, unknown>[])
+        if (parsed.email) {
+          email = parsed.email
+          emailStatus = parsed.emailStatus
+          break
+        }
       }
     } catch (error) {
       console.error("Email enrichment actor attempt failed:", error)
@@ -132,8 +154,9 @@ export async function enrichEmail(leadId: string) {
     }
   }
 
+  await guard?.beforePersist()
   const updated = await prisma.lead.update({
-    where: { id: leadId },
+    where: guardedWhere(leadId, guard),
     data: {
       email: email ?? lead.email,
       emailStatus: email || !lead.email ? emailStatus : lead.emailStatus,
@@ -147,8 +170,10 @@ export async function enrichEmail(leadId: string) {
 // Enrich phone for a single lead
 // ---------------------------------------------------------------------------
 
-export async function enrichPhone(leadId: string) {
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } })
+export async function enrichPhone(leadId: string, guard?: EnrichmentGuard) {
+  const lead = await prisma.lead.findUnique({
+    where: guardedWhere(leadId, guard),
+  })
   if (!lead) throw new Error(`Lead not found: ${leadId}`)
   if (lead.phone && lead.phoneStatus === "FOUND") return lead
 
@@ -156,16 +181,15 @@ export async function enrichPhone(leadId: string) {
   const input = buildPhoneActorInput(lead)
 
   const run = await apifyClient.actor(actorId).call(input)
-  const { items } = await apifyClient
-    .dataset(run.defaultDatasetId)
-    .listItems()
+  const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems()
 
   const { phone, phoneStatus } = parsePhoneResult(
     items as Record<string, unknown>[]
   )
 
+  await guard?.beforePersist()
   const updated = await prisma.lead.update({
-    where: { id: leadId },
+    where: guardedWhere(leadId, guard),
     data: {
       phone: phone ?? lead.phone,
       phoneStatus: phone || !lead.phone ? phoneStatus : lead.phoneStatus,
@@ -203,7 +227,8 @@ export async function enrichBulk(listId: string) {
           const updated = await enrichEmail(entry.leadId)
           return Boolean(
             updated.email &&
-              (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL")
+            (updated.emailStatus === "FOUND" ||
+              updated.emailStatus === "POTENTIAL")
           )
         } catch {
           // Continue with next lead if one fails
