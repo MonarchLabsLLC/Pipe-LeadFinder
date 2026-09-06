@@ -328,3 +328,11 @@ Credits are checked **before every search and enrichment operation**. If your ba
 | CSV Export | Free |
 
 The credit service can supply current per-hit pricing, so the amount shown in the app is the amount to rely on before you run an operation.
+
+## Saved-lead automations
+
+When the coordinated Scale Plus connection is enabled, you can start a workflow when an existing prospect is added to one of your active lists or receives a label. Conditions check whether the current contact is already in that list or has a selected label. The available action applies one of your existing labels to that contact's existing list entry.
+
+The contact's email must match a saved lead that you own in the selected list. If several entries match, choose the intended entry; the system will not guess. Archived or foreign lists, leads and labels are unavailable. The action does not create a lead or label, run searches, enrich contact information, call AI, send messages, or spend credits.
+
+Saved prospects are not automatically subscribed or granted email permission. This connection is separate from PipeLeads CRM. Adapter rollout includes the source, automation platform and neutral-prospect delivery protections; see [setup and detailed behavior](ScalePlus-Automations.md).
