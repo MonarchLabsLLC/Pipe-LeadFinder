@@ -18,7 +18,7 @@ export async function executeAutomation(pool:Pool,endpoint:string,body:unknown,r
   const list=lists.find(row=>row.id===identity.scopeId);
   if(identity.scopeId&&!list)throw new AutomationError(403,'List is not owned and active');
   if(endpoint==='catalog'){
-   const {rows:entries}=list?await client.query('SELECT e.id,coalesce(nullif(l."fullName",\'\'),l.email,e.id) AS name FROM "LeadListEntry" e JOIN "Lead" l ON l.id=e."leadId" WHERE e."listId"=$1 AND l."userId"=$2 ORDER BY e.id LIMIT 1000',[list.id,owner.id]):{rows:[]};
+   const {rows:entries}=list?await client.query('SELECT e.id,coalesce(nullif(l."fullName",\'\'),l.email,e.id) AS name FROM "LeadListEntry" e JOIN "Lead" l ON l.id=e."leadId" WHERE e."listId"=$1 AND l."userId"=$2 ORDER BY e.id',[list.id,owner.id]):{rows:[]};
    const {rows:labels}=await client.query('SELECT id,name FROM "CustomLabel" WHERE "userId"=$1 ORDER BY id',[owner.id]);
    return {...capabilities,scopes:lists.map(row=>({...row,active:true})),selectedScopeId:list?.id??null,resources:{entries,labels}};
   }
