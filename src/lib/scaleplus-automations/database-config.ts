@@ -12,5 +12,7 @@ export function automationDatabaseConfig(connectionString=process.env.DATABASE_U
   url.searchParams.delete('schema');
   const local=['localhost','127.0.0.1','[::1]'].includes(url.hostname);
   const ssl=local && environment!=='production' ? false : {rejectUnauthorized:true,ca:readCertificate()};
-  return {connectionString:url.toString(),ssl,options:`-c search_path=${schema}`,max:4,connectionTimeoutMillis:10000};
+  // Managed transaction poolers reject search_path startup options. Public is
+  // already the production default; custom schemas still require explicit routing.
+  return {connectionString:url.toString(),ssl,...(schema==='public'?{}:{options:`-c search_path=${schema}`}),max:4,connectionTimeoutMillis:10000};
 }

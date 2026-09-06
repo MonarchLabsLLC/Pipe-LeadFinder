@@ -59,3 +59,5 @@ PIPELEADS_JOBS_ENABLED=false SCALEPLUS_AUTOMATIONS_ENABLED=false npm run build
 ```
 
 The integration test uses the actual generated Prisma client, real native search-result persistence without external calls, PostgreSQL triggers/receipts and a signed local HTTP callback. Separate runtime tests execute the instrumentation entrypoint and verify both worker flags plus fail-closed TLS/schema settings. Prisma 7 transaction assumptions were checked against its versioned documentation; this does not upgrade the application to Prisma 8.
+
+Production compatibility: the default `public` schema does not send a `search_path` startup option, because managed transaction poolers reject that option. Explicit non-default schemas still require a compatible connection. Certificate verification remains required.
