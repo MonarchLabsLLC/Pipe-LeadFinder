@@ -1,0 +1,1 @@
+export interface OutboxRow {event_id:string;source_event_id:string;binding_id:string;subject:string;tenant_id:string;scope_id:string;entry_id:string;lead_id:string;label_id:string|null;assignment_id:string|null;owner_id:string;event_key:string;attempts:number;payload:{contact:{email:string}}&Record<string,unknown>;}
