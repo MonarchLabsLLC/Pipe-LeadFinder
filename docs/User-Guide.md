@@ -2,7 +2,7 @@
 
 ## Pipe-LeadFinder — AI-Powered Lead Intelligence Platform
 
-**Last Updated:** July 2026 (rev 3)
+**Last Updated:** September 2026 (focused Agent, opt-in rollout)
 
 ---
 
@@ -28,6 +28,18 @@ After login, you land on the dashboard with a collapsible sidebar navigation:
 ---
 
 ## Lead Search
+
+### The Pro Max Agent
+
+When enabled for your account, **Agent** in the top header opens a private conversation panel. Select an existing saved list and describe the prospects you want. The Agent asks for missing details and shows the current maximum cost before a paid search starts. To enrich or score saved leads, select the exact records in the panel, review the preview, then approve or reject it.
+
+Answers support Markdown, including links, lists, tables and code. **Copy message** copies the original text of either your message or the answer. Use the history menu to reopen conversations after refresh, or **New conversation** to start fresh. Long jobs show progress and results; you can close the panel and return. Failed or uncertain paid jobs are not silently repeated.
+
+Pro Max unlocks access; Scale Credits meter AI usage and existing paid product operations. The approval card uses current configured pricing, which takes precedence over example prices in this guide. Scoring uses actual token billing rather than an invented fixed quote. The focused Agent does not create prospecting schedules, send outbound messages, delete records, or overwrite existing non-empty contact details.
+
+**Connect to Superpowers** opens the private Codex/Claude installation and ClickCampaigns OAuth guide. No customer API key is required. Sharing your selected list is optional; external conversations remain in Codex or Claude. Your app history remains private. This Agent requires a verified Keycloak sign-in, even in development; the existing automatic development login does not unlock it. See [Focused Agent operations](Focused-Agent.md) for rollout prerequisites.
+
+When CRM transfers are enabled, select saved leads, open **Send selected leads to CRM**, and choose an authorized CRM workspace, pipeline, and stage. Review the exact contact/deal fields, skipped rows, duplicates, and possible workflow effects. **Review and approve in CRM** opens the destination approval card; nothing is created until you approve it there (or through the external client's human approval form). Existing matches are skipped, not overwritten. Records need a name and email; incomplete or ambiguous matches stay flagged. Use **Refresh progress** or **Restore transfer** to return to results and record links. Do not repeat an uncertain transfer: review its saved outcome first.
 
 ### Starting a New Search
 
