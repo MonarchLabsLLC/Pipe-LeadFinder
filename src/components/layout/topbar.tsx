@@ -11,6 +11,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScalePlusAppLauncher } from "@/components/layout/scaleplus-app-launcher"
+import { AgentButton } from "@/components/focused-agent/agent-panel"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +85,8 @@ export function Topbar() {
         {title}
       </h1>
 
-      <div className="ml-auto">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        <AgentButton />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">

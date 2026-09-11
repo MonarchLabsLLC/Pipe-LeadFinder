@@ -6,10 +6,7 @@ import {
   type LeadScoreSummary,
 } from "@/lib/lead-score"
 import { getBusinessContext } from "@/services/ai-service"
-import {
-  getAiLanguageModel,
-  getAiRuntimeConfig,
-} from "@/services/ai-runtime"
+import { getAiLanguageModel, getAiRuntimeConfig } from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
 import type { Lead } from "@/generated/prisma/client"
 
@@ -156,12 +153,22 @@ export async function scoreLeadsForList({
   listId,
   leads,
   idempotencyKey,
+  requireBillingSuccess = false,
+  beforePersist,
+  onGenerated,
 }: {
   userId: string
   email?: string | null
   listId: string
   leads: LeadForScoring[]
   idempotencyKey?: string
+  requireBillingSuccess?: boolean
+  beforePersist?: () => Promise<void>
+  onGenerated?: (result: {
+    text: string
+    inputTokens: number | undefined
+    outputTokens: number | undefined
+  }) => Promise<void>
 }): Promise<ScoreLeadsResult> {
   if (leads.length === 0) {
     return {
@@ -178,6 +185,7 @@ export async function scoreLeadsForList({
 
   const { text, usage } = await generateText({
     model: getAiLanguageModel(LEAD_SCORING_AI_CONFIG),
+    ...(requireBillingSuccess ? { maxRetries: 0 } : {}),
     maxOutputTokens: Math.min(8_000, 500 + leads.length * 300),
     system: `You are a senior sales strategist ranking leads for outbound prospecting.
 Score each lead from 0 to 100 based on fit to the business context, seniority, relevance, company fit, data completeness, and likely outreach quality.
@@ -200,6 +208,11 @@ Return one JSON object for every lead using this exact shape:
 }`,
   })
 
+  await onGenerated?.({
+    text,
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+  })
   const parsedValue: unknown = JSON.parse(extractJsonArray(text))
   if (!Array.isArray(parsedValue)) {
     throw new Error("AI scoring response was not an array")
@@ -223,6 +236,7 @@ Return one JSON object for every lead using this exact shape:
   }
 
   if (leadScores.length > 0) {
+    await beforePersist?.()
     await prisma.$transaction([
       prisma.aiResult.deleteMany({
         where: {
@@ -243,8 +257,10 @@ Return one JSON object for every lead using this exact shape:
     ])
   }
 
-  if (usage?.inputTokens || usage?.outputTokens) {
-    await consumeTokenCredits(
+  if (onGenerated) {
+    // The focused Agent persisted the provider result and charged before parsing.
+  } else if (usage?.inputTokens || usage?.outputTokens) {
+    const billed = await consumeTokenCredits(
       userId,
       {
         provider: LEAD_SCORING_AI_CONFIG.provider,
@@ -255,6 +271,12 @@ Return one JSON object for every lead using this exact shape:
       },
       email
     )
+    if (requireBillingSuccess && !billed?.success)
+      throw new Error(
+        "Scoring usage could not be charged reliably; this job needs review"
+      )
+  } else if (requireBillingSuccess) {
+    throw new Error("Scoring returned no token usage; this job needs review")
   }
 
   return {
