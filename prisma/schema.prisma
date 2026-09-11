@@ -8,6 +8,125 @@ datasource db {
 }
 
 // ─── Enums ───────────────────────────────────────────────
+// Private assistant records, never attendee chat. Actor + workspace scope is mandatory.
+model FocusedAgentThread {
+  id          String @id @default(uuid())
+  userId      String
+  workspaceId String
+  origin      String @default("native")
+  title       String @default("New conversation")
+  resourceIds Json @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  messages    FocusedAgentMessage[]
+  runs        FocusedAgentRun[]
+  approvals   FocusedAgentApproval[]
+  @@index([userId, workspaceId, updatedAt])
+}
+
+model FocusedAgentMessage {
+  id        String @id @default(uuid())
+  threadId  String
+  thread    FocusedAgentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  metadata  Json @default("{}")
+  createdAt DateTime @default(now())
+  @@index([threadId, createdAt])
+}
+
+model FocusedAgentRun {
+  id             String @id @default(uuid())
+  userId         String
+  workspaceId    String
+  subject        String
+  threadId       String
+  thread         FocusedAgentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  origin         String
+  kind           String @default("chat")
+  status         String @default("queued")
+  activeKey      String? @unique
+  input          Json
+  inputHash      String
+  result         Json?
+  error          String?
+  idempotencyKey String
+  heartbeatAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  usage          FocusedAgentUsage[]
+  @@unique([userId, workspaceId, idempotencyKey])
+  @@index([status, createdAt])
+}
+
+model FocusedAgentApproval {
+  id             String @id @default(uuid())
+  userId         String
+  workspaceId    String
+  subject        String
+  origin         String
+  threadId       String?
+  thread         FocusedAgentThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  action         String
+  input          Json
+  preview        Json
+  versions       Json
+  proposalHash   String
+  status         String @default("pending")
+  expiresAt      DateTime
+  approvedAt     DateTime?
+  approvalMethod String?
+  result         Json?
+  idempotencyKey String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@unique([userId, workspaceId, idempotencyKey])
+  @@index([userId, workspaceId, status])
+}
+
+model FocusedAgentNonce {
+  issuer    String
+  nonce     String
+  subject   String
+  expiresAt DateTime
+  @@id([issuer, nonce])
+  @@index([expiresAt])
+}
+
+model FocusedAgentContext {
+  userId      String
+  workspaceId String
+  resourceIds Json @default("[]")
+  expiresAt   DateTime
+  @@id([userId, workspaceId])
+}
+
+model FocusedAgentAudit {
+  id          String @id @default(uuid())
+  userId      String
+  workspaceId String
+  action      String
+  outcome     String
+  metadata    Json @default("{}")
+  createdAt   DateTime @default(now())
+  @@index([userId, workspaceId, createdAt])
+}
+
+model FocusedAgentUsage {
+  id           String @id @default(uuid())
+  runId        String
+  run          FocusedAgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  userId       String
+  subject      String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  requestId    String @unique
+  state        String @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 
 enum SearchType {
   PEOPLE
