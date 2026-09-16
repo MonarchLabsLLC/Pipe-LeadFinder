@@ -7,7 +7,7 @@ import { getToken, updateToken } from "@/lib/keycloak-client"
 const SCRIPT_ID = "scaleplus-app-launcher-script"
 const SCRIPT_URL =
   process.env.NEXT_PUBLIC_SCALEPLUS_APP_LAUNCHER_URL ||
-  "https://app.scaleplus.gg/app-launcher.js?v=1.5.0"
+  "https://app.scaleplus.gg/app-launcher-v1.5.1.js"
 const ANCHOR_SELECTOR = "[data-scaleplus-launcher-anchor]"
 
 type LauncherInstance = {
