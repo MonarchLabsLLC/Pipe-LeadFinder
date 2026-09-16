@@ -95,7 +95,8 @@ export function isGeneralMemberWorkspacePath(path: string): boolean {
   return (
     path === "/api/location-search" ||
     path === "/api/credits/pricing" ||
-    path === "/api/scale-workspace/display-context"
+    path === "/api/scale-workspace/display-context" ||
+    path === "/api/scale-workspace/selector-context"
   )
 }
 
@@ -110,6 +111,7 @@ export function isWorkspaceExemptApiPath(path: string): boolean {
   return (
     path.startsWith("/api/auth/") ||
     path === "/api/health" ||
-    path === "/api/scale-workspace/display-context"
+    path === "/api/scale-workspace/display-context" ||
+    path === "/api/scale-workspace/selector-context"
   )
 }

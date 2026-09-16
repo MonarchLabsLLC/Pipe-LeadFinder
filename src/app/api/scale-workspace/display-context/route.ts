@@ -30,26 +30,22 @@ export async function GET() {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!isScaleTeamWorkspacesEnabled()) {
-    return NextResponse.json(PERSONAL)
-  }
   const store = await cookies()
   const raw = store.get(WORKSPACE_COOKIE_NAME)?.value
-  if (!raw) return NextResponse.json(PERSONAL)
+  const sealed = raw ? await unsealWorkspaceSession(raw) : null
+  const activeGuest = sealed && sealed.actorUserId === session.user.id ? sealed : null
+  const fallback = !isScaleTeamWorkspacesEnabled() || !activeGuest
+    ? PERSONAL
+    : {
+        workspaceType: "guest" as const,
+        workspaceName: activeGuest.context.workspace.displayName,
+        workspaceOwnerName: activeGuest.context.owner.displayName,
+        workspaceOwnerEmail: activeGuest.context.owner.email,
+        workspaceSwitchUrl: `${scaleWorkspaceHubUrl()}/team`,
+        allowedApplications: activeGuest.allowedApplications.length
+          ? activeGuest.allowedApplications
+          : [SCALE_WORKSPACE_APP_SLUG],
+      }
 
-  const sealed = await unsealWorkspaceSession(raw)
-  if (!sealed || sealed.actorUserId !== session.user.id) {
-    return NextResponse.json(PERSONAL)
-  }
-
-  return NextResponse.json({
-    workspaceType: "guest" as const,
-    workspaceName: sealed.context.workspace.displayName,
-    workspaceOwnerName: sealed.context.owner.displayName,
-    workspaceOwnerEmail: sealed.context.owner.email,
-    workspaceSwitchUrl: `${scaleWorkspaceHubUrl()}/team`,
-    allowedApplications: sealed.allowedApplications.length
-      ? sealed.allowedApplications
-      : [SCALE_WORKSPACE_APP_SLUG],
-  })
+  return NextResponse.json(fallback)
 }
