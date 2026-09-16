@@ -35,6 +35,24 @@ export const dynamic = "force-dynamic"
  */
 const SIGN_IN_RESUME_PATH = "/lead-search/new-search"
 
+/**
+ * `next start` receives the local listener URL when it sits behind the
+ * production reverse proxy. Workspace redirects must stay on the configured
+ * public application origin, rather than exposing that listener to members.
+ */
+function workspacePublicOrigin(req: NextRequest) {
+  const configuredOrigin = process.env.AUTH_URL || process.env.NEXTAUTH_URL
+  if (configuredOrigin) {
+    try {
+      return new URL(configuredOrigin).origin
+    } catch {
+      // Keep local development and an accidentally malformed optional setting
+      // usable by falling back to the request URL.
+    }
+  }
+  return req.nextUrl.origin
+}
+
 export async function GET(req: NextRequest) {
   if (!isScaleTeamWorkspacesEnabled()) {
     return new NextResponse("Not found", { status: 404 })
@@ -50,7 +68,7 @@ export async function GET(req: NextRequest) {
     // Preserve the code through the app's normal sign-in flow. Single-use and
     // 2-minute semantics are unchanged — the code is only ever sent to the hub
     // once, below, after the member has a verified session.
-    const resume = new URL(SIGN_IN_RESUME_PATH, req.nextUrl.origin)
+    const resume = new URL(SIGN_IN_RESUME_PATH, workspacePublicOrigin(req))
     resume.searchParams.set("scale_workspace_code", code)
     return NextResponse.redirect(resume)
   }
@@ -149,7 +167,9 @@ export async function GET(req: NextRequest) {
     allowedApplications,
   })
 
-  const response = NextResponse.redirect(new URL(returnPath, req.nextUrl.origin))
+  const response = NextResponse.redirect(
+    new URL(returnPath, workspacePublicOrigin(req))
+  )
   response.cookies.set(WORKSPACE_COOKIE_NAME, sealed, workspaceCookieOptions())
   return response
 }
