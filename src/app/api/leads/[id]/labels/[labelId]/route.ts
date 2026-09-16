@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 
 // DELETE /api/leads/[id]/labels/[labelId] — remove a label from a lead entry
@@ -11,6 +12,13 @@ export async function DELETE(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "DELETE",
+    path: "/api/leads/[id]/labels/[labelId]",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id: leadId, labelId } = await params
 
@@ -20,9 +28,9 @@ export async function DELETE(
       labelId,
       entry: {
         leadId,
-        list: { userId: session.user.id },
+        list: { userId: scope.tenantUserId },
       },
-      label: { userId: session.user.id },
+      label: { userId: scope.tenantUserId },
     },
   })
 

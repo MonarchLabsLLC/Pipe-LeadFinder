@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { denyUnapprovedOwnerUsage, resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { enrichEmail } from "@/services/enrich-service"
 import { guardCredits, deductCredits } from "@/lib/credit-guard"
@@ -10,6 +11,15 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/enrich/email",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
+  const ownerUsageDenied = denyUnapprovedOwnerUsage(scope)
+  if (ownerUsageDenied) return ownerUsageDenied
 
   const body = await req.json().catch(() => null)
   if (!body || typeof body !== "object") {
@@ -28,7 +38,7 @@ export async function POST(req: NextRequest) {
   const lead = await prisma.lead.findFirst({
     where: {
       id: leadId,
-      listEntries: { some: { list: { userId: session.user.id } } },
+      listEntries: { some: { list: { userId: scope.tenantUserId } } },
     },
   })
   if (!lead) {
@@ -38,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(publicLead(lead))
   }
 
-  const blocked = await guardCredits(session.user.id, session.user.email)
+  const blocked = await guardCredits(scope.tenantUserId, scope.tenantEmail)
   if (blocked) return blocked
 
   try {
@@ -51,11 +61,11 @@ export async function POST(req: NextRequest) {
       (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL")
     ) {
       await deductCredits(
-        session.user.id,
+        scope.tenantUserId,
         "enrich:email",
         1,
         { leadId },
-        session.user.email
+        scope.tenantEmail
       )
     }
 

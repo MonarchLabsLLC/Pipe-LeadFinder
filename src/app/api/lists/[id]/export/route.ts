@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -28,10 +29,17 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/lists/[id]/export",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id } = await context.params
 
-  const list = await authorizedList(id, session.user.id)
+  const list = await authorizedList(id, scope.tenantUserId)
 
   if (!list) {
     return new Response("List not found", { status: 404 })
@@ -127,8 +135,15 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 export async function POST(req: NextRequest, context: RouteContext) {
   const session = await auth()
   if (!session?.user?.id) return new Response("Unauthorized", { status: 401 })
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/lists/[id]/export",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   const { id } = await context.params
-  const list = await authorizedList(id, session.user.id)
+  const list = await authorizedList(id, scope.tenantUserId)
   if (!list) return new Response("List not found", { status: 404 })
   const body = await req.json().catch(() => null)
   const rawEntryIds: unknown[] = Array.isArray(body?.entryIds) ? body.entryIds : []
