@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { ensureUser } from "@/lib/ensure-user"
 import { createListSchema, listQuerySchema } from "@/lib/validators/list"
@@ -9,6 +10,13 @@ export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/lists",
+  })
+  if (!scope.ok) {
+    return scope.response
   }
   await ensureUser(session)
 
@@ -27,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const { type, status } = parsedQuery.data
 
-  const where: Record<string, unknown> = { userId: session.user.id }
+  const where: Record<string, unknown> = { userId: scope.tenantUserId }
   if (type) where.type = type
   if (status) where.status = status
 
@@ -77,6 +85,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/lists",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
   await ensureUser(session)
 
   const body = await req.json().catch(() => null)
@@ -93,7 +108,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: parsed.data.name,
       type: parsed.data.type,
-      userId: session.user.id,
+      userId: scope.tenantUserId,
     },
   })
 

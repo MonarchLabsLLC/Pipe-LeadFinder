@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 
 // DELETE /api/labels/[id] — delete a label (cascade deletes LeadEntryLabel entries)
@@ -10,6 +11,13 @@ export async function DELETE(
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "DELETE",
+    path: "/api/labels/[id]",
+  })
+  if (!scope.ok) {
+    return scope.response
   }
 
   const { id } = await params
@@ -23,7 +31,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Label not found" }, { status: 404 })
   }
 
-  if (label.userId !== session.user.id) {
+  if (label.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

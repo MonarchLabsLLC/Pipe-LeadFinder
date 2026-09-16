@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/leads/[id]/labels — return all labels applied to this lead's list entries
@@ -11,6 +12,13 @@ export async function GET(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/leads/[id]/labels",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id: leadId } = await params
 
@@ -18,7 +26,7 @@ export async function GET(
     where: {
       entry: {
         leadId,
-        list: { userId: session.user.id },
+        list: { userId: scope.tenantUserId },
       },
     },
     include: {
@@ -48,6 +56,13 @@ export async function POST(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "POST",
+    path: "/api/leads/[id]/labels",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id: leadId } = await params
   const body = await req.json().catch(() => null)
@@ -68,7 +83,7 @@ export async function POST(
     where: { id: labelId },
   })
 
-  if (!label || label.userId !== session.user.id) {
+  if (!label || label.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Label not found" }, { status: 404 })
   }
 
@@ -77,7 +92,7 @@ export async function POST(
     where: {
       id: entryId,
       leadId,
-      list: { userId: session.user.id },
+      list: { userId: scope.tenantUserId },
     },
   })
 

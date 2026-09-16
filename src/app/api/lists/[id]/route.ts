@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { resolveWorkspaceScope } from "@/lib/scale-workspace/guest"
 import { prisma } from "@/lib/prisma"
 import { updateListSchema } from "@/lib/validators/list"
 import {
@@ -24,6 +25,13 @@ export async function GET(req: NextRequest, context: RouteContext) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "GET",
+    path: "/api/lists/[id]",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id } = await context.params
   const { searchParams } = req.nextUrl
@@ -43,7 +51,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "List not found" }, { status: 404 })
   }
 
-  if (list.userId !== session.user.id) {
+  if (list.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -147,6 +155,13 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "PATCH",
+    path: "/api/lists/[id]",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id } = await context.params
   const list = await prisma.leadList.findUnique({ where: { id } })
@@ -154,7 +169,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   if (!list) {
     return NextResponse.json({ error: "List not found" }, { status: 404 })
   }
-  if (list.userId !== session.user.id) {
+  if (list.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -182,6 +197,13 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const scope = await resolveWorkspaceScope(session, {
+    method: "DELETE",
+    path: "/api/lists/[id]",
+  })
+  if (!scope.ok) {
+    return scope.response
+  }
 
   const { id } = await context.params
   const list = await prisma.leadList.findUnique({ where: { id } })
@@ -189,7 +211,7 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
   if (!list) {
     return NextResponse.json({ error: "List not found" }, { status: 404 })
   }
-  if (list.userId !== session.user.id) {
+  if (list.userId !== scope.tenantUserId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
