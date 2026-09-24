@@ -30,32 +30,38 @@ export function ListFilters({
   activeFilter,
   onFilterChange,
 }: ListFiltersProps) {
+  // Pressed-state buttons in the Suite's segmented control, not tabs: the
+  // lists below are not a tab panel.
   return (
-    <div className="flex flex-wrap gap-2">
-      {filterTabs.map((tab) => (
-        <button
-          key={tab.value}
-          onClick={() => onFilterChange(tab.value)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
-            activeFilter === tab.value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          {tab.label}
-          <span
-            className={cn(
-              "text-xs tabular-nums",
-              activeFilter === tab.value
-                ? "text-primary-foreground/70"
-                : "text-muted-foreground/50"
-            )}
-          >
-            {counts[tab.value] ?? 0}
-          </span>
-        </button>
-      ))}
+    <div className="max-w-full overflow-x-auto">
+      <div
+        role="group"
+        aria-label="Filter lists by type"
+        className="inline-flex h-9 shrink-0 items-center rounded-lg bg-muted p-[3px]"
+      >
+        {filterTabs.map((tab) => {
+          const active = activeFilter === tab.value
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onFilterChange(tab.value)}
+              className={cn(
+                "inline-flex h-full items-center gap-1.5 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                active
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {counts[tab.value] ?? 0}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

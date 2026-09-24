@@ -106,7 +106,7 @@ function SelectField({
 }) {
   return (
     <Select value={value || ""} onValueChange={onValueChange}>
-      <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
+      <SelectTrigger className="w-full">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -156,11 +156,11 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
         <div className="pb-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Search Criteria
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -168,7 +168,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             <FormField label="Description" error={errors.description?.message}>
               <Input
                 placeholder="Eg: Web Designer"
-                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+               
                 {...register("description")}
                 aria-invalid={!!errors.description}
               />
@@ -213,7 +213,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
                 <span>Advanced Filters</span>
                 <ChevronDown
@@ -223,9 +223,9 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             </CollapsibleTrigger>
 
             <CollapsibleContent className="mt-4">
-              <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
+              <div className="rounded-md border bg-muted/30 p-4">
                 {/* Pro Tip Banner */}
-                <div className="mb-4 flex items-start gap-2 rounded-r-lg border-l-2 border-primary bg-primary/5 px-4 py-2">
+                <div className="mb-4 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
                   <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">PRO TIP:</span> Over-filtering can reduce results. Start broad to return the most.
@@ -234,11 +234,11 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <FormField label="Job Title" error={errors.jobTitle?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("jobTitle")} />
+                    <Input placeholder="Search..." {...register("jobTitle")} />
                   </FormField>
 
                   <FormField label="Department" error={errors.department?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("department")} />
+                    <Input placeholder="Search..." {...register("department")} />
                   </FormField>
 
                   <FormField label="Management Levels" error={errors.managementLevel?.message}>
@@ -272,7 +272,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
                   </FormField>
 
                   <FormField label="Skills" error={errors.skills?.message}>
-                    <Input placeholder="Eg: Communication" className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("skills")} />
+                    <Input placeholder="Eg: Communication" {...register("skills")} />
                   </FormField>
 
                   <FormField label="Years of Experience" error={errors.yearsOfExperience?.message}>
@@ -291,7 +291,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
                   </FormField>
 
                   <FormField label="Company Name or Domain" error={errors.companyNameOrDomain?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("companyNameOrDomain")} />
+                    <Input placeholder="Search..." {...register("companyNameOrDomain")} />
                   </FormField>
 
                   <FormField label="Employee Count" error={errors.employeeCount?.message}>
@@ -310,11 +310,11 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
                   </FormField>
 
                   <FormField label="Industry" error={errors.industry?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("industry")} />
+                    <Input placeholder="Search..." {...register("industry")} />
                   </FormField>
 
                   <FormField label="School" error={errors.school?.message}>
-                    <Input placeholder="Search..." className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20" {...register("school")} />
+                    <Input placeholder="Search..." {...register("school")} />
                   </FormField>
                 </div>
               </div>
@@ -326,7 +326,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
 
         {/* ── Save & Run Section ──────────────────────── */}
         <div className="pt-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Save & Run
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -340,7 +340,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
           />
 
           {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
+          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
               People search will consume {peopleSearchCreditText} returned.
@@ -355,7 +355,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
             <Button
               type="submit"
               disabled={isLoading || !listId}
-              className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
+              className="min-w-32"
             >
               {isLoading ? "Searching..." : "Continue"}
               {!isLoading && <ArrowRight className="ml-2 size-4" />}

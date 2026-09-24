@@ -6,7 +6,8 @@ import Link from "next/link"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/components/layout/page-header"
+import { cn } from "@/lib/utils"
 import { ResultsTable } from "@/components/lists/results-table"
 import type { LeadData } from "@/components/leads/lead-row"
 import {
@@ -24,6 +25,9 @@ import {
   WandSparkles,
   RotateCcw,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  SearchX,
 } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -124,34 +128,32 @@ export default function ListDetailPage() {
     { value: "POTENTIAL", label: "Potential" },
   ]
 
+  const backButton = (
+    <Button variant="ghost" size="icon" className="shrink-0" asChild>
+      <Link href="/lead-search/saved-lists" aria-label="Back to saved lists">
+        <ArrowLeft className="size-4" aria-hidden />
+      </Link>
+    </Button>
+  )
+
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Link href="/lead-search/saved-lists">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="size-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-semibold text-foreground">List Details</h1>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-start gap-3">
+          {backButton}
+          <PageHeader className="min-w-0 flex-1" title="List details" />
         </div>
         <ErrorState
-          title="Failed to load list"
-          message="This list may have been deleted or you may not have access. Please try again or go back to your saved lists."
+          title="We could not load this list"
+          message="It may have been deleted, or you may not have access. Try again or go back to your saved lists."
           onRetry={() => refetch()}
         />
-        <Link href="/lead-search/saved-lists">
-          <Button variant="outline">
-            <ArrowLeft className="size-4 mr-2" />
-            Back to Lists
-          </Button>
-        </Link>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <JobProgressBanner
         jobId={jobId || activeJobId}
         onComplete={() => {
@@ -159,179 +161,192 @@ export default function ListDetailPage() {
           void queryClient.invalidateQueries({ queryKey: ["lists"] })
         }}
       />
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/lead-search/saved-lists">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="size-5" />
-          </Button>
-        </Link>
-        {isLoading ? (
-          <Skeleton className="h-8 w-48" />
-        ) : (
-          <h1 className="text-2xl font-semibold text-foreground">
-            {data?.list.name}
-          </h1>
-        )}
-      </div>
-
-      {/* Action bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchHistorySheet
-          listId={listId as string}
-          onJobQueued={setActiveJobId}
-        />
-
-        <div className="h-6 w-px bg-border mx-1" />
-
-        {/* Email filter tabs */}
-        <div className="flex flex-wrap items-center gap-1">
-          {filterTabs.map((tab) => (
+      <div className="flex items-start gap-3">
+        {backButton}
+        <PageHeader
+          className="min-w-0 flex-1"
+          title={
+            isLoading ? (
+              <span className="inline-block h-8 w-48 animate-pulse rounded-md bg-muted align-middle" />
+            ) : (
+              data?.list.name
+            )
+          }
+          description={
+            data ? (
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                <Badge variant="secondary" className="capitalize">
+                  {data.list.type.toLowerCase()}
+                </Badge>
+                <span className="tabular-nums">
+                  {counts.ALL} {counts.ALL === 1 ? "lead" : "leads"} · {counts.FOUND} with email
+                </span>
+              </span>
+            ) : undefined
+          }
+          actions={
+            <>
+              <SearchHistorySheet
+                listId={listId as string}
+                onJobQueued={setActiveJobId}
+              />
             <Button
-              key={tab.value}
-              variant={emailFilter === tab.value ? "default" : "outline"}
-              size="sm"
+              variant="outline"
+              disabled={bulkEnrich.isPending}
               onClick={() => {
-                setEmailFilter(tab.value)
-                setPage(1)
+                bulkEnrich.mutate(
+                  { listId },
+                  {
+                    onSuccess: (result) => {
+                      if (result.jobId) {
+                        setActiveJobId(result.jobId)
+                        appToast.success(
+                          "Enrichment queued",
+                          "Progress will continue safely in the background."
+                        )
+                        return
+                      }
+                      appToast.success(
+                        "Data enrichment complete",
+                        result.enriched > 0
+                          ? `${result.enriched} email${result.enriched === 1 ? "" : "s"} found from ${result.attempted ?? result.total} checked.`
+                          : `No new emails found from ${result.attempted ?? result.total} checked.`
+                      )
+                      refetch()
+                    },
+                    onError: (err) => {
+                      appToast.error("bulkEnrichment", err)
+                    },
+                  }
+                )
               }}
             >
-              {tab.label}
-              <Badge
-                variant={emailFilter === tab.value ? "secondary" : "outline"}
-                className="ml-1.5 px-1.5 py-0 text-[10px] leading-4"
-              >
-                {counts[tab.value]}
-              </Badge>
+              {bulkEnrich.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {bulkEnrich.isPending ? "Enriching..." : "Data Enrichment"}
             </Button>
-          ))}
+            <Button
+              variant="outline"
+              disabled={scoreLeads.isPending || !data?.counts.ALL}
+              onClick={() => {
+                scoreLeads.mutate(
+                  { listId },
+                  {
+                    onSuccess: (result) => {
+                      if (result.jobId) {
+                        setActiveJobId(result.jobId)
+                        appToast.success(
+                          "Lead scoring queued",
+                          "Progress will continue safely in the background."
+                        )
+                        return
+                      }
+                      const scoredCount = result.scoredCount ?? 0
+                      appToast.success(
+                        scoredCount > 0 ? "Lead scoring complete" : "No leads scored",
+                        scoredCount > 0
+                          ? `${scoredCount} leads were ranked by fit.`
+                          : result.message || "No leads to score"
+                      )
+                      refetch()
+                    },
+                    onError: (err) => {
+                      appToast.error("leadScoring", err)
+                    },
+                  }
+                )
+              }}
+            >
+              {scoreLeads.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <WandSparkles className="size-4" />
+              )}
+              {scoreLeads.isPending ? "Scoring..." : "Score Leads"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/ai/ai-agent")}
+            >
+              <Bot className="size-4" />
+              AI Agent
+            </Button>
+            <Button
+              variant="outline"
+              disabled={isExporting}
+              onClick={async () => {
+                setIsExporting(true)
+                try {
+                  const res = await fetch(`/api/lists/${listId}/export`)
+                  if (!res.ok) throw new Error("Export failed")
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement("a")
+                  a.href = url
+                  a.download = `${data?.list.name || "leads"}.csv`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                  appToast.success(
+                    "CSV export ready",
+                    "Your lead list download has started."
+                  )
+                } catch (err) {
+                  appToast.error("exportCsv", err)
+                } finally {
+                  setIsExporting(false)
+                }
+              }}
+            >
+              {isExporting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {isExporting ? "Exporting..." : "Export CSV"}
+            </Button>
+            </>
+          }
+        />
+      </div>
+
+      {/* Email filter */}
+      <div className="max-w-full overflow-x-auto">
+        <div
+          role="group"
+          aria-label="Filter leads by email"
+          className="inline-flex h-9 shrink-0 items-center rounded-lg bg-muted p-[3px]"
+        >
+          {filterTabs.map((tab) => {
+            const active = emailFilter === tab.value
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  setEmailFilter(tab.value)
+                  setPage(1)
+                }}
+                className={cn(
+                  "inline-flex h-full items-center gap-1.5 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  active
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {tab.label}
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {counts[tab.value]}
+                </span>
+              </button>
+            )
+          })}
         </div>
-
-        <div className="h-6 w-px bg-border mx-1" />
-
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={bulkEnrich.isPending}
-          onClick={() => {
-            bulkEnrich.mutate(
-              { listId },
-              {
-                onSuccess: (result) => {
-                  if (result.jobId) {
-                    setActiveJobId(result.jobId)
-                    appToast.success(
-                      "Enrichment queued",
-                      "Progress will continue safely in the background."
-                    )
-                    return
-                  }
-                  appToast.success(
-                    "Data enrichment complete",
-                    result.enriched > 0
-                      ? `${result.enriched} email${result.enriched === 1 ? "" : "s"} found from ${result.attempted ?? result.total} checked.`
-                      : `No new emails found from ${result.attempted ?? result.total} checked.`
-                  )
-                  refetch()
-                },
-                onError: (err) => {
-                  appToast.error("bulkEnrichment", err)
-                },
-              }
-            )
-          }}
-        >
-          {bulkEnrich.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Sparkles className="size-4" />
-          )}
-          {bulkEnrich.isPending ? "Enriching..." : "Data Enrichment"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={scoreLeads.isPending || !data?.counts.ALL}
-          onClick={() => {
-            scoreLeads.mutate(
-              { listId },
-              {
-                onSuccess: (result) => {
-                  if (result.jobId) {
-                    setActiveJobId(result.jobId)
-                    appToast.success(
-                      "Lead scoring queued",
-                      "Progress will continue safely in the background."
-                    )
-                    return
-                  }
-                  const scoredCount = result.scoredCount ?? 0
-                  appToast.success(
-                    scoredCount > 0 ? "Lead scoring complete" : "No leads scored",
-                    scoredCount > 0
-                      ? `${scoredCount} leads were ranked by fit.`
-                      : result.message || "No leads to score"
-                  )
-                  refetch()
-                },
-                onError: (err) => {
-                  appToast.error("leadScoring", err)
-                },
-              }
-            )
-          }}
-        >
-          {scoreLeads.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <WandSparkles className="size-4" />
-          )}
-          {scoreLeads.isPending ? "Scoring..." : "Score Leads"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/ai/ai-agent")}
-        >
-          <Bot className="size-4" />
-          AI Agent
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={isExporting}
-          onClick={async () => {
-            setIsExporting(true)
-            try {
-              const res = await fetch(`/api/lists/${listId}/export`)
-              if (!res.ok) throw new Error("Export failed")
-              const blob = await res.blob()
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement("a")
-              a.href = url
-              a.download = `${data?.list.name || "leads"}.csv`
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              URL.revokeObjectURL(url)
-              appToast.success(
-                "CSV export ready",
-                "Your lead list download has started."
-              )
-            } catch (err) {
-              appToast.error("exportCsv", err)
-            } finally {
-              setIsExporting(false)
-            }
-          }}
-        >
-          {isExporting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Download className="size-4" />
-          )}
-          {isExporting ? "Exporting..." : "Export CSV"}
-        </Button>
       </div>
 
       {/* Table or states */}
@@ -346,12 +361,14 @@ export default function ListDetailPage() {
         />
       ) : emailFilter !== "ALL" ? (
         <EmptyState
-          icon={Users}
+          className="rounded-md border bg-card"
+          icon={SearchX}
           title="No matching leads"
           description={`No leads matching the "${filterTabs.find((t) => t.value === emailFilter)?.label}" filter. Try selecting a different filter.`}
         />
       ) : (
         <EmptyState
+          className="rounded-md border bg-card"
           icon={Users}
           title="No leads in this list yet"
           description="Run a search to add leads to this list, or use the enrichment tools to populate contact data."
@@ -359,9 +376,8 @@ export default function ListDetailPage() {
       )}
 
       {data && data.pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            Page {data.pagination.page} of {data.pagination.totalPages} ·{" "}
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm tabular-nums text-muted-foreground" aria-live="polite">
             {data.pagination.total} leads
           </p>
           <div className="flex items-center gap-2">
@@ -371,8 +387,12 @@ export default function ListDetailPage() {
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
+              <ChevronLeft className="mr-1 size-4" aria-hidden />
               Previous
             </Button>
+            <span className="text-sm tabular-nums text-muted-foreground">
+              Page {data.pagination.page} of {data.pagination.totalPages}
+            </span>
             <Button
               variant="outline"
               size="sm"
@@ -380,6 +400,7 @@ export default function ListDetailPage() {
               onClick={() => setPage((current) => current + 1)}
             >
               Next
+              <ChevronRight className="ml-1 size-4" aria-hidden />
             </Button>
           </div>
         </div>
@@ -421,7 +442,7 @@ function SearchHistorySheet({
   const statusIcon = (status: string) => {
     switch (status) {
       case "COMPLETED":
-        return <CheckCircle2 className="size-4 text-green-600" />
+        return <CheckCircle2 className="size-4 text-success" />
       case "FAILED":
         return <XCircle className="size-4 text-destructive" />
       case "RUNNING":
@@ -490,16 +511,16 @@ function SearchHistorySheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline">
           <Clock className="size-4" />
           History
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[450px]">
+      <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Search History</SheetTitle>
         </SheetHeader>
-        <div className="mt-4 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+        <div className="max-h-[calc(100vh-120px)] space-y-3 overflow-y-auto px-4 pb-4">
           {historyQuery.isLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -514,21 +535,23 @@ function SearchHistorySheet({
             </div>
           )}
           {historyQuery.data && historyQuery.data.length === 0 && (
-            <div className="text-center py-8 text-sm text-muted-foreground">
-              <Search className="size-8 mx-auto mb-2 opacity-40" />
-              No searches yet for this list
-            </div>
+            <EmptyState
+              size="inline"
+              icon={Search}
+              title="No searches yet"
+              description="Searches that add leads to this list will appear here."
+            />
           )}
           {historyQuery.data?.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-start gap-3 p-3 border border-border bg-card"
+              className="flex items-start gap-3 rounded-md border bg-card p-3"
             >
               <div className="mt-0.5">{statusIcon(entry.status)}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] uppercase">
-                    {entry.searchType}
+                  <Badge variant="secondary" className="capitalize">
+                    {entry.searchType.toLowerCase()}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {timeAgo(entry.createdAt, historyQuery.dataUpdatedAt)}

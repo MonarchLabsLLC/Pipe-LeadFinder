@@ -13,6 +13,7 @@ import { useSearchMutation } from "@/hooks/useSearch"
 import { appToast } from "@/lib/app-toast"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PageHeader } from "@/components/layout/page-header"
 
 export default function NewSearchPage() {
   const [selectedType, setSelectedType] = useState<SearchType | null>(null)
@@ -96,7 +97,12 @@ export default function NewSearchPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="New search"
+        description="Choose what you are looking for, then set the criteria. Results save to a list."
+      />
+
       <SearchTypePicker selectedType={selectedType} onSelect={setSelectedType} />
 
       <div
@@ -107,7 +113,7 @@ export default function NewSearchPage() {
       >
         <div className="overflow-hidden">
           {selectedType && (
-            <div className="relative rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+            <div className="relative">
               {searchMutation.isPending && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/80 backdrop-blur-[2px]">
                   <div className="flex flex-col items-center gap-3">

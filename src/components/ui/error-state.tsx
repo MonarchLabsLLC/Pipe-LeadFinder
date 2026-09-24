@@ -1,38 +1,42 @@
-import { AlertCircle, RefreshCw } from "lucide-react"
+import { AlertTriangle, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 interface ErrorStateProps {
   title?: string
   message: string
   onRetry?: () => void
+  className?: string
 }
 
+/** The designed error state for a failed load, identical to PipeLeads Suite's. */
 export function ErrorState({
   title = "Something went wrong",
   message,
   onRetry,
+  className,
 }: ErrorStateProps) {
   return (
-    <Card className="rounded-xl border-destructive/20 bg-destructive/5 shadow-none">
-      <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-          <AlertCircle className="h-7 w-7 text-destructive" />
-        </div>
-        <h3 className="mt-4 text-base font-semibold text-foreground">{title}</h3>
-        <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">{message}</p>
-        {onRetry && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRetry}
-            className="mt-5"
-          >
-            <RefreshCw className="mr-2 h-3.5 w-3.5" />
-            Try again
-          </Button>
-        )}
+    <div
+      role="alert"
+      className={cn(
+        "flex flex-col items-center justify-center gap-4 rounded-md border border-destructive/30 bg-destructive/5 px-6 py-14 text-center",
+        className
+      )}
+    >
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <AlertTriangle className="h-5 w-5" aria-hidden />
       </div>
-    </Card>
+      <div className="max-w-sm space-y-1">
+        <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+      {onRetry && (
+        <Button variant="outline" onClick={onRetry}>
+          <RotateCw className="mr-2 h-4 w-4" aria-hidden />
+          Try again
+        </Button>
+      )}
+    </div>
   )
 }

@@ -9,6 +9,7 @@ import { X, Plus, Loader2, Tag } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { appToast } from "@/lib/app-toast"
+import { PageHeader } from "@/components/layout/page-header"
 
 const DEFAULT_LABELS = ["Called", "Messaged", "Emailed", "Exported to CSV"]
 
@@ -53,11 +54,17 @@ export default function CustomLabelsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Custom labels"
+        description="Labels you can put on any lead to track outreach and organize lists."
+      />
+
+      <div className="flex max-w-2xl flex-col gap-6">
       {/* Add Label Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Add Custom Lead Label</CardTitle>
+          <CardTitle>Add a label</CardTitle>
           <CardDescription>
             Create labels to categorize and organize your leads.
           </CardDescription>
@@ -65,20 +72,21 @@ export default function CustomLabelsPage() {
         <CardContent>
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Tag className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
               <Input
                 placeholder="Enter label name..."
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={createLabel.isPending}
-                className="pl-9"
+                className="pl-8"
+                aria-label="Label name"
               />
             </div>
             <Button
               onClick={handleAdd}
               disabled={!newLabel.trim() || createLabel.isPending}
-              className="shrink-0 shadow-sm"
+              className="shrink-0"
             >
               {createLabel.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -99,9 +107,9 @@ export default function CustomLabelsPage() {
       {/* Available Labels Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Available Labels</CardTitle>
+          <CardTitle>Your labels</CardTitle>
           <CardDescription>
-            Click the X on any label to remove it.
+            Remove a label with its X. Leads keep their other labels.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,24 +119,24 @@ export default function CustomLabelsPage() {
               onRetry={() => refetch()}
             />
           ) : isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading labels...
+            <div className="flex flex-wrap gap-2" aria-busy aria-label="Loading labels">
+              {[0, 1, 2, 3].map((key) => (
+                <div key={key} className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+              ))}
             </div>
           ) : !labels || labels.length === 0 ? (
-            <div className="py-2">
-              <EmptyState
-                icon={Tag}
-                title="No custom labels yet"
-                description="Add your first label above to start organizing your leads."
-              />
-            </div>
+            <EmptyState
+              size="inline"
+              icon={Tag}
+              title="No custom labels yet"
+              description="Add your first label above to start organizing your leads."
+            />
           ) : (
             <div className="flex flex-wrap gap-2">
               {labels.map((label) => (
                 <span
                   key={label.id}
-                  className="group/chip inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted-foreground/10"
+                  className="inline-flex items-center gap-1 rounded-full border bg-secondary py-1 pr-1 pl-3 text-sm font-medium text-secondary-foreground"
                 >
                   {label.name}
                   <button
@@ -137,11 +145,11 @@ export default function CustomLabelsPage() {
                         onError: (err) => appToast.error("labelDelete", err),
                       })
                     }
-                    className="ml-0.5 rounded-full p-0.5 opacity-0 group-hover/chip:opacity-100 hover:bg-muted-foreground/20 transition-all"
+                    className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
                     disabled={deleteLabel.isPending}
                     aria-label={`Remove ${label.name}`}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="size-3" aria-hidden />
                   </button>
                 </span>
               ))}
@@ -149,6 +157,7 @@ export default function CustomLabelsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

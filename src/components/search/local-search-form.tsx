@@ -56,11 +56,11 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
 
         {/* ── Search Criteria Section ─────────────────── */}
         <div className="pb-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Search Criteria
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -72,7 +72,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
               <Input
                 id="businessType"
                 placeholder="Eg: Hairdresser"
-                className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+               
                 aria-invalid={!!errors.businessType}
                 {...register("businessType")}
               />
@@ -117,7 +117,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
                     value={field.value?.toString() ?? "10"}
                     onValueChange={(val) => field.onChange(Number(val))}
                   >
-                    <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select limit" />
                     </SelectTrigger>
                     <SelectContent>
@@ -141,7 +141,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
 
         {/* ── Save & Run Section ──────────────────────── */}
         <div className="pt-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Save & Run
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -155,7 +155,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
           />
 
           {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
+          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
             <Coins className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">
               <p>Local search will consume {localSearchCreditText} returned.</p>
@@ -171,7 +171,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
             <Button
               type="submit"
               disabled={isLoading || !listId}
-              className="h-11 rounded-lg px-8 font-medium transition hover:shadow-md"
+              className="min-w-32"
             >
               {isLoading ? "Searching..." : "Continue"}
               {!isLoading && <ArrowRight className="ml-2 size-4" />}

@@ -1,12 +1,14 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -15,9 +17,11 @@ import {
   Building2,
   Globe,
   Star,
-  Settings,
+  MoreHorizontal,
+  Mail,
   Pencil,
   Archive,
+  ArchiveRestore,
   Trash2,
 } from "lucide-react"
 import type { SearchType } from "@/generated/prisma/enums"
@@ -37,39 +41,6 @@ const typeLabels: Record<SearchType, string> = {
   COMPANY: "Company",
   DOMAIN: "Domain",
   INFLUENCER: "Influencer",
-}
-
-const typeAccentClasses: Record<SearchType, { gradient: string; iconBg: string; iconText: string; badge: string }> = {
-  PEOPLE: {
-    gradient: "from-amber-400 to-amber-500",
-    iconBg: "bg-amber-500/10",
-    iconText: "text-amber-600 dark:text-amber-400",
-    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  },
-  LOCAL: {
-    gradient: "from-emerald-400 to-emerald-500",
-    iconBg: "bg-emerald-500/10",
-    iconText: "text-emerald-600 dark:text-emerald-400",
-    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  },
-  COMPANY: {
-    gradient: "from-blue-400 to-blue-500",
-    iconBg: "bg-blue-500/10",
-    iconText: "text-blue-600 dark:text-blue-400",
-    badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  },
-  DOMAIN: {
-    gradient: "from-purple-400 to-purple-500",
-    iconBg: "bg-purple-500/10",
-    iconText: "text-purple-600 dark:text-purple-400",
-    badge: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
-  },
-  INFLUENCER: {
-    gradient: "from-pink-400 to-pink-500",
-    iconBg: "bg-pink-500/10",
-    iconText: "text-pink-600 dark:text-pink-400",
-    badge: "bg-pink-500/10 text-pink-700 dark:text-pink-400",
-  },
 }
 
 function relativeTime(date: string | Date): string {
@@ -117,78 +88,73 @@ export function ListCard({
 }: ListCardProps) {
   const router = useRouter()
   const Icon = typeIcons[type]
-  const accent = typeAccentClasses[type]
 
   return (
     <Card
-      className="group relative cursor-pointer overflow-hidden rounded-xl border border-border bg-card p-0 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      className="group relative cursor-pointer gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-ring"
       onClick={() => router.push(`/lead-search/saved-lists/${id}`)}
     >
-      {/* Accent gradient bar */}
-      <div className={`h-[3px] w-full bg-gradient-to-r ${accent.gradient}`} />
-
-      {/* Settings dropdown */}
-      <div className="absolute top-4 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenuItem onClick={() => onRename(id)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onArchive(id)}>
-              <Archive className="mr-2 h-4 w-4" />
-              {archived ? "Restore" : "Archive"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(id)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Card content */}
-      <div className="px-5 pt-4 pb-5 space-y-3">
-        <div className="flex items-start gap-3.5">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${accent.iconBg}`}>
-            <Icon className={`h-5 w-5 ${accent.iconText}`} />
+      <CardContent className="flex min-h-36 flex-col p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="size-4" aria-hidden />
           </div>
-          <div className="min-w-0 flex-1 space-y-1">
-            <h3 className="text-sm font-semibold text-foreground truncate pr-8">
-              {name}
-            </h3>
-            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${accent.badge}`}>
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 text-base font-semibold">{name}</h3>
+            <Badge variant="secondary" className="mt-1">
               {typeLabels[type]}
-            </span>
+            </Badge>
           </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative z-10 size-8 shrink-0"
+                aria-label={`Actions for ${name}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={() => onRename(id)}>
+                <Pencil className="mr-2 size-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onArchive(id)}>
+                {archived ? (
+                  <ArchiveRestore className="mr-2 size-4" />
+                ) : (
+                  <Archive className="mr-2 size-4" />
+                )}
+                {archived ? "Restore" : "Archive"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(id)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="flex items-center justify-between pt-1 border-t border-border/50">
-          <p className="text-xs text-muted-foreground">
-            <span className="tabular-nums font-medium text-foreground/80">{leadCount}</span>
-            {" leads"}
-            <span className="mx-1.5 text-border">&#183;</span>
-            <span className="tabular-nums font-medium text-foreground/80">{emailFoundCount}</span>
-            {" with email"}
-          </p>
-          <p className="text-xs text-muted-foreground/60">
-            {relativeTime(createdAt)}
-          </p>
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 pt-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 tabular-nums">
+            <Users className="size-3.5" aria-hidden />
+            {leadCount} {leadCount === 1 ? "lead" : "leads"}
+          </span>
+          <span className="flex items-center gap-1 tabular-nums">
+            <Mail className="size-3.5" aria-hidden />
+            {emailFoundCount} with email
+          </span>
+          <span className="ml-auto">{relativeTime(createdAt)}</span>
         </div>
-      </div>
+      </CardContent>
     </Card>
   )
 }
