@@ -146,6 +146,9 @@ Click a list to open its results. The table shows all leads with these columns:
 - Company name linked to website
 - Company LinkedIn link
 
+**Send to Column** (only when PipeLeads or MailBaser is connected):
+- **PipeLeads** / **MailBaser** buttons — see "Sending leads to PipeLeads and MailBaser"
+
 **Custom Labels Column:**
 - Applied label tags
 - "Add" button to apply labels
@@ -280,6 +283,27 @@ Enrich leads with additional contact data. All enrichment uses person-level Apif
 3. A progress summary is returned showing how many leads were enriched out of the total eligible
 
 Enrichment consumes 25 credits when a matching email or phone number is found. There is no enrichment charge when no result is found.
+
+---
+
+## Sending leads to PipeLeads and MailBaser
+
+When the app is connected to the PipeLeads CRM and/or MailBaser, each lead row has a
+**Send to** column and the selection bar (shown when you tick leads) has the same buttons.
+Leads arrive in **your own** CRM and MailBaser account: you are matched by your Scale Plus
+sign-in.
+
+- **PipeLeads** — one click adds the lead as a contact with its company. Leads already in the
+  CRM are updated, not duplicated. The arrow next to the button lets you also create a deal
+  (choose pipeline and stage) and add tags; these choices are remembered in this browser and
+  reused by the next one-click send.
+- **MailBaser** — the first click asks which lists and tags to use; after that one click sends
+  with the same choices (the arrow changes them). Leads without an email address are skipped.
+  Contacts are added as prospects, not as consenting subscribers. You need a MailBaser account;
+  if you do not have one the error message says so.
+- A message reports how many leads were added (new / updated / skipped) with an **Open** link.
+- Large selections are sent 50 at a time.
+- Only the workspace owner can send; inside a shared team workspace the buttons are hidden.
 
 ---
 
