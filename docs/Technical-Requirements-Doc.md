@@ -40,7 +40,7 @@
 
 ### AI Services
 - **Vercel AI SDK** (v6) — `ai` package for streaming AI responses
-- **@ai-sdk/openai** — OpenAI provider using `gpt-5.4-nano`
+- **@openrouter/ai-sdk-provider** — OpenRouter provider using `deepseek/deepseek-v4.1-flash` (fallback `deepseek/deepseek-v4-flash-0731`)
 
 ### Data Sourcing
 - **apify-client** — Apify actor execution for all 5 search types + enrichment
@@ -72,7 +72,7 @@
 │         │                  │                    │          │
 │  ┌──────┴──────┐  ┌───────┴───────┐  ┌────────┴───────┐ │
 │  │   Apify     │  │   Prisma DB   │  │  Vercel AI SDK │ │
-│  │   Client    │  │   (Postgres)  │  │  (OpenAI/Gem)  │ │
+│  │   Client    │  │   (Postgres)  │  │  (OpenRouter)  │ │
 │  └─────────────┘  └───────────────┘  └────────────────┘  │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -316,7 +316,7 @@ model AiResult {
   actionType AiActionType
   prompt    String?
   result    String   @db.Text
-  model     String?  // "gpt-5.4-nano"
+  model     String?  // "deepseek/deepseek-v4.1-flash"
   createdAt DateTime @default(now())
 }
 

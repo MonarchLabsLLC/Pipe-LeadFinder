@@ -5,7 +5,7 @@ import {
   consumeTokenCredits,
   consumeCredits,
 } from "@/services/credits-service"
-import { getAiRuntimeConfig } from "@/services/ai-runtime"
+import { getAiRuntimeConfig, resolveBilledModel } from "@/services/ai-runtime"
 import type { PipeLeadsCreditAction } from "@/lib/pipeleads-credit-pricing"
 import { FocusedAgentError, trustedServiceUrl } from "./security"
 import type { AgentActor } from "./access"
@@ -86,7 +86,8 @@ export async function chargeNativeTokens(
   runId: string,
   step: number,
   inputTokens: number | undefined,
-  outputTokens: number | undefined
+  outputTokens: number | undefined,
+  responseModelId?: string
 ) {
   if (
     typeof inputTokens !== "number" ||
@@ -103,6 +104,7 @@ export async function chargeNativeTokens(
       503
     )
   const config = getAiRuntimeConfig("assistant"),
+    billedModel = resolveBilledModel(config, responseModelId),
     requestId = `focused-agent:${runId}:${step}`
   const usage = await prisma.focusedAgentUsage.upsert({
     where: { requestId },
@@ -110,7 +112,7 @@ export async function chargeNativeTokens(
       runId,
       userId: a.userId,
       subject: a.subject,
-      model: config.model,
+      model: billedModel,
       inputTokens: inputTokens!,
       outputTokens: outputTokens!,
       requestId,
@@ -135,9 +137,11 @@ export async function chargeNativeTokens(
     a.userId,
     {
       provider: config.provider,
-      model: config.model,
+      model: usage.model || billedModel,
       inputTokens: inputTokens!,
       outputTokens: outputTokens!,
+      description: "Lead Finder focused Agent",
+      metadata: { feature: "focused-agent", runId, step },
       idempotencyKey: requestId,
     },
     a.email

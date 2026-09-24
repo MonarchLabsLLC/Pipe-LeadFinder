@@ -28,7 +28,7 @@ Approved searches, enrichment and scoring use existing pg-boss jobs. They have s
 
 1. Review/apply `20260903000100_focused_agent` through the repository migration workflow in an explicitly authorized environment. It adds assistant-only records; it does not rewrite existing product data.
 2. Configure a distinct `LEADFINDER_GODMODE_SERVICE_SECRET` and `CLICKCAMPAIGNS_GODMODE_BASE_URL`. Configure matching bridge settings. ClickCampaigns uses its existing Pro Max entitlement resolver; Lead Finder resolves the verified subject and checks local ownership. No new Keycloak administration client or plan-name comparison is required.
-3. Verify real Keycloak sign-in, existing OpenAI configuration, Scale Credits pricing/consumption and the durable job worker.
+3. Verify real Keycloak sign-in, OpenRouter configuration (`OPEN_ROUTER_API_KEY`), Scale Credits pricing/consumption and the durable job worker.
 4. Independently enable `LEADFINDER_AGENT_ENABLED`, `LEADFINDER_GODMODE_ENABLED` and `LEADFINDER_AGENT_WRITES_ENABLED` only after staging tests. All default to false.
 5. Use the private Superpowers installation/OAuth guide. The plugin is not listed in the public Codex plugin directory; customers do not paste developer API keys.
 

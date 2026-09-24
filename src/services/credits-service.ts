@@ -363,7 +363,29 @@ export async function consumeCredits(
 }
 
 /**
- * Consume credits for OpenAI token usage. The microservice calculates cost.
+ * The exact body sent to /credits/consume for AI token usage. Exported so the
+ * shape can be tested without a network call.
+ */
+export function buildTokenConsumeBody(usage: TokenUsagePayload) {
+  return {
+    provider: usage.provider,
+    model: usage.model,
+    inputTokens: Math.max(0, Math.round(usage.inputTokens)),
+    outputTokens: Math.max(0, Math.round(usage.outputTokens)),
+    description: usage.description || `Lead Finder AI (${usage.model})`,
+    metadata: {
+      ...usage.metadata,
+      appName: APP_NAME,
+      inputTokens: Math.max(0, Math.round(usage.inputTokens)),
+      outputTokens: Math.max(0, Math.round(usage.outputTokens)),
+    },
+    appName: APP_NAME,
+    ...(usage.idempotencyKey ? { idempotencyKey: usage.idempotencyKey } : {}),
+  }
+}
+
+/**
+ * Consume credits for OpenRouter token usage. The microservice calculates cost.
  */
 export async function consumeTokenCredits(
   userId: string,
@@ -380,11 +402,7 @@ export async function consumeTokenCredits(
       {
         method: "POST",
         headers: internalHeaders(creditUserId, email),
-        body: JSON.stringify({
-          ...usage,
-          appName: APP_NAME,
-          idempotencyKey: usage.idempotencyKey,
-        }),
+        body: JSON.stringify(buildTokenConsumeBody(usage)),
       },
       MAX_RETRIES,
       15_000

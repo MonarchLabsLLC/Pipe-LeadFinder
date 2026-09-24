@@ -135,6 +135,7 @@ export async function processBulkJob(jobRunId: string) {
               },
               onGenerated: async (r: {
                 text: string
+                model: string
                 inputTokens: number | undefined
                 outputTokens: number | undefined
               }) => {
@@ -145,6 +146,7 @@ export async function processBulkJob(jobRunId: string) {
                       stage: "scoring_checkpoint",
                       batch: index,
                       text: r.text,
+                      model: r.model,
                       inputTokens: r.inputTokens ?? null,
                       outputTokens: r.outputTokens ?? null,
                     },
@@ -160,7 +162,10 @@ export async function processBulkJob(jobRunId: string) {
                 const billed = await consumeTokenCredits(
                   payload.userId,
                   {
-                    ...config,
+                    provider: config.provider,
+                    model: r.model,
+                    description: `Lead Finder AI lead scoring (${batch.length} leads)`,
+                    metadata: { feature: "scoring", jobRunId, batch: index },
                     inputTokens: r.inputTokens,
                     outputTokens: r.outputTokens,
                     idempotencyKey: `${jobRunId}:score:${index}`,

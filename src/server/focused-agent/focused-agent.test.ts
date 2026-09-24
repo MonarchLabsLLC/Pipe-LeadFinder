@@ -156,6 +156,8 @@ describe.skipIf(!enabled)(
       vi.stubEnv("AUTH_URL", "http://localhost:3030")
       vi.stubEnv("MICRO_SERVICE_BASE", "http://localhost:15441/api")
       vi.stubEnv("INTERNAL_WEBHOOK_SECRET", "test-credits-only")
+      // generateText is mocked; the OpenRouter model only needs a key to build.
+      vi.stubEnv("OPEN_ROUTER_API_KEY", "test-openrouter-only")
       vi.stubEnv("APIFY_ACTOR_ENRICH_PHONE", "test-phone-only")
       vi.stubGlobal(
         "fetch",

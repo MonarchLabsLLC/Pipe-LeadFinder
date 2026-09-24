@@ -11,8 +11,10 @@ import {
   buildUserPrompt,
 } from "@/services/ai-service"
 import {
+  describeAiError,
   getAiLanguageModel,
   getAiRuntimeConfig,
+  resolveBilledModel,
 } from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
 import { guardCredits } from "@/lib/credit-guard"
@@ -104,13 +106,28 @@ export async function POST(request: NextRequest) {
   const systemPrompt = buildSystemPrompt(actionType, businessContext)
   const userPrompt = buildUserPrompt(actionType, leadContext, customPrompt)
 
-  // 5. Stream with the configured AI provider
+  // 5. Stream with the configured AI provider (OpenRouter)
+  let model: ReturnType<typeof getAiLanguageModel>
+  try {
+    model = getAiLanguageModel(ASSISTANT_AI_CONFIG)
+  } catch (error) {
+    console.error("[AiAssistant] Provider unavailable:", describeAiError(error))
+    return new Response(
+      JSON.stringify({ error: "The AI assistant is unavailable right now. Please try again later." }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
   const result = streamText({
-    model: getAiLanguageModel(ASSISTANT_AI_CONFIG),
+    model,
     system: systemPrompt,
     prompt: userPrompt,
     maxOutputTokens: 1_500,
-    onFinish: async ({ text, usage }) => {
+    onError: ({ error }) => {
+      console.error("[AiAssistant] Generation failed:", describeAiError(error))
+    },
+    onFinish: async ({ text, usage, response }) => {
+      const billedModel = resolveBilledModel(ASSISTANT_AI_CONFIG, response?.modelId)
       const operations: Promise<unknown>[] = [
         prisma.aiResult.create({
           data: {
@@ -118,7 +135,7 @@ export async function POST(request: NextRequest) {
             actionType,
             prompt: customPrompt || userPrompt,
             result: text,
-            model: ASSISTANT_AI_CONFIG.model,
+            model: billedModel,
           },
         }),
       ]
@@ -129,9 +146,11 @@ export async function POST(request: NextRequest) {
             session.user.id,
             {
               provider: ASSISTANT_AI_CONFIG.provider,
-              model: ASSISTANT_AI_CONFIG.model,
+              model: billedModel,
               inputTokens: usage.inputTokens ?? 0,
               outputTokens: usage.outputTokens ?? 0,
+              description: `Lead Finder AI assistant (${actionType})`,
+              metadata: { feature: "assistant", actionType, leadId },
             },
             session.user.email
           )

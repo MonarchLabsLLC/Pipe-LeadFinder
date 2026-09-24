@@ -232,7 +232,7 @@ const instructions = `You are the focused PipeLeads Lead Finder Agent. Help user
 function modelTools(): ToolSet {
   const definitions: ToolSet = {}
   for (const [name, definition] of Object.entries(actions)) {
-    // OpenAI strict tool schemas cannot express arbitrary product-specific keys.
+    // Strict tool schemas cannot express arbitrary product-specific keys.
     // The string is parsed and validated by the same bounded action registry.
     const inputSchema: z.ZodType =
       name === "prepare_search"
@@ -329,7 +329,8 @@ export async function runChat(runId: string) {
         runId,
         step,
         response.usage.inputTokens,
-        response.usage.outputTokens
+        response.usage.outputTokens,
+        response.response.modelId
       )
       messages.push(...response.response.messages)
       if (!response.toolCalls.length) {

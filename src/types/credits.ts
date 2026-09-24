@@ -40,15 +40,18 @@ export interface CreditUsagePayload {
 }
 
 /**
- * Token-based usage payload for AI operations.
- * Sent to the microservice's token-aware consume endpoint.
+ * Token-based usage payload for AI operations — the same TextUsagePayload
+ * shape ClickCampaigns sends to the ScaleCredits micro service
+ * /credits/consume. The micro service prices it from the shared `pricing`
+ * table (keyed by model) and applies the per-app multiplier for appName.
  */
 export interface TokenUsagePayload {
-  provider: string   // "openai"
-  model: string      // "gpt-5.4-nano"
+  provider: "openrouter"
+  model: string      // "deepseek/deepseek-v4.1-flash" (or the fallback that answered)
   inputTokens: number
   outputTokens: number
-  appName?: string
+  description?: string
+  metadata?: Record<string, unknown>
   idempotencyKey?: string
 }
 

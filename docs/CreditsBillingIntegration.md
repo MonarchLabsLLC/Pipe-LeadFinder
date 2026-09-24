@@ -70,47 +70,40 @@ These send a fixed `amount` to the `/api/micro/credits/consume` endpoint.
 }
 ```
 
-### 2. Token-Based Credits (AI Assistant)
+### 2. Token-Based Credits (every AI feature)
 
-The AI Assistant generates personalized outreach messages per lead. It uses **OpenAI `gpt-5.4-nano`** and sends token usage to the microservice.
+The AI Assistant, AI Agents, lead scoring, the focused Agent and "Describe who you want" all run through **OpenRouter** with **`deepseek/deepseek-v4.1-flash`** (fallback **`deepseek/deepseek-v4-flash-0731`**), set up the same way as ClickCampaigns (`src/services/ai-runtime.ts`). Each call sends its real token usage to the microservice in the same `TextUsagePayload` shape ClickCampaigns uses.
 
-**Payload example** (token-based):
+**Payload example** (token-based, built by `buildTokenConsumeBody()`):
 ```json
 {
-  "provider": "openai",
-  "model": "gpt-5.4-nano",
+  "provider": "openrouter",
+  "model": "deepseek/deepseek-v4.1-flash",
   "inputTokens": 1250,
   "outputTokens": 450,
-  "appName": "pipe-leadfinder"
+  "description": "Lead Finder AI assistant (SUMMARY)",
+  "metadata": { "feature": "assistant", "actionType": "SUMMARY", "appName": "PipeLeads" },
+  "appName": "PipeLeads",
+  "idempotencyKey": "optional"
 }
 ```
 
-The microservice looks up `gpt-5.4-nano` in the `pricing` table and calculates credits from the per-million-token rates.
+`model` is the model OpenRouter reports as having answered, so a fallback answer bills at the fallback's price. The microservice prices text usage from the shared, global `pricing` table (keyed by model, not by app) and then applies the `project_multipliers` row for `appName`, if any.
 
 ---
 
 ## What Matt Needs to Do in ScaleCredits Admin
 
-### 1. Verify `gpt-5.4-nano` is in the Pricing Table
+### 1. Verify the DeepSeek rows are in the Pricing Table
 
-Go to **Admin > Pricing Configuration** in ScaleCredits and check that `gpt-5.4-nano` has a row in the **Text Models** pricing table.
+Both models are seeded by ScaleCredits migration `0020_seed_deepseek_v41_flash_pricing.sql` (shared with ClickCampaigns). Check **Admin > Pricing Configuration > Text Models**:
 
-If it's missing, add it:
+| Model | Input / 1M | Output / 1M | Multiplier |
+|-------|-----------|-------------|-----------|
+| `deepseek/deepseek-v4.1-flash` | `$0.15` | `$0.60` | `2.0` |
+| `deepseek/deepseek-v4-flash-0731` | `$0.14` | `$0.28` | `2.0` |
 
-| Field | Value | Notes |
-|-------|-------|-------|
-| Model | `gpt-5.4-nano` | Exact string — this is what the code sends |
-| Provider | `openai` | |
-| Input per million tokens (USD) | `$0.20` | OpenAI's current price (verify at openai.com/api/pricing) |
-| Output per million tokens (USD) | `$1.25` | OpenAI's current price |
-| Multiplier | `2.0` | Our standard 2x markup (adjust per business goals) |
-
-> **Current OpenAI pricing for gpt-5.4-nano (as of March 2026):**
-> - Input: $0.20 / 1M tokens
-> - Output: $1.25 / 1M tokens
-> - Cached input: $0.02 / 1M tokens
->
-> At 2x multiplier, a typical AI Assistant action (~1,500 input + ~500 output tokens) would cost roughly **1-2 display credits**.
+If `LEADFINDER_AI_MODEL` is ever set to another model, that model needs its own row first.
 
 ### 2. Configure Project Multiplier for `pipe-leadfinder`
 
@@ -191,17 +184,17 @@ These are the Apify actors we call. PipeLeads pays Apify per actor run — this 
 
 ---
 
-## OpenAI AI Assistant Costs
+## AI Costs (OpenRouter DeepSeek V4.1 Flash)
 
-**Current model:** `gpt-5.4-nano`
+**Current model:** `deepseek/deepseek-v4.1-flash` (fallback `deepseek/deepseek-v4-flash-0731`), reasoning off.
 
-| Model | Provider | Input Price | Output Price | Typical Action | Est. Tokens | Est. Cost | Credits (2x markup) |
-|-------|----------|------------|-------------|----------------|-------------|-----------|---------------------|
-| `gpt-5.4-nano` | OpenAI | $0.20/1M | $1.25/1M | DM generation | ~1,500 in / ~500 out | ~$0.0009 | ~2 credits |
-| `gpt-5.4-nano` | OpenAI | $0.20/1M | $1.25/1M | Summary | ~2,000 in / ~800 out | ~$0.0014 | ~3 credits |
-| `gpt-5.4-nano` | OpenAI | $0.20/1M | $1.25/1M | Subject lines | ~1,200 in / ~300 out | ~$0.0006 | ~1-2 credits |
+| Model | Provider | Input Price | Output Price | Typical Action | Est. Tokens | Est. Cost |
+|-------|----------|------------|-------------|----------------|-------------|-----------|
+| `deepseek/deepseek-v4.1-flash` | OpenRouter | $0.15/1M | $0.60/1M | DM generation | ~1,500 in / ~500 out | ~$0.0005 |
+| `deepseek/deepseek-v4.1-flash` | OpenRouter | $0.15/1M | $0.60/1M | Summary | ~2,000 in / ~800 out | ~$0.0008 |
+| `deepseek/deepseek-v4.1-flash` | OpenRouter | $0.15/1M | $0.60/1M | Search interpretation | ~1,200 in / ~150 out | ~$0.0003 |
 
-AI actions are very cheap with `gpt-5.4-nano`. At 2x multiplier, a typical action costs 1-3 display credits. Well within margin.
+At the 2x model multiplier (2,000 credits per dollar) a typical action costs about 1-3 credits.
 
 ---
 
@@ -230,7 +223,7 @@ AI actions are very cheap with `gpt-5.4-nano`. At 2x multiplier, a typical actio
 - [ ] Run an AI Assistant action — verify token-based credits in ledger
 - [ ] Set balance to negative in admin — verify searches are blocked with 402
 - [ ] Click Credit Wallet — verify it opens credits.scaleplus.gg
-- [ ] Verify `gpt-5.4-nano` pricing row exists in ScaleCredits admin
+- [ ] Verify `deepseek/deepseek-v4.1-flash` and `deepseek/deepseek-v4-flash-0731` pricing rows exist in ScaleCredits admin
 - [ ] Verify `pipe-leadfinder` row exists in project_multipliers
 - [ ] (Production) Set INTERNAL_WEBHOOK_SECRET in both apps
 - [ ] Review enrichment credit pricing — may need increase for margin
