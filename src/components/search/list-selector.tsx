@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Sparkles } from "lucide-react"
 import { SearchType } from "@/generated/prisma/enums"
 import { useLists, useCreateList } from "@/hooks/useLists"
+import { AUTO_LIST_ID } from "@/lib/search-summary"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,8 @@ interface ListSelectorProps {
   value: string | undefined
   onChange: (listId: string) => void
   searchType: SearchType
+  /** The name "New list (auto-named)" will get, previewed under the select. */
+  autoName?: string
 }
 
 const CREATE_NEW_VALUE = "__create_new__"
@@ -31,7 +34,13 @@ const SEARCH_TYPE_LABELS: Record<SearchType, string> = {
   INFLUENCER: "Influencer",
 }
 
-export function ListSelector({ value, onChange, searchType }: ListSelectorProps) {
+/**
+ * Where results are saved. Defaults to "New list (auto-named)": the page
+ * creates a list named from the criteria when the search is submitted, so
+ * nobody has to make a list first. Existing lists (of the same search type —
+ * the server rejects a mismatch) are one click away.
+ */
+export function ListSelector({ value, onChange, searchType, autoName }: ListSelectorProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [newListName, setNewListName] = useState("")
   const { data: lists, isLoading: listsLoading } = useLists(searchType)
@@ -67,7 +76,7 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">Save to List</Label>
+      <Label className="text-sm font-medium text-foreground">Save results to</Label>
       <Select
         value={isCreating ? CREATE_NEW_VALUE : value || ""}
         onValueChange={handleSelectChange}
@@ -76,6 +85,12 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
           <SelectValue placeholder={listsLoading ? "Loading lists..." : "Select a list"} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value={AUTO_LIST_ID}>
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="size-3.5 text-primary" />
+              New list (auto-named)
+            </span>
+          </SelectItem>
           {lists?.map((list) => (
             <SelectItem key={list.id} value={list.id}>
               {list.name} ({list.leadCount} leads) - {SEARCH_TYPE_LABELS[list.type]}
@@ -84,7 +99,7 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
           <SelectItem value={CREATE_NEW_VALUE}>
             <span className="flex items-center gap-1.5">
               <Plus className="size-3.5" />
-              Create new list
+              New list with my own name
             </span>
           </SelectItem>
         </SelectContent>
@@ -122,6 +137,19 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
             Cancel
           </Button>
         </div>
+      )}
+
+      {!isCreating && value === AUTO_LIST_ID && (
+        <p className="text-xs text-muted-foreground">
+          {autoName ? (
+            <>
+              Results go to a new list called{" "}
+              <span className="font-medium text-foreground">{autoName}</span>.
+            </>
+          ) : (
+            "Results go to a new list named after your search."
+          )}
+        </p>
       )}
 
       {createList.isError && (

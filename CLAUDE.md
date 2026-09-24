@@ -181,6 +181,8 @@ Copy `.env.example` to `.env`. Key required variables:
 | `/api/search/domain` | POST | Domain/company enrichment |
 | `/api/search/influencer` | POST | Influencer discovery across platforms |
 | `/api/search/[searchId]/status` | GET | Poll search status |
+| `/api/search/interpret` | POST | "Describe who you want": turn a sentence into a search type + validated form fields (`{ text }`); token-billed, never runs a search |
+| `/api/search/recent` | GET | Last 6 searches of the tenant with active lists (`{ searches, canRerun }`) |
 | `/api/enrich/email` | POST | Enrich a single lead's email (`{ leadId }`) |
 | `/api/enrich/phone` | POST | Enrich a single lead's phone (`{ leadId }`) |
 | `/api/enrich/bulk` | POST | Bulk enrich all un-emailed leads in a list (`{ listId }`) |

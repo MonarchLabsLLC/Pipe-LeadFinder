@@ -90,6 +90,9 @@ export function isGeneralMemberWorkspacePath(path: string): boolean {
   if (/^\/api\/search\/(people|local|company|domain|influencer)$/.test(path)) {
     return true
   }
+  // Recent searches read the bound tenant's history; interpret is tenant-billed
+  // and gated like the search routes (denyUnapprovedOwnerUsage).
+  if (path === "/api/search/recent" || path === "/api/search/interpret") return true
   if (/^\/api\/search\/[^/]+\/status$/.test(path)) return true
   if (/^\/api\/jobs\/[^/]+$/.test(path)) return true
   return (

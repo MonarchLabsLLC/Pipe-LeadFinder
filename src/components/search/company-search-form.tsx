@@ -1,16 +1,14 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, Coins } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { companySearchSchema, type CompanySearchInput } from "@/lib/validators/search"
-import {
-  formatScaledCreditText,
-  getPipeLeadsCreditCost,
-} from "@/lib/pipeleads-credit-pricing"
-import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { SearchCostEstimate } from "@/components/search/search-cost-estimate"
+import { AUTO_LIST_ID, buildAutoListName } from "@/lib/search-summary"
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,28 +26,35 @@ interface CompanySearchFormProps {
   onSubmit: (data: CompanySearchInput & { listId?: string }) => void
   onCancel: () => void
   isLoading?: boolean
+  /** Pre-fills the form (an example chip or "Describe who you want"). */
+  initialValues?: Partial<CompanySearchInput>
 }
 
-export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySearchFormProps) {
-  const { pricingMap } = usePipeLeadsPricing()
-  const companySearchCreditText = formatScaledCreditText(
-    getPipeLeadsCreditCost("search:company", pricingMap),
-    "company"
-  )
+export function CompanySearchForm({ onSubmit, onCancel, isLoading, initialValues }: CompanySearchFormProps) {
+  const defaults: Partial<CompanySearchInput> = {
+    resultsLimit: 10,
+    listId: AUTO_LIST_ID,
+  }
   const {
     register,
     handleSubmit,
+    reset,
     control,
     setValue,
     formState: { errors },
   } = useForm<CompanySearchInput>({
     resolver: zodResolver(companySearchSchema) as Resolver<CompanySearchInput>,
-    defaultValues: {
-      resultsLimit: 10,
-      listId: "",
-    },
+    defaultValues: { ...defaults, ...initialValues },
   })
-  const listId = useWatch({ control, name: "listId" })
+  const values = useWatch({ control })
+  const listId = values.listId
+  const autoName = buildAutoListName(SearchType.COMPANY, values)
+
+  // A new example or AI suggestion replaces what is in the form.
+  useEffect(() => {
+    if (initialValues) reset({ ...defaults, ...initialValues })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, reset])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -250,15 +255,8 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
               setValue("listId", value, { shouldDirty: true, shouldValidate: true })
             }
             searchType={SearchType.COMPANY}
+            autoName={autoName}
           />
-
-          {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-            <Coins className="size-3.5 shrink-0 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
-              Company search will consume {companySearchCreditText} returned.
-            </p>
-          </div>
 
           {/* Action Buttons */}
           <div className="mt-4 flex items-center justify-end gap-3">
@@ -274,6 +272,7 @@ export function CompanySearchForm({ onSubmit, onCancel, isLoading }: CompanySear
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>
           </div>
+          <SearchCostEstimate searchType={SearchType.COMPANY} resultsLimit={values.resultsLimit} />
         </div>
 
       </div>
