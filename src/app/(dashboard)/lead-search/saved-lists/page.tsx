@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Bookmark, LayoutGrid, List, Plus, Search } from "lucide-react"
+import { Bookmark, LayoutGrid, List, Plus, Search, SearchX } from "lucide-react"
+import { PageHeader } from "@/components/layout/page-header"
 import { ListCardSkeleton } from "@/components/ui/loading-skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
@@ -146,94 +147,113 @@ export default function SavedListsPage() {
     }
   }
 
+  const segment = (active: boolean) =>
+    cn(
+      "h-full rounded-md px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+      active
+        ? "bg-background text-foreground shadow-sm"
+        : "text-muted-foreground hover:text-foreground"
+    )
+
   return (
-    <div className="space-y-5">
-      {/* Filter tabs */}
-      <ListFilters
-        counts={counts}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Saved lists"
+        description="Every search saves its leads to a list you can enrich, score and send on."
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 size-4" aria-hidden />
+            Create New
+          </Button>
+        }
       />
 
-      {/* Search + Create row */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search lists..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button onClick={() => setCreateOpen(true)} className="shadow-sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Create New
-        </Button>
-      </div>
+      {/* Toolbar */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-0 flex-1 sm:max-w-72">
+            <label htmlFor="saved-lists-search" className="sr-only">
+              Search lists
+            </label>
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              id="saved-lists-search"
+              type="search"
+              placeholder="Search lists..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8"
+            />
+          </div>
 
-      {/* Active / Archive toggle + View mode */}
-      <div className="flex items-center justify-between">
-        {/* Segmented control */}
-        <div className="inline-flex items-center rounded-lg bg-muted p-1">
-          <button
-            onClick={() => setStatusFilter("ACTIVE")}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-              statusFilter === "ACTIVE"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+          <div
+            role="group"
+            aria-label="Show lists"
+            className="inline-flex h-9 shrink-0 items-center rounded-lg bg-muted p-[3px]"
           >
-            Active
-          </button>
-          <button
-            onClick={() => setStatusFilter("ARCHIVED")}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-              statusFilter === "ARCHIVED"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+            <button
+              type="button"
+              aria-pressed={statusFilter === "ACTIVE"}
+              onClick={() => setStatusFilter("ACTIVE")}
+              className={segment(statusFilter === "ACTIVE")}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              aria-pressed={statusFilter === "ARCHIVED"}
+              onClick={() => setStatusFilter("ARCHIVED")}
+              className={segment(statusFilter === "ARCHIVED")}
+            >
+              Archived
+            </button>
+          </div>
+
+          <div
+            role="group"
+            aria-label="Layout"
+            className="ml-auto inline-flex h-9 shrink-0 items-center rounded-lg bg-muted p-[3px]"
           >
-            Archived
-          </button>
+            <button
+              type="button"
+              aria-pressed={viewMode === "grid"}
+              aria-label="Grid view"
+              onClick={() => setViewMode("grid")}
+              className={cn(segment(viewMode === "grid"), "flex w-8 items-center justify-center px-0")}
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-pressed={viewMode === "list"}
+              aria-label="List view"
+              onClick={() => setViewMode("list")}
+              className={cn(segment(viewMode === "list"), "flex w-8 items-center justify-center px-0")}
+            >
+              <List className="size-4" aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <div className="inline-flex items-center rounded-lg bg-muted p-1 gap-0.5">
-          <button
-            onClick={() => setViewMode("grid")}
-            className={cn(
-              "flex items-center justify-center rounded-md h-8 w-8 transition-all",
-              viewMode === "grid"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={cn(
-              "flex items-center justify-center rounded-md h-8 w-8 transition-all",
-              viewMode === "list"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <List className="h-4 w-4" />
-          </button>
-        </div>
+        <ListFilters
+          counts={counts}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+        />
       </div>
 
       {/* List grid / list */}
       {isError ? (
         <ErrorState
-          message="Failed to load your saved lists. Please try again."
+          title="We could not load your saved lists"
+          message="Check your connection and try again."
           onRetry={() => refetch()}
         />
       ) : isLoading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <ListCardSkeleton key={i} />
           ))}
@@ -253,16 +273,16 @@ export default function SavedListsPage() {
           />
         ) : (
           <EmptyState
-            icon={Search}
-            title="No lists match your filters"
-            description="Try adjusting your search query or filter to find what you are looking for."
+            icon={SearchX}
+            title="No lists match that search"
+            description="Try a shorter search or another type, or clear the filters to see every list."
           />
         )
       ) : (
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+              ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               : "flex flex-col gap-3"
           }
         >

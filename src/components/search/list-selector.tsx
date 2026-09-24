@@ -72,7 +72,7 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
         value={isCreating ? CREATE_NEW_VALUE : value || ""}
         onValueChange={handleSelectChange}
       >
-        <SelectTrigger className="h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={listsLoading ? "Loading lists..." : "Select a list"} />
         </SelectTrigger>
         <SelectContent>
@@ -102,7 +102,7 @@ export function ListSelector({ value, onChange, searchType }: ListSelectorProps)
                 handleCreateList()
               }
             }}
-            className="h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+           
             autoFocus
           />
           <Button

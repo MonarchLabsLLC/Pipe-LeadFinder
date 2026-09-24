@@ -34,6 +34,7 @@ import { HandoffButtons } from "@/components/handoff/handoff-buttons"
 import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
 import { useLabels, useApplyLabel } from "@/hooks/useLabels"
 import { appToast } from "@/lib/app-toast"
+import { cn } from "@/lib/utils"
 import type { LeadScoreSummary } from "@/lib/lead-score"
 
 export interface LeadData {
@@ -92,28 +93,28 @@ function scoreTone(score: number) {
   if (score >= 80) {
     return {
       icon: Flame,
-      labelClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
-      barClass: "bg-emerald-500",
+      labelClass: "bg-success/10 text-success",
+      barClass: "bg-success",
     }
   }
   if (score >= 60) {
     return {
       icon: Target,
-      labelClass: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
-      barClass: "bg-blue-500",
+      labelClass: "bg-info/10 text-info",
+      barClass: "bg-info",
     }
   }
   if (score >= 40) {
     return {
       icon: Radar,
-      labelClass: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
-      barClass: "bg-amber-500",
+      labelClass: "bg-warning/10 text-warning",
+      barClass: "bg-warning",
     }
   }
   return {
     icon: Sparkles,
-    labelClass: "bg-muted text-muted-foreground border-border",
-    barClass: "bg-muted-foreground",
+    labelClass: "bg-muted text-muted-foreground",
+    barClass: "bg-muted-foreground/60",
   }
 }
 
@@ -121,7 +122,7 @@ function LeadScoreCell({ score }: { score: LeadScoreSummary | null }) {
   if (!score) {
     return (
       <div className="space-y-1">
-        <Badge variant="outline" className="text-[11px]">
+        <Badge variant="outline" className="text-muted-foreground">
           Not scored
         </Badge>
         <p className="text-xs text-muted-foreground">Run Score Leads</p>
@@ -135,10 +136,10 @@ function LeadScoreCell({ score }: { score: LeadScoreSummary | null }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="w-full max-w-[190px] rounded-md border border-transparent p-1.5 text-left transition-colors hover:border-border hover:bg-muted/40">
+        <button type="button" className="w-full max-w-[190px] rounded-md p-1.5 text-left transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
           <div className="flex items-center gap-2">
-            <Badge className={tone.labelClass}>
-              <Icon className="mr-1 size-3" />
+            <Badge variant="secondary" className={cn("tabular-nums", tone.labelClass)}>
+              <Icon aria-hidden />
               {score.score}
             </Badge>
             <span className="text-xs font-medium text-foreground">
@@ -167,12 +168,12 @@ function LeadScoreCell({ score }: { score: LeadScoreSummary | null }) {
                 {score.model ? `Scored with ${score.model}` : "AI-ranked lead"}
               </p>
             </div>
-            <Badge className={tone.labelClass}>{score.score}/100</Badge>
+            <Badge variant="secondary" className={cn("tabular-nums", tone.labelClass)}>{score.score}/100</Badge>
           </div>
 
           {score.why.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-xs font-medium uppercase text-muted-foreground">
+              <p className="text-xs font-medium text-muted-foreground">
                 Why this lead
               </p>
               <ul className="space-y-1 text-sm text-foreground">
@@ -329,10 +330,10 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
         <div className="flex items-center gap-3">
           <Avatar size="lg">
             {lead.avatarUrl && <AvatarImage src={lead.avatarUrl} alt={name} />}
-            <AvatarFallback>{getInitials(name)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 font-medium text-primary">{getInitials(name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <button className="text-sm font-medium text-foreground hover:underline truncate block text-left">
+            <button type="button" className="block truncate text-left text-sm font-medium text-foreground hover:underline">
               {name}
             </button>
             {lead.title && (
@@ -354,7 +355,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-blue-600">
+                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
                     <Linkedin className="size-3.5" />
                   </Button>
                 </a>
@@ -366,7 +367,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-blue-700">
+                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
                     <Facebook className="size-3.5" />
                   </Button>
                 </a>
@@ -399,17 +400,17 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
           {/* Email section */}
           {lead.emailStatus === "FOUND" && lead.email ? (
             <div className="space-y-1">
-              <span className="text-sm text-foreground">{lead.email}</span>
-              <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+              <span className="block max-w-[220px] truncate text-sm text-foreground" title={lead.email}>{lead.email}</span>
+              <Badge variant="secondary" className="bg-success/10 text-success">
                 Email Found
               </Badge>
             </div>
           ) : lead.emailStatus === "POTENTIAL" ? (
             <div className="space-y-1">
               {lead.email && (
-                <span className="text-sm text-foreground">{lead.email}</span>
+                <span className="block max-w-[220px] truncate text-sm text-foreground" title={lead.email}>{lead.email}</span>
               )}
-              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800">
+              <Badge variant="secondary" className="bg-warning/10 text-warning">
                 Potential Email
               </Badge>
             </div>
@@ -428,7 +429,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
                 )}
                 {enrichEmail.isPending ? "Finding..." : "Add Email"}
               </Button>
-              <p className="text-xs text-destructive">No Email Found</p>
+              <p className="text-xs text-muted-foreground">No email found</p>
             </div>
           )}
 
@@ -515,7 +516,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
-              <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-blue-600">
+              <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
                 <Linkedin className="size-3.5" />
               </Button>
             </a>

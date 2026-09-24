@@ -75,9 +75,9 @@ const LANGUAGES = [
 ] as const
 
 const inputClass =
-  "h-10 rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+  ""
 const selectClass =
-  "h-10 w-full rounded-lg border-border transition focus:ring-2 focus:ring-primary/20"
+  "w-full"
 
 function optionalNumberValue(value: string) {
   if (value === "") return undefined
@@ -127,9 +127,9 @@ export function InfluencerSearchForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
         <section className="pb-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Platform
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -151,7 +151,7 @@ export function InfluencerSearchForm({
               </button>
             ))}
           </div>
-          <div className="mt-4 flex items-start gap-2 rounded-r-lg border-l-2 border-primary bg-primary/5 px-4 py-2">
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
             <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
             <p className="text-sm text-muted-foreground">
               Start broad with a clear niche, then narrow by followers and engagement.
@@ -162,7 +162,7 @@ export function InfluencerSearchForm({
         <Separator />
 
         <section className="py-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Search criteria
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -263,7 +263,7 @@ export function InfluencerSearchForm({
         <Separator />
 
         <section className="py-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-semibold">
             Supported filters
           </h3>
           <Separator className="mt-2 mb-4" />
@@ -336,13 +336,13 @@ export function InfluencerSearchForm({
             onChange={(value) => setValue("listId", value, { shouldDirty: true, shouldValidate: true })}
             searchType={SearchType.INFLUENCER}
           />
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/30 px-4 py-2.5">
+          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
             <Coins className="size-3.5 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">Influencer search consumes {creditText} returned.</p>
           </div>
           <div className="mt-4 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-            <Button type="submit" disabled={isLoading || !listId} className="h-11 px-8">
+            <Button type="submit" disabled={isLoading || !listId} className="min-w-32">
               {isLoading ? "Searching..." : "Continue"}
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>

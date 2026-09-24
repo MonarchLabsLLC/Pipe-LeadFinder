@@ -50,7 +50,7 @@ export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTa
   }, [])
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {selectedIds.size > 0 && (
         <BulkActionBar
           listId={listId}
@@ -63,10 +63,10 @@ export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTa
           onJobQueued={onJobQueued}
         />
       )}
-      <div className="rounded-md border overflow-x-auto">
+      <div className="overflow-hidden rounded-md border bg-card">
       <Table className="min-w-[900px]">
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead className="w-[40px]">
               <Checkbox
                 checked={allSelected ? true : someSelected ? "indeterminate" : false}

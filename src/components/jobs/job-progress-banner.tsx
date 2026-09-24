@@ -27,14 +27,14 @@ export function JobProgressBanner({
   if (!jobId) return null
   if (error) {
     return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+      <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive" role="alert">
         Operation status could not be loaded. Refresh to try again.
       </div>
     )
   }
   if (!job) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border bg-card p-4 text-sm">
+      <div className="flex items-center gap-2 rounded-xl border bg-card p-4 text-sm text-muted-foreground shadow-sm">
         <Loader2 className="size-4 animate-spin" /> Loading operation status…
       </div>
     )
@@ -42,17 +42,17 @@ export function JobProgressBanner({
 
   const active = job.status === "QUEUED" || job.status === "RUNNING"
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
+    <div className="rounded-xl border bg-card p-4 shadow-sm" aria-live="polite">
       <div className="flex items-center gap-2">
         {active ? (
           <Loader2 className="size-4 animate-spin text-primary" />
         ) : job.status === "COMPLETED" ? (
-          <CheckCircle2 className="size-4 text-emerald-600" />
+          <CheckCircle2 className="size-4 text-success" />
         ) : (
           <AlertCircle className="size-4 text-destructive" />
         )}
         <p className="text-sm font-medium">{job.stage || job.status}</p>
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto text-xs tabular-nums text-muted-foreground">
           {job.progress.percent}%
         </span>
       </div>

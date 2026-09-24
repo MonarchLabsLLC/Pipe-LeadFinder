@@ -107,8 +107,12 @@ export function BulkActionBar({
   }
 
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
-      <span className="mr-1 text-sm font-medium">{entryIds.length} selected</span>
+    <div
+      role="toolbar"
+      aria-label="Bulk actions"
+      className="flex flex-wrap items-center gap-2 rounded-md border border-primary/20 bg-primary/5 p-2"
+    >
+      <span className="mr-1 px-1 text-sm font-medium tabular-nums">{entryIds.length} selected</span>
       <Button size="sm" variant="outline" disabled={bulk.isPending} onClick={() => run("ENRICH_EMAIL")}>
         <Mail className="size-3.5" /> Email
       </Button>
@@ -120,7 +124,7 @@ export function BulkActionBar({
       </Button>
 
       <Select value={labelId} onValueChange={setLabelId}>
-        <SelectTrigger className="h-8 w-40"><SelectValue placeholder="Choose label" /></SelectTrigger>
+        <SelectTrigger size="sm" className="w-40 bg-background"><SelectValue placeholder="Choose label" /></SelectTrigger>
         <SelectContent>
           {labels.map((label) => <SelectItem key={label.id} value={label.id}>{label.name}</SelectItem>)}
         </SelectContent>
@@ -130,7 +134,7 @@ export function BulkActionBar({
       </Button>
 
       <Select value={targetListId} onValueChange={setTargetListId}>
-        <SelectTrigger className="h-8 w-44"><SelectValue placeholder="Destination list" /></SelectTrigger>
+        <SelectTrigger size="sm" className="w-44 bg-background"><SelectValue placeholder="Destination list" /></SelectTrigger>
         <SelectContent>
           {lists.filter((list) => list.id !== listId).map((list) => (
             <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
@@ -152,7 +156,7 @@ export function BulkActionBar({
       {(integrations.data?.length ?? 0) > 0 && (
         <>
           <Select value={integrationId} onValueChange={setIntegrationId}>
-            <SelectTrigger className="h-8 w-44"><SelectValue placeholder="Webhook" /></SelectTrigger>
+            <SelectTrigger size="sm" className="w-44 bg-background"><SelectValue placeholder="Webhook" /></SelectTrigger>
             <SelectContent>
               {integrations.data?.map((integration) => (
                 <SelectItem key={integration.id} value={integration.id}>{integration.name}</SelectItem>
