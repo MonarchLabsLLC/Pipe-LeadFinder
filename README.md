@@ -23,7 +23,7 @@ Part of the [Scale.gg](https://scale.gg) ecosystem.
 | Database | PostgreSQL + Prisma 7 |
 | Auth | Keycloak (OIDC) bridged to NextAuth 5 (Auth.js) |
 | Data Engine | Apify (lead sourcing + enrichment) |
-| AI | Vercel AI SDK 6 (OpenAI `gpt-5.4-nano`) |
+| AI | Vercel AI SDK 6 + OpenRouter (`deepseek/deepseek-v4.1-flash`, fallback `deepseek/deepseek-v4-flash-0731`) |
 | Scraping | Firecrawl (Knowledge Base website crawling) |
 | State | React Query 5, Zod 4, React Hook Form 7 |
 | Runtime | Node.js 24.x LTS |
@@ -48,7 +48,7 @@ Required environment variables:
 - `DATABASE_URL` — PostgreSQL connection string
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `APIFY_API_KEY` — your Apify API token
-- `OPENAI_API_KEY` — for AI Assistant features
+- `OPEN_ROUTER_API_KEY` (or `OPENROUTER_API_KEY`) — OpenRouter key for every AI feature; optional `LEADFINDER_AI_MODEL` overrides the model
 - `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production authentication
 - `PIPELEADS_AGENT_CRON_SECRET` — required to trigger scheduled AI agents
 

@@ -20,6 +20,7 @@ import {
 import {
   getAiLanguageModel,
   getAiRuntimeConfig,
+  resolveBilledModel,
 } from "@/services/ai-runtime"
 import type { AiAgent, Lead } from "@/generated/prisma/client"
 import type { SearchType } from "@/generated/prisma/enums"
@@ -149,20 +150,21 @@ async function saveAiResult(
   const systemPrompt = buildSystemPrompt(actionType, businessContext)
   const userPrompt = buildUserPrompt(actionType, leadContext)
 
-  const { text, usage } = await generateText({
+  const { text, usage, response } = await generateText({
     model: getAiLanguageModel(AGENT_AI_CONFIG),
     system: systemPrompt,
     prompt: userPrompt,
     maxOutputTokens: 1_500,
   })
 
+  const billedModel = resolveBilledModel(AGENT_AI_CONFIG, response?.modelId)
   await prisma.aiResult.create({
     data: {
       leadId,
       actionType,
       prompt: userPrompt,
       result: text,
-      model: AGENT_AI_CONFIG.model,
+      model: billedModel,
     },
   })
 
@@ -171,9 +173,11 @@ async function saveAiResult(
       user.id,
       {
         provider: AGENT_AI_CONFIG.provider,
-        model: AGENT_AI_CONFIG.model,
+        model: billedModel,
         inputTokens: usage.inputTokens ?? 0,
         outputTokens: usage.outputTokens ?? 0,
+        description: `Lead Finder AI agent (${actionType})`,
+        metadata: { feature: "agent", actionType, leadId },
       },
       user.email
     )

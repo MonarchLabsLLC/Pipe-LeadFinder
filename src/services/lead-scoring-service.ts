@@ -6,7 +6,11 @@ import {
   type LeadScoreSummary,
 } from "@/lib/lead-score"
 import { getBusinessContext } from "@/services/ai-service"
-import { getAiLanguageModel, getAiRuntimeConfig } from "@/services/ai-runtime"
+import {
+  getAiLanguageModel,
+  getAiRuntimeConfig,
+  resolveBilledModel,
+} from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
 import type { Lead } from "@/generated/prisma/client"
 
@@ -166,6 +170,7 @@ export async function scoreLeadsForList({
   beforePersist?: () => Promise<void>
   onGenerated?: (result: {
     text: string
+    model: string
     inputTokens: number | undefined
     outputTokens: number | undefined
   }) => Promise<void>
@@ -183,7 +188,7 @@ export async function scoreLeadsForList({
   const now = new Date().toISOString()
   const compactLeads = leads.map(compactLead)
 
-  const { text, usage } = await generateText({
+  const { text, usage, response } = await generateText({
     model: getAiLanguageModel(LEAD_SCORING_AI_CONFIG),
     ...(requireBillingSuccess ? { maxRetries: 0 } : {}),
     maxOutputTokens: Math.min(8_000, 500 + leads.length * 300),
@@ -208,8 +213,10 @@ Return one JSON object for every lead using this exact shape:
 }`,
   })
 
+  const billedModel = resolveBilledModel(LEAD_SCORING_AI_CONFIG, response?.modelId)
   await onGenerated?.({
     text,
+    model: billedModel,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
   })
@@ -225,7 +232,7 @@ Return one JSON object for every lead using this exact shape:
     .map((score) => ({
       ...score,
       scoredAt: now,
-      model: LEAD_SCORING_AI_CONFIG.model,
+      model: billedModel,
     }))
 
   const scoredIds = new Set(leadScores.map((score) => score.leadId))
@@ -251,7 +258,7 @@ Return one JSON object for every lead using this exact shape:
           actionType: "CUSTOM",
           prompt: promptTag,
           result: JSON.stringify(score),
-          model: LEAD_SCORING_AI_CONFIG.model,
+          model: billedModel,
         })),
       }),
     ])
@@ -264,9 +271,11 @@ Return one JSON object for every lead using this exact shape:
       userId,
       {
         provider: LEAD_SCORING_AI_CONFIG.provider,
-        model: LEAD_SCORING_AI_CONFIG.model,
+        model: billedModel,
         inputTokens: usage.inputTokens ?? 0,
         outputTokens: usage.outputTokens ?? 0,
+        description: `Lead Finder AI lead scoring (${leads.length} leads)`,
+        metadata: { feature: "scoring", listId, leadCount: leads.length },
         idempotencyKey,
       },
       email
@@ -282,6 +291,6 @@ Return one JSON object for every lead using this exact shape:
   return {
     scoredCount: leadScores.length,
     leadScores,
-    model: LEAD_SCORING_AI_CONFIG.model,
+    model: billedModel,
   }
 }

@@ -6,7 +6,7 @@
  * before a search runs, so this never spends search credits itself.
  */
 
-import { generateText, Output } from "ai"
+import { generateText, NoObjectGeneratedError, Output } from "ai"
 import { z } from "zod"
 import {
   companySearchSchema,
@@ -15,7 +15,11 @@ import {
   localSearchSchema,
   peopleSearchSchema,
 } from "@/lib/validators/search"
-import { getAiLanguageModel, getAiRuntimeConfig } from "@/services/ai-runtime"
+import {
+  getAiLanguageModel,
+  getAiRuntimeConfig,
+  resolveBilledModel,
+} from "@/services/ai-runtime"
 import { consumeTokenCredits } from "@/services/credits-service"
 import {
   SEARCH_RESULT_LIMITS,
@@ -184,19 +188,53 @@ export interface InterpretDeps {
   generate: (text: string) => Promise<{
     output: InterpretModelOutput
     usage: { inputTokens?: number; outputTokens?: number }
+    /** The model OpenRouter reports as having answered. */
+    modelId?: string
   }>
   bill: typeof consumeTokenCredits
 }
 
-async function generateWithModel(text: string) {
-  const { output, usage } = await generateText({
-    model: getAiLanguageModel(INTERPRET_AI_CONFIG),
-    output: Output.object({ schema: interpretModelSchema, name: "lead_search" }),
-    system: SYSTEM_PROMPT,
-    prompt: text,
-    maxOutputTokens: 2_000,
-  })
-  return { output, usage }
+const UNCLEAR_OUTPUT: InterpretModelOutput = { searchType: "UNCLEAR", explanation: "", fields: [] }
+
+/**
+ * Recover the answer when the provider returned JSON the SDK could not accept
+ * as-is (wrapped in a code fence or prose). Still validated by the schema.
+ */
+export function repairInterpretOutput(text: string | undefined): InterpretModelOutput | null {
+  if (!text) return null
+  const start = text.indexOf("{")
+  const end = text.lastIndexOf("}")
+  if (start < 0 || end <= start) return null
+  try {
+    const parsed = interpretModelSchema.safeParse(JSON.parse(text.slice(start, end + 1)))
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
+  }
+}
+
+export async function generateWithModel(text: string) {
+  try {
+    const { output, usage, response } = await generateText({
+      model: getAiLanguageModel(INTERPRET_AI_CONFIG),
+      output: Output.object({ schema: interpretModelSchema, name: "lead_search" }),
+      system: SYSTEM_PROMPT,
+      prompt: text,
+      maxOutputTokens: 2_000,
+    })
+    return { output, usage, modelId: response?.modelId }
+  } catch (error) {
+    // Tokens were spent even though the JSON did not validate: keep them for
+    // billing and fall back to the lenient parse, or "unclear".
+    if (NoObjectGeneratedError.isInstance(error)) {
+      return {
+        output: repairInterpretOutput(error.text) ?? UNCLEAR_OUTPUT,
+        usage: error.usage ?? {},
+        modelId: error.response?.modelId,
+      }
+    }
+    throw error
+  }
 }
 
 const defaultDeps: InterpretDeps = { generate: generateWithModel, bill: consumeTokenCredits }
@@ -205,7 +243,7 @@ export async function interpretSearch(
   input: { text: string; userId: string; email?: string | null; idempotencyKey?: string },
   deps: InterpretDeps = defaultDeps
 ): Promise<InterpretResult> {
-  const { output, usage } = await deps.generate(input.text)
+  const { output, usage, modelId } = await deps.generate(input.text)
 
   // Tokens were spent whatever the answer, so bill like every other AI action.
   if (usage?.inputTokens || usage?.outputTokens) {
@@ -213,9 +251,11 @@ export async function interpretSearch(
       input.userId,
       {
         provider: INTERPRET_AI_CONFIG.provider,
-        model: INTERPRET_AI_CONFIG.model,
+        model: resolveBilledModel(INTERPRET_AI_CONFIG, modelId),
         inputTokens: usage.inputTokens ?? 0,
         outputTokens: usage.outputTokens ?? 0,
+        description: "Lead Finder AI search interpretation",
+        metadata: { feature: "search-interpret" },
         idempotencyKey: input.idempotencyKey,
       },
       input.email

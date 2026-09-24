@@ -177,8 +177,8 @@ describe("interpretSearch — unusable input and billing", () => {
     expect(bill).toHaveBeenCalledWith(
       "user_1",
       expect.objectContaining({
-        provider: "openai",
-        model: "gpt-5.4-nano",
+        provider: "openrouter",
+        model: "deepseek/deepseek-v4.1-flash",
         inputTokens: 120,
         outputTokens: 40,
         idempotencyKey: "idem-1",
@@ -208,5 +208,49 @@ describe("interpretSearch — unusable input and billing", () => {
     })
     const result = await interpretSearch(input, d)
     expect(result).toMatchObject({ ok: true, explanation: "you described businesses in a place" })
+  })
+})
+
+describe("interpretSearch — OpenRouter billing and JSON repair", () => {
+  it("bills the fallback model when OpenRouter answered with it", async () => {
+    const bill = vi.fn(async () => ({ success: true, debited: 1, availableCredits: 99 }))
+    const generate = vi.fn(async () => ({
+      output: {
+        searchType: "LOCAL" as const,
+        explanation: "you described businesses in a place",
+        fields: [
+          { name: "businessType", value: "Dentist" },
+          { name: "location", value: "Tampa, FL" },
+        ],
+      },
+      usage: { inputTokens: 300, outputTokens: 60 },
+      modelId: "deepseek/deepseek-v4-flash-0731",
+    }))
+    await interpretSearch(input, { generate, bill } as unknown as InterpretDeps)
+    expect(bill).toHaveBeenCalledWith(
+      "user_1",
+      expect.objectContaining({
+        provider: "openrouter",
+        model: "deepseek/deepseek-v4-flash-0731",
+        inputTokens: 300,
+        outputTokens: 60,
+        description: "Lead Finder AI search interpretation",
+      }),
+      "me@x.co"
+    )
+  })
+
+  it("repairs JSON wrapped in a code fence and rejects anything invalid", async () => {
+    const { repairInterpretOutput } = await import("./search-interpret-service")
+    const fenced =
+      '```json\n{"searchType":"LOCAL","explanation":"x","fields":[{"name":"location","value":"Tampa, FL"}]}\n```'
+    expect(repairInterpretOutput(fenced)).toEqual({
+      searchType: "LOCAL",
+      explanation: "x",
+      fields: [{ name: "location", value: "Tampa, FL" }],
+    })
+    expect(repairInterpretOutput('{"searchType":"NOPE"}')).toBeNull()
+    expect(repairInterpretOutput("no json here")).toBeNull()
+    expect(repairInterpretOutput(undefined)).toBeNull()
   })
 })

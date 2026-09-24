@@ -4,6 +4,7 @@ import { denyUnapprovedOwnerUsage, resolveWorkspaceScope } from "@/lib/scale-wor
 import { ensureUser } from "@/lib/ensure-user"
 import { guardCredits } from "@/lib/credit-guard"
 import { interpretRequestSchema, interpretSearch } from "@/services/search-interpret-service"
+import { describeAiError } from "@/services/ai-runtime"
 
 /**
  * POST /api/search/interpret — "Describe who you want".
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     })
     return NextResponse.json(result)
   } catch (error) {
-    console.error("[SearchInterpret] Failed:", (error as Error).message)
+    console.error("[SearchInterpret] Failed:", describeAiError(error))
     return NextResponse.json(
       { error: "The search assistant is unavailable right now. Pick a search below instead." },
       { status: 503 }

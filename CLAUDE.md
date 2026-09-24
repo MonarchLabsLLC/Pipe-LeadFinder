@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Important: Use Ref MCP for API Documentation
 
-**ALWAYS use the Ref MCP tool (`ref_search_documentation` / `ref_read_url`) when working with external API models, SDKs, or libraries.** This includes OpenAI, Vercel AI SDK, Apify, Prisma, NextAuth, and any other third-party API. Do not rely on memory alone — check the current docs to avoid using deprecated models, removed endpoints, or outdated patterns.
+**ALWAYS use the Ref MCP tool (`ref_search_documentation` / `ref_read_url`) when working with external API models, SDKs, or libraries.** This includes OpenRouter, Vercel AI SDK, Apify, Prisma, NextAuth, and any other third-party API. Do not rely on memory alone — check the current docs to avoid using deprecated models, removed endpoints, or outdated patterns.
 
 ## Project
 
@@ -41,7 +41,7 @@ npx shadcn@latest add <component>    # Add component (button, card, etc.)
 - **TypeScript 5**, **Tailwind 4**, **shadcn/ui**
 - **NextAuth 5** (Auth.js), **Prisma 7** (PostgreSQL)
 - **React Query**, **Zod**, **React Hook Form**
-- **Vercel AI SDK 6** with OpenAI (`@ai-sdk/openai`), hard-locked to `gpt-5.4-nano`
+- **Vercel AI SDK 6** with OpenRouter (`@openrouter/ai-sdk-provider`), `deepseek/deepseek-v4.1-flash` with fallback `deepseek/deepseek-v4-flash-0731` (`src/services/ai-runtime.ts`, same setup as ClickCampaigns)
 - **Tiptap 3** (rich text editor), **Firecrawl** (web scraping), **Apify** (web automation), **Pexels** (stock photos)
 
 ### Authentication Pattern
@@ -118,7 +118,7 @@ All five search types (`/api/search/people`, `/api/search/local`, `/api/search/c
 
 ### AI Service Architecture
 
-- **AI Assistant** (`/api/ai/assistant`): Uses Vercel AI SDK `streamText`. `src/services/ai-runtime.ts` selects OpenAI or Google from environment configuration. Prompts combine lead context with the Knowledge Base; token costs are charged in `onFinish`.
+- **AI Assistant** (`/api/ai/assistant`): Uses Vercel AI SDK `streamText`. `src/services/ai-runtime.ts` builds the OpenRouter model (DeepSeek V4.1 Flash, reasoning off, fallback model list) for every feature. Prompts combine lead context with the Knowledge Base; token costs are charged in `onFinish`.
 - **Knowledge Base** (`/api/ai/knowledge-base`): CRUD for `BusinessProfile` + `DataSource` records. Data sources can be WEBSITE (crawled via Firecrawl), TEXT, QA, or PDF. The business context is injected into all AI prompts.
 - **Lead scoring** (`/api/lists/[id]/score`): Scores all leads in a list against the user's business context, stores score results as `AiResult` records, and charges token usage.
 - **AI Agents** (`/api/ai/agent`): CRUD, manual run, and protected scheduled-run endpoint for `AiAgent` pipelines. The runner can search, enrich, generate summaries or DMs, and POST result payloads to configured webhooks.
@@ -132,7 +132,7 @@ Copy `.env.example` to `.env`. Key required variables:
 - `AUTH_URL` — app URL (`http://localhost:3000` for dev)
 - `DEV_AUTO_LOGIN=true` — enables dev auto-login
 - `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production Keycloak configuration
-- `OPENAI_API_KEY` — for AI assistant features
+- `OPEN_ROUTER_API_KEY` (or `OPENROUTER_API_KEY`) — OpenRouter key for every AI feature; optional `LEADFINDER_AI_MODEL` overrides the primary model
 - `APIFY_API_KEY` — Apify platform API key
 - `APIFY_ACTOR_ENRICH_EMAIL=code_crafter/personal-email-finder` — person-level email enrichment actor
 - `APIFY_ACTOR_ENRICH_PHONE=code_crafter/mobile-finder` — person-level phone enrichment actor
