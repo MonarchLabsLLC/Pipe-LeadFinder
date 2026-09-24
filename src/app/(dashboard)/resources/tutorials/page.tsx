@@ -393,9 +393,9 @@ export default function TutorialsPage() {
                   </div>
 
                   <Note>
-                    Your credit balance sits in the slim <strong>credits bar</strong> pinned to
-                    the bottom of every screen. Each search and enrichment action uses credits.
-                    Hover over the balance and choose <strong>Open Credit Wallet</strong> to buy more.
+                    Your credit balance sits under your name in the <strong>account row</strong> at
+                    the bottom-left of the sidebar. Each search and enrichment action uses credits.
+                    Click your name and choose <strong>Open Credit Wallet</strong> to buy more.
                   </Note>
 
                   <div className="space-y-3">
@@ -472,13 +472,13 @@ export default function TutorialsPage() {
                   </Tip>
 
                   <p className="text-sm text-muted-foreground">
-                    Your live credit balance is always visible in the credits bar at the
-                    bottom of the screen. If it runs out, searches and enrichment pause until
-                    you add more credits.
+                    Your live credit balance is always visible under your name at the
+                    bottom-left of the sidebar. If it runs out, searches and enrichment pause
+                    until you add more credits.
                   </p>
 
                   <p className="text-sm text-muted-foreground">
-                    To buy more credits, open the credits bar and choose{" "}
+                    To buy more credits, click your name at the bottom-left and choose{" "}
                     <strong>Open Credit Wallet</strong> — it links directly to{" "}
                     <a
                       href="https://credits.scaleplus.gg/"
@@ -493,12 +493,12 @@ export default function TutorialsPage() {
                 </CardContent>
               </Card>
 
-              {/* ── The credits bar ── */}
+              {/* ── Your account and credits ── */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Wallet aria-hidden="true" className="h-5 w-5 text-primary" />
-                    The Credits Bar
+                    Your Account &amp; Credits
                   </CardTitle>
                   <CardDescription>
                     Your balance, always in view and never in the way
@@ -506,15 +506,17 @@ export default function TutorialsPage() {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <p className="text-sm text-muted-foreground">
-                    A slim bar is pinned to the bottom of every Lead Finder screen showing your
-                    live balance, for example <strong>273,281 credits</strong>. It stays put while
-                    the page scrolls and fits on one line on a phone.
+                    The account row at the bottom-left of the sidebar shows your name and, under
+                    it, your live balance, for example <strong>273,281 credits</strong>. With the
+                    sidebar collapsed to icons, point at your avatar to see the balance. On a
+                    phone the balance also shows as a small chip in the header; tap it to open
+                    the menu.
                   </p>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {[
                       ["Grey", "All good. Plenty of credits for your next searches."],
                       ["Amber", "Running low: less than a 25-result People search at today's price."],
-                      ["Red", "Out of credits. A Top up link appears on the right of the bar."],
+                      ["Red", "Out of credits. Searches and enrichment pause until you top up."],
                     ].map(([state, desc]) => (
                       <div key={state} className="flex gap-2">
                         <span className="w-16 shrink-0 font-medium text-foreground">{state}</span>
@@ -523,10 +525,12 @@ export default function TutorialsPage() {
                     ))}
                   </div>
                   <Tip>
-                    <strong>Hover over the balance</strong> (or click it, tap it, or Tab to it
-                    and press Enter) to see your balance, the credits you've used, the price per
-                    result for each search type, and an <strong>Open Credit Wallet</strong> button.
-                    You're only charged for results we find.
+                    <strong>Click your name</strong> (or Tab to it and press Enter) to open the
+                    account menu: credits remaining, the credits you've used,{" "}
+                    <strong>What things cost</strong> (the price per result for each search
+                    type), an <strong>Open Credit Wallet</strong> button, then Integrations,
+                    Theme, Help &amp; Tutorials, Support and Log out. You're only charged for
+                    results we find.
                   </Tip>
                 </CardContent>
               </Card>

@@ -267,6 +267,8 @@ All tasks in this phase are independent and can run simultaneously.
 **Acceptance:** Clicking export downloads a CSV with all lead data from the list.
 
 ### Task 4.3: Admin Placeholder Pages
+> Retired 2026-09-24: the Admin and resources placeholder pages were removed; their URLs redirect to New Search (`next.config.ts`).
+
 **Files:** `src/app/(dashboard)/admin/[...slug]/page.tsx`
 **Work:**
 - Catch-all route for all admin pages

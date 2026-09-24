@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { Command, CornerDownLeft, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -14,10 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import {
-  adminMenu,
   aiToolsMenu,
   appItems,
-  isAdminUser,
   leadSearchItems,
   resourceItems,
   type NavItem,
@@ -75,22 +72,18 @@ export function HeaderSearch() {
 }
 
 function useDestinations(): Destination[] {
-  const { data: session } = useSession()
-  const showAdmin = isAdminUser(session?.user?.email, session?.user?.role)
-
   return React.useMemo(() => {
     const local = (group: string, items: NavItem[]) =>
       items.map((item) => ({ ...item, group, external: false }))
     return [
       ...local("Lead Search", leadSearchItems),
       ...local("AI Tools", aiToolsMenu.items),
-      ...(showAdmin ? local("Admin", adminMenu.items) : []),
       ...local("Resources", resourceItems),
       ...appItems
         .filter((app) => !app.current)
         .map((app) => ({ ...app, group: "Apps", external: true })),
     ]
-  }, [showAdmin])
+  }, [])
 }
 
 function JumpPalette({

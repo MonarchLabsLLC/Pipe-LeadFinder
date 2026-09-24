@@ -69,7 +69,6 @@ All authenticated pages live under the `(dashboard)` route group, which wraps co
 - `/ai/ai-assistant` — per-lead AI actions (DM, summary, subject lines, etc.)
 - `/ai/ai-agent` — automated prospecting pipeline builder and scheduler
 - `/ai/knowledge-base` — business profile + data sources for AI personalization
-- `/admin/[...slug]` — admin pages (role-restricted)
 - `/resources/support` — support page
 - `/resources/tutorials` — tutorial content
 
@@ -81,7 +80,7 @@ Theme defined in `src/app/globals.css`:
 - `@theme inline` block maps to Tailwind utilities
 - Fonts: Inter (sans), JetBrains Mono (mono), loaded with `next/font` in `src/app/layout.tsx`
 - The tokens are a copy of PipeLeads Suite's `globals.css`; keep them identical so every PipeLeads app looks the same. Light/dark is `next-themes` with `attribute="class"` (toggle in the header)
-- The shell mirrors the Suite's: `src/components/layout/sidebar.tsx` (Apps group, then Lead Finder's groups), `topbar.tsx` (breadcrumb, search palette, ScalePlus launcher, Agent, theme toggle, user menu) and `nav-config.ts` (every nav entry, page title and the `NEXT_PUBLIC_PIPELEADS_SUITE_URL` links)
+- The shell mirrors the Suite's: `src/components/layout/sidebar.tsx` (Apps group, then Lead Finder's groups, and `sidebar-account.tsx` pinned in the footer: avatar, name and live credit balance, opening the account menu with usage, prices, Credit Wallet, theme, help and log out), `topbar.tsx` (breadcrumb, search palette, ScalePlus launcher, Agent, theme toggle, user menu) and `nav-config.ts` (every nav entry, page title and the `NEXT_PUBLIC_PIPELEADS_SUITE_URL` links)
 - Use theme tokens (`bg-primary`, `text-muted-foreground`, `bg-success`, `bg-cat-*`) rather than Tailwind palette colours or hex values
 
 To update theme: `npx shadcn@latest add https://tweakcn.com/r/themes/<id>`
