@@ -59,7 +59,13 @@ export function HandoffSplitButton({
           </Button>
         </PopoverTrigger>
       </div>
-      <PopoverContent className="w-80 p-0" align="end">
+      {/* Capped at the room Radix measures below (or above) the trigger, so the
+          footer's send button is always on screen; the middle scrolls. */}
+      <PopoverContent
+        className="flex max-h-[min(32rem,var(--radix-popover-content-available-height))] w-80 flex-col overflow-hidden p-0"
+        align="end"
+        collisionPadding={12}
+      >
         {children}
       </PopoverContent>
     </Popover>
@@ -78,13 +84,13 @@ export function HandoffPanel({
   footer: ReactNode
 }) {
   return (
-    <div className="flex flex-col">
-      <div className="border-b px-4 py-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 border-b px-4 py-3">
         <p className="text-sm font-semibold">{heading}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="space-y-4 px-4 py-3">{children}</div>
-      <div className="flex justify-end gap-2 border-t bg-muted/30 px-4 py-2.5">{footer}</div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">{children}</div>
+      <div className="flex shrink-0 justify-end gap-2 border-t bg-muted/30 px-4 py-2.5">{footer}</div>
     </div>
   )
 }

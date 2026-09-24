@@ -48,13 +48,14 @@ function OptionChecklist({
           {options.map((option) => (
             <label
               key={option.id}
-              className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+              className="flex min-w-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+              title={option.name}
             >
               <Checkbox
                 checked={selected.includes(option.id)}
                 onCheckedChange={(checked) => onChange(toggle(selected, option.id, checked === true))}
               />
-              <span className="truncate">{option.name}</span>
+              <span className="min-w-0 truncate">{option.name}</span>
             </label>
           ))}
         </div>
