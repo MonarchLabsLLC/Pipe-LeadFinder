@@ -2,6 +2,8 @@
 
 import * as React from "react"
 
+import { useSidebar } from "@/components/ui/sidebar"
+
 const SCRIPT_ID = "scaleplus-app-launcher-script"
 const SCRIPT_URL =
   process.env.NEXT_PUBLIC_SCALEPLUS_APP_LAUNCHER_URL ||
@@ -30,7 +32,32 @@ type LauncherWindow = typeof window & {
  * mounts its "Apps" pill next to the header anchor. Same loader as PipeLeads
  * Suite's, with Lead Finder marked as the current app.
  */
+/**
+ * The launcher positions its Apps pill beside the anchor, but only re-measures
+ * on window resize. Collapsing or expanding the sidebar moves the anchor
+ * without resizing the window, so nudge it through the slide transition.
+ */
+function useRealignOnSidebarToggle() {
+  const { state } = useSidebar()
+  const first = React.useRef(true)
+  React.useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    let frame = 0
+    const started = performance.now()
+    const tick = (now: number) => {
+      window.dispatchEvent(new Event("resize"))
+      if (now - started < 350) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [state])
+}
+
 export function ScalePlusAppLauncher() {
+  useRealignOnSidebarToggle()
   React.useEffect(() => {
     if (!document.querySelector(ANCHOR_SELECTOR)) return
 
