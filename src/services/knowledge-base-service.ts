@@ -10,11 +10,19 @@ const MAX_STORED_SOURCE_CHARS = 500_000
 // ---------------------------------------------------------------------------
 
 export async function getOrCreateProfile(userId: string) {
-  return prisma.businessProfile.upsert({
-    where: { userId },
-    update: {},
-    create: { userId },
-  })
+  try {
+    return await prisma.businessProfile.upsert({
+      where: { userId },
+      update: {},
+      create: { userId },
+    })
+  } catch (error) {
+    // The Knowledge Base page loads the profile and its sources in parallel,
+    // and both create the profile on a first visit. The losing insert hits the
+    // unique userId; the row it collided with is the one we want.
+    if ((error as { code?: string }).code !== "P2002") throw error
+    return prisma.businessProfile.findUniqueOrThrow({ where: { userId } })
+  }
 }
 
 export async function updateProfile(
