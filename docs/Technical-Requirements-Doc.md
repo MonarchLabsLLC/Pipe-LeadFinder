@@ -19,7 +19,7 @@
 - **shadcn/ui** — component library (New York style)
 - **tw-animate-css** — animation utilities
 - **lucide-react** — icon library
-- **Dual theme system** — amber (warm) / indigo (cool) with light/dark mode via `data-theme` attribute + `.dark` class
+- **PipeLeads Suite design system** — the Suite's OKLCH tokens with light/dark mode via `next-themes` (`.dark` class)
 
 ### Authentication
 - **NextAuth.js 5** (Auth.js) — Credentials provider
@@ -152,7 +152,6 @@ src/
 │       ├── query-provider.tsx
 │       └── theme-provider.tsx
 ├── hooks/
-│   ├── useTheme.ts               # Theme switching (amber/indigo + light/dark)
 │   ├── useSearch.ts              # Search mutation hooks
 │   ├── useLists.ts               # List query/mutation hooks
 │   └── useAI.ts                  # AI assistant hooks
@@ -169,9 +168,6 @@ src/
 │   ├── enrich-service.ts         # Enrichment logic
 │   ├── ai-service.ts             # AI prompt construction + streaming
 │   └── knowledge-base-service.ts # Business profile + data source management
-├── themes/
-│   ├── amber.css                 # Warm theme (OKLCH)
-│   └── indigo.css                # Cool theme (OKLCH)
 ├── auth.ts                       # NextAuth configuration
 ├── middleware.ts                  # Auth middleware
 └── generated/

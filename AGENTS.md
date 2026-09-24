@@ -78,7 +78,10 @@ Theme defined in `src/app/globals.css`:
 - OKLCH color space for all colors
 - CSS variables in `:root` (light) and `.dark` (dark mode)
 - `@theme inline` block maps to Tailwind utilities
-- Fonts: Inter (sans), JetBrains Mono (mono)
+- Fonts: Inter (sans), JetBrains Mono (mono), loaded with `next/font` in `src/app/layout.tsx`
+- The tokens are a copy of PipeLeads Suite's `globals.css`; keep them identical so every PipeLeads app looks the same. Light/dark is `next-themes` with `attribute="class"` (toggle in the header)
+- The shell mirrors the Suite's: `src/components/layout/sidebar.tsx` (Apps group, then Lead Finder's groups), `topbar.tsx` (breadcrumb, search palette, ScalePlus launcher, Agent, theme toggle, user menu) and `nav-config.ts` (every nav entry, page title and the `NEXT_PUBLIC_PIPELEADS_SUITE_URL` links)
+- Use theme tokens (`bg-primary`, `text-muted-foreground`, `bg-success`, `bg-cat-*`) rather than Tailwind palette colours or hex values
 
 To update theme: `npx shadcn@latest add https://tweakcn.com/r/themes/<id>`
 

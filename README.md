@@ -94,7 +94,7 @@ npx prisma studio            # Visual database browser
 
 ## Themes
 
-Dual theme system with warm (amber) and cool (indigo) palettes, each with light and dark mode. Theme selection persists via localStorage.
+Lead Finder uses the PipeLeads Suite design system: the same OKLCH tokens (`src/app/globals.css`, copied from PipeLeads Suite), Inter and JetBrains Mono via `next/font`, and class-based light/dark mode through `next-themes` with a header toggle. The app shell (`src/components/layout/`) mirrors the Suite's sidebar and header so switching between PipeLeads apps looks seamless. `NEXT_PUBLIC_PIPELEADS_SUITE_URL` (default `https://go.pipeleads.ai`) sets where the sidebar's PipeLeads CRM and ProjectBaser links point.
 
 ## License
 
