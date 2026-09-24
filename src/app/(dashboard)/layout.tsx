@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
+import { CreditsStatusBar } from "@/components/layout/credits-status-bar"
 import { ScaleWorkspaceBridge } from "@/components/providers/scale-workspace-bridge"
 
 export default function DashboardLayout({
@@ -22,7 +23,8 @@ export default function DashboardLayout({
       </a>
       <AppSidebar />
       {/* Same shell as PipeLeads Suite: the inset stays viewport-sized and the
-          page scrolls inside <main>. */}
+          page scrolls inside <main>, which is what keeps the credits bar
+          pinned below it without position: fixed. */}
       <SidebarInset className="h-svh min-w-0 overflow-hidden">
         <Topbar />
         <main
@@ -32,6 +34,7 @@ export default function DashboardLayout({
         >
           {children}
         </main>
+        <CreditsStatusBar />
       </SidebarInset>
     </SidebarProvider>
   )

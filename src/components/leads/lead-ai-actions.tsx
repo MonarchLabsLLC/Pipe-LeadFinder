@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Users,
   MessageSquare,
@@ -35,6 +37,7 @@ import {
   Check,
   Loader2,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react"
 import { useAIAction } from "@/hooks/useAI"
 import type { AiActionType } from "@/generated/prisma/enums"
@@ -52,56 +55,48 @@ interface PromptTemplate {
 const ACTION_CONFIG: {
   type: AiActionType
   label: string
-  shortLabel: string
   icon: React.ComponentType<{ className?: string }>
   description: string
 }[] = [
   {
     type: "SIMILAR_PEOPLE",
     label: "Similar People",
-    shortLabel: "Similar",
     icon: Users,
     description: "Find professionals similar to this lead",
   },
   {
     type: "DIRECT_MESSAGE",
     label: "Direct Message",
-    shortLabel: "DM",
     icon: MessageSquare,
     description: "Generate a personalized direct message",
   },
   {
     type: "SUMMARY",
     label: "Summary",
-    shortLabel: "Summary",
     icon: FileText,
     description: "Get a research summary of this prospect",
   },
   {
     type: "SUBJECT_LINE",
     label: "Subject Lines",
-    shortLabel: "Subject",
     icon: Mail,
     description: "Generate email subject lines",
   },
   {
     type: "INTRO",
     label: "Email Intro",
-    shortLabel: "Intro",
     icon: PenLine,
     description: "Write a personalized email opening",
   },
   {
     type: "CUSTOM",
     label: "Custom Prompt",
-    shortLabel: "Custom",
     icon: Sparkles,
     description: "Use your own prompt",
   },
   {
     type: "LIBRARY",
     label: "Prompt Library",
-    shortLabel: "Library",
     icon: BookOpen,
     description: "Use a saved prompt template",
   },
@@ -115,6 +110,7 @@ export function LeadAIActions({ leadId }: LeadAIActionsProps) {
   const [templates, setTemplates] = useState<PromptTemplate[]>([])
   const [templatesLoaded, setTemplatesLoaded] = useState(false)
   const [copied, setCopied] = useState(false)
+  const menuTriggerRef = useRef<HTMLButtonElement>(null)
 
   const { generate, result, isLoading, error, reset } = useAIAction()
 
@@ -189,35 +185,62 @@ export function LeadAIActions({ leadId }: LeadAIActionsProps) {
   const activeConfig = ACTION_CONFIG.find((a) => a.type === activeAction)
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="flex flex-wrap gap-1">
-        {ACTION_CONFIG.map((action) => {
-          const Icon = action.icon
-          return (
-            <Tooltip key={action.type}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleAction(action.type)
-                  }}
+    <>
+      {/* One "AI" menu per row keeps the table calm; each item runs the same
+          action the old row of buttons did and opens the same result sheet.
+          modal={false} lets the sheet take focus as the menu closes. */}
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            ref={menuTriggerRef}
+            variant="outline"
+            size="xs"
+            aria-label="AI actions for this lead"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Sparkles className="size-3" aria-hidden />
+            AI
+            <ChevronDown className="size-3 text-muted-foreground" aria-hidden />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+            AI for this lead
+          </DropdownMenuLabel>
+          {ACTION_CONFIG.map((action, index) => {
+            const Icon = action.icon
+            // Custom and Library ask for a prompt first: set them apart.
+            const startsPromptGroup = action.type === "CUSTOM" && index > 0
+            return (
+              <div key={action.type}>
+                {startsPromptGroup && <DropdownMenuSeparator />}
+                <DropdownMenuItem
+                  className="items-start"
+                  onSelect={() => handleAction(action.type)}
                 >
-                  <Icon className="size-3" />
-                  <span className="hidden xl:inline">{action.shortLabel}</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p>{action.description}</p>
-              </TooltipContent>
-            </Tooltip>
-          )
-        })}
-      </div>
+                  <Icon className="mt-0.5 size-4 text-muted-foreground" aria-hidden />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-sm">{action.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {action.description}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+              </div>
+            )
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Sheet open={sheetOpen} onOpenChange={(open) => !open && handleClose()}>
-        <SheetContent className="sm:max-w-lg w-full flex flex-col">
+        <SheetContent
+          className="sm:max-w-lg w-full flex flex-col"
+          // The sheet opened from the row's AI menu: hand focus back to it.
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            menuTriggerRef.current?.focus()
+          }}
+        >
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               {activeConfig && (
@@ -368,6 +391,6 @@ export function LeadAIActions({ leadId }: LeadAIActionsProps) {
           </div>
         </SheetContent>
       </Sheet>
-    </TooltipProvider>
+    </>
   )
 }

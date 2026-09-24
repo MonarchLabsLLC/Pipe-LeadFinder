@@ -12,6 +12,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { formatRelativeTime, getInitials } from "@/lib/format"
 import {
   ExternalLink,
@@ -35,6 +40,7 @@ import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
 import { useLabels, useApplyLabel } from "@/hooks/useLabels"
 import { appToast } from "@/lib/app-toast"
 import { cn } from "@/lib/utils"
+import { describeEmailStatus, type EmailStatusKind } from "@/lib/email-status"
 import type { LeadScoreSummary } from "@/lib/lead-score"
 
 export interface LeadData {
@@ -87,6 +93,32 @@ function locationText(lead: LeadData): string | null {
   if (lead.location) return lead.location
   const parts = [lead.city, lead.state, lead.country].filter(Boolean)
   return parts.length > 0 ? parts.join(", ") : null
+}
+
+const EMAIL_BADGE_TONE: Record<EmailStatusKind, string> = {
+  found: "bg-success/10 text-success",
+  potential: "bg-warning/10 text-warning",
+  missing: "bg-muted text-muted-foreground",
+}
+
+/** The email status in plain words, explained on hover or keyboard focus. */
+function EmailStatusBadge({ status, email }: { status: LeadData["emailStatus"]; email: string | null }) {
+  const display = describeEmailStatus(status, email)
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="secondary"
+          tabIndex={0}
+          aria-label={`Email status: ${display.description}`}
+          className={cn("cursor-help", EMAIL_BADGE_TONE[display.kind])}
+        >
+          {display.label}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top">{display.description}</TooltipContent>
+    </Tooltip>
+  )
 }
 
 function scoreTone(score: number) {
@@ -401,18 +433,14 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
           {lead.emailStatus === "FOUND" && lead.email ? (
             <div className="space-y-1">
               <span className="block max-w-[220px] truncate text-sm text-foreground" title={lead.email}>{lead.email}</span>
-              <Badge variant="secondary" className="bg-success/10 text-success">
-                Email Found
-              </Badge>
+              <EmailStatusBadge status={lead.emailStatus} email={lead.email} />
             </div>
           ) : lead.emailStatus === "POTENTIAL" ? (
             <div className="space-y-1">
               {lead.email && (
                 <span className="block max-w-[220px] truncate text-sm text-foreground" title={lead.email}>{lead.email}</span>
               )}
-              <Badge variant="secondary" className="bg-warning/10 text-warning">
-                Potential Email
-              </Badge>
+              <EmailStatusBadge status={lead.emailStatus} email={lead.email} />
             </div>
           ) : (
             <div className="space-y-1">
@@ -429,7 +457,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
                 )}
                 {enrichEmail.isPending ? "Finding..." : "Add Email"}
               </Button>
-              <p className="text-xs text-muted-foreground">No email found</p>
+              <EmailStatusBadge status={lead.emailStatus} email={lead.email} />
             </div>
           )}
 

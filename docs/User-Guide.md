@@ -21,10 +21,11 @@ After login, you land on the dashboard. Lead Finder uses the same frame as the r
 The collapsible sidebar holds:
 
 - **Apps** — PipeLeads CRM, Lead Finder (marked with a dot while you are here) and ProjectBaser. Choosing another app opens it in the same tab.
-- **Credits remaining** — your current credit balance, with a **Credit Wallet** button
 - **Lead Search** — New Search, Saved Lists, Custom Labels, and the **AI Tools** submenu (Knowledge Base, AI Assistant, AI Agent)
 - **Admin** — account and configuration settings (administrators only)
 - **Resources** — Integrations, Support and Tutorials
+
+Your credit balance sits in the slim **credits bar** pinned to the bottom of every screen (see "The credits bar" under Credits).
 
 The header shows where you are (for example *Lead Search › Saved Lists*), a **Search** box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus **Apps** launcher, the **Agent** button, the light/dark theme toggle, and your avatar menu (Tutorials, Integrations, Support, Log out).
 
@@ -134,14 +135,14 @@ Click a list to open its results. The table shows all leads with these columns:
 - Edit button to modify lead data
 
 **AI Assistant Column:**
-- One-click AI actions per lead (see AI Assistant section)
+- One **AI** menu per lead (see "The AI menu and email badges" below)
 
 **Lead Score Column:**
 - Shows an AI fit score when your list has been scored
 - Select the score to see the fit label, outreach angle, suggested opener, and next action
 
 **Contact Info Column:**
-- Email address with verification status (Found / Not Found / Potential)
+- Email address with a plain-language status badge (Email found / Possible email / No email)
 - "Get Phone Numbers" button — enrichment action
 - "Add Phone Number" / "Add Email" — manual entry
 
@@ -158,6 +159,20 @@ Click a list to open its results. The table shows all leads with these columns:
 
 **Created At Column:**
 - Relative timestamp
+
+### The AI menu and email badges
+
+**The AI menu.** Each lead has one **AI** button in the AI Assistant column. Open it (click, or Tab to it and press Enter) to choose Similar People, Direct Message, Summary, Subject Lines, Email Intro, Custom Prompt or Prompt Library. Use the arrow keys to move through the menu and Enter to pick. The result opens in the side panel exactly as before; closing the panel puts you back on that lead's AI button.
+
+**Email badges.** Hover over or Tab to a badge to see what it means:
+
+| Badge | Meaning |
+|-------|---------|
+| **Email found** | Found — not yet verified |
+| **Possible email** | Potential — guessed from the company website |
+| **No email** | Not found (use **Add Email** to look it up) |
+
+Lead Finder does not verify email addresses yet, so treat even a found address as unverified.
 
 ### Action Bar
 
@@ -223,7 +238,7 @@ Your business profile powers all AI-generated content. Fill in:
 
 The **AI Assistant** page is where you create and manage reusable prompt templates. A template can include `{name}`, `{company}`, and `{title}` so it adapts to each lead.
 
-To use AI with an individual lead, open a saved list and use the buttons in that lead's **AI Assistant** column:
+To use AI with an individual lead, open a saved list and open the **AI** menu in that lead's **AI Assistant** column:
 
 | Action | What It Does |
 |--------|-------------|
@@ -332,13 +347,19 @@ Lead Finder uses the PipeLeads colour theme, the same one as PipeLeads CRM and P
 
 ## Credits
 
-### Credit Balance
+### The credits bar
 
-Your live credit balance is displayed in the sidebar under **Credits Remaining**. The balance updates automatically every 30 seconds, and refreshes more frequently (every 5 seconds) while a search or enrichment is actively running.
+Your live balance sits in a slim bar pinned to the bottom of every Lead Finder screen, for example **273,281 credits**. It stays put while the page scrolls and fits on one line on a phone. The balance updates automatically every 30 seconds, and every 5 seconds while a search or enrichment is running.
+
+- **Normal:** the balance shows in quiet grey.
+- **Running low:** the balance turns amber once it no longer covers a 25-result People search at the current price.
+- **Out of credits:** at zero or below the balance turns red and a **Top up** link appears on the right.
+
+Hover over the balance (or click it, tap it, or Tab to it and press Enter) to open the details: your balance, the credits you have used, the price per result for each search type, a reminder that you are only charged for results we find, and an **Open Credit Wallet** button.
 
 ### Buying Credits
 
-Click **Credit Wallet** in the sidebar to open the ScaleCredits purchase portal. Purchase credits there and your balance updates in the app automatically.
+Open the credits bar and choose **Open Credit Wallet** (or **Top up** when you are out) to open the ScaleCredits purchase portal in a new tab. Purchase credits there and your balance updates in the app automatically.
 
 ### Credit Checks
 

@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { ChevronRight, Search, Wallet, type LucideIcon } from "lucide-react"
+import { ChevronRight, Search, type LucideIcon } from "lucide-react"
 
 import {
   Sidebar,
@@ -28,7 +28,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { useCredits } from "@/contexts/credits-context"
 import { cn } from "@/lib/utils"
 import {
   LEAD_FINDER_HOME,
@@ -92,8 +91,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
 
         <SidebarSeparator />
-
-        <CreditsSummary />
 
         <SidebarGroup>
           <SidebarGroupLabel>Lead Search</SidebarGroupLabel>
@@ -235,52 +232,5 @@ function NavSubmenu({
         </CollapsibleContent>
       </SidebarMenuItem>
     </Collapsible>
-  )
-}
-
-/** Credits remaining and the wallet link, compact, in sidebar tokens. */
-function CreditsSummary() {
-  const { balance, isLoading, formatCredits, purchaseUrl } = useCredits()
-  const available = balance?.availableCredits ?? 0
-  const label = isLoading ? "…" : formatCredits(available)
-
-  return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        {/* Expanded: a small card. Collapsed to the icon rail: one wallet button. */}
-        <div className="space-y-2 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-2.5 group-data-[collapsible=icon]:hidden">
-          <div className="flex items-baseline justify-between gap-2 px-0.5">
-            <span className="text-xs text-sidebar-muted-foreground">Credits remaining</span>
-            <span
-              className={cn(
-                "truncate text-sm font-semibold tabular-nums",
-                available < 0 ? "text-destructive" : "text-sidebar-foreground"
-              )}
-            >
-              {label}
-            </span>
-          </div>
-          <a
-            href={purchaseUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-7 w-full items-center justify-center gap-1.5 rounded-md bg-sidebar-primary text-xs font-medium text-sidebar-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
-          >
-            <Wallet className="size-3.5" aria-hidden />
-            Credit Wallet
-          </a>
-        </div>
-        <SidebarMenu className="hidden group-data-[collapsible=icon]:flex">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={`Credits: ${label}`}>
-              <a href={purchaseUrl} target="_blank" rel="noopener noreferrer">
-                <Wallet className="size-4" />
-                <span>Credit Wallet</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
   )
 }
