@@ -2,10 +2,12 @@
 
 import { FormEvent, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import { appToast } from "@/lib/app-toast"
 import { Loader2, Trash2, Webhook } from "lucide-react"
 
@@ -63,40 +65,88 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Integrations</h1>
-        <p className="text-sm text-muted-foreground">Send selected leads to a signed HTTPS webhook.</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <PageHeader
+        title="Integrations"
+        description="Send selected leads to a signed HTTPS webhook."
+      />
+
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Webhook className="size-5" /> Connect webhook</CardTitle>
-          <CardDescription>Requests include an HMAC SHA-256 signature in X-PipeLeads-Signature.</CardDescription>
+          <CardTitle>Connect webhook</CardTitle>
+          <CardDescription>
+            Requests include an HMAC SHA-256 signature in X-PipeLeads-Signature.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4 md:grid-cols-3" onSubmit={submit}>
-            <div className="space-y-2"><Label htmlFor="integration-name">Name</Label><Input id="integration-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="CRM webhook" required /></div>
-            <div className="space-y-2"><Label htmlFor="integration-url">HTTPS URL</Label><Input id="integration-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://example.com/webhooks/leads" required /></div>
-            <div className="space-y-2"><Label htmlFor="integration-secret">Signing secret</Label><Input id="integration-secret" type="password" minLength={16} value={secret} onChange={(event) => setSecret(event.target.value)} required /></div>
-            <Button className="md:col-span-3 md:w-fit" disabled={create.isPending}>
-              {create.isPending && <Loader2 className="size-4 animate-spin" />} Connect
-            </Button>
+          <form className="space-y-6" onSubmit={submit}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="integration-name">Name</Label>
+                <Input id="integration-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="CRM webhook" required />
+                <p className="text-sm text-muted-foreground">Shown in lead bulk actions.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="integration-url">HTTPS URL</Label>
+                <Input id="integration-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://example.com/webhooks/leads" required />
+                <p className="text-sm text-muted-foreground">Where selected leads are posted.</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="integration-secret">Signing secret</Label>
+                <Input id="integration-secret" type="password" minLength={16} value={secret} onChange={(event) => setSecret(event.target.value)} required />
+                <p className="text-sm text-muted-foreground">At least 16 characters. Used to sign every request.</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t pt-6">
+              <Button disabled={create.isPending}>
+                {create.isPending && <Loader2 aria-hidden="true" className="size-4 animate-spin" />} Connect
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
-      <div className="space-y-3">
-        {integrations.data?.map((integration) => (
-          <Card key={integration.id}>
-            <CardContent className="flex items-center gap-3 py-4">
-              <Webhook className="size-4 text-muted-foreground" />
-              <div className="min-w-0 flex-1"><p className="font-medium">{integration.name}</p><p className="truncate text-sm text-muted-foreground">{integration.url}</p></div>
-              <Button variant="ghost" size="icon" aria-label={`Delete ${integration.name}`} onClick={() => remove(integration.id)}><Trash2 className="size-4" /></Button>
-            </CardContent>
-          </Card>
-        ))}
-        {integrations.isLoading && <Loader2 className="size-5 animate-spin" />}
-        {integrations.data?.length === 0 && <p className="text-sm text-muted-foreground">No webhooks connected yet.</p>}
-      </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium">Connected webhooks</h2>
+        {integrations.isLoading && (
+          <div className="grid gap-3" aria-busy="true">
+            <Skeleton className="h-[74px] rounded-lg" />
+            <Skeleton className="h-[74px] rounded-lg" />
+          </div>
+        )}
+        {integrations.data && integrations.data.length > 0 && (
+          <ul className="grid gap-3">
+            {integrations.data.map((integration) => (
+              <li key={integration.id} className="flex min-w-0 items-center gap-3 rounded-lg border bg-card p-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Webhook aria-hidden="true" className="size-5 text-muted-foreground" />
+                </span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="font-medium">{integration.name}</p>
+                  <p className="truncate text-sm text-muted-foreground">{integration.url}</p>
+                </div>
+                <Button variant="ghost" size="icon" aria-label={`Delete ${integration.name}`} onClick={() => remove(integration.id)}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {integrations.data?.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card px-4 py-10 text-center">
+            <div className="relative">
+              <div aria-hidden="true" className="absolute -inset-3 rounded-full border border-dashed border-border" />
+              <div className="relative flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Webhook aria-hidden="true" className="size-5" />
+              </div>
+            </div>
+            <div className="mt-2 max-w-sm space-y-1">
+              <h3 className="text-base font-semibold tracking-tight">No webhooks connected yet</h3>
+              <p className="text-sm text-muted-foreground">Connect one above to send leads from bulk actions.</p>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   )
 }
