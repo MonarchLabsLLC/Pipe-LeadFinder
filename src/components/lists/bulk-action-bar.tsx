@@ -15,6 +15,7 @@ import { useLabels } from "@/hooks/useLabels"
 import { useLists } from "@/hooks/useLists"
 import { useBulkAction, type BulkAction } from "@/hooks/useBulkActions"
 import { appToast } from "@/lib/app-toast"
+import { HandoffButtons } from "@/components/handoff/handoff-buttons"
 import { Copy, FileDown, Mail, MapPinCheck, Phone, Send, Tags, Trash2, WandSparkles } from "lucide-react"
 
 interface IntegrationOption {
@@ -26,12 +27,15 @@ export function BulkActionBar({
   listId,
   listType,
   entryIds,
+  leadIds = [],
   onClear,
   onJobQueued,
 }: {
   listId: string
   listType: SearchType
   entryIds: string[]
+  /** Lead ids of the selection, for Add to PipeLeads / MailBaser. */
+  leadIds?: string[]
   onClear: () => void
   onJobQueued: (jobId: string) => void
 }) {
@@ -160,6 +164,7 @@ export function BulkActionBar({
           </Button>
         </>
       )}
+      {leadIds.length > 0 && <HandoffButtons leadIds={leadIds} size="sm" />}
       <Button className="ml-auto" size="sm" variant="ghost" onClick={onClear}>Clear</Button>
     </div>
   )

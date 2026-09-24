@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { LeadRow, type LeadData } from "@/components/leads/lead-row"
 import type { SearchType } from "@/generated/prisma/enums"
 import { BulkActionBar } from "@/components/lists/bulk-action-bar"
+import { useHandoffStatus } from "@/components/handoff/use-handoff-status"
 
 interface ResultsTableProps {
   leads: LeadData[]
@@ -22,6 +23,8 @@ interface ResultsTableProps {
 
 export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const handoff = useHandoffStatus()
+  const showHandoff = handoff.pipeleads || handoff.mailbaser
 
   const allSelected = leads.length > 0 && selectedIds.size === leads.length
   const someSelected = selectedIds.size > 0 && selectedIds.size < leads.length
@@ -55,6 +58,7 @@ export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTa
           entryIds={leads
             .filter((lead) => selectedIds.has(lead.id))
             .map((lead) => lead.entryId)}
+          leadIds={leads.filter((lead) => selectedIds.has(lead.id)).map((lead) => lead.id)}
           onClear={() => setSelectedIds(new Set())}
           onJobQueued={onJobQueued}
         />
@@ -73,6 +77,7 @@ export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTa
             <TableHead className="min-w-[220px]">Name</TableHead>
             <TableHead className="min-w-[190px]">Lead Score</TableHead>
             <TableHead className="min-w-[160px]">AI Assistant</TableHead>
+            {showHandoff && <TableHead className="min-w-[140px]">Send to</TableHead>}
             <TableHead className="min-w-[200px]">Contact Info</TableHead>
             <TableHead className="min-w-[160px]">Company</TableHead>
             <TableHead className="min-w-[140px]">Custom Labels</TableHead>
@@ -86,6 +91,7 @@ export function ResultsTable({ leads, listId, listType, onJobQueued }: ResultsTa
               lead={lead}
               selected={selectedIds.has(lead.id)}
               onSelectChange={(checked) => toggleOne(lead.id, checked)}
+              showHandoff={showHandoff}
             />
           ))}
         </TableBody>

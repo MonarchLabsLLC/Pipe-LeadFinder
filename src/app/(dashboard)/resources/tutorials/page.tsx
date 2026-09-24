@@ -35,6 +35,7 @@ import {
   FileText,
   BrainCircuit,
   Radar,
+  Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -1525,6 +1526,7 @@ export default function TutorialsPage() {
               {[
                 { value: "labels", label: "Custom Labels" },
                 { value: "export", label: "Exporting CSV" },
+                { value: "send-to", label: "PipeLeads & MailBaser" },
               ].map((t) => (
                 <TabsTrigger
                   key={t.value}
@@ -1663,6 +1665,61 @@ export default function TutorialsPage() {
                     <strong>Before exporting:</strong> Run Data Enrichment first so that as
                     many leads as possible have email addresses. An export with 80% email
                     coverage is much more useful than one with 30%.
+                  </Tip>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="send-to" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Send className="h-5 w-5 text-primary" />
+                    Add Leads to PipeLeads or MailBaser
+                  </CardTitle>
+                  <CardDescription>
+                    Send leads straight into your CRM or your email contacts, without a CSV
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    When your account is connected, every list shows a <strong>Send to</strong>{" "}
+                    column with two buttons, and the bar that appears when you select leads has
+                    the same two buttons. They sign you in as you on the other side, so leads land
+                    in your own PipeLeads CRM and your own MailBaser account.
+                  </p>
+
+                  <div className="space-y-3">
+                    <Step number={1} title="PipeLeads: one click">
+                      Click <strong>PipeLeads</strong> to add the lead as a contact, with its
+                      company. Leads that are already there are updated, not duplicated.
+                    </Step>
+                    <Step number={2} title="PipeLeads: more choices">
+                      Click the small arrow next to it to also create a deal (pick the pipeline
+                      and stage) and to add tags. Your choices are remembered, so the next
+                      one-click send uses them.
+                    </Step>
+                    <Step number={3} title="MailBaser: pick lists and tags once">
+                      The first time you click <strong>MailBaser</strong>, choose the lists and
+                      tags the contacts should get. After that one click sends with the same
+                      choices; use the arrow to change them.
+                    </Step>
+                    <Step number={4} title="Check the result">
+                      A message tells you how many leads were added, how many were new or
+                      updated, and how many were skipped. Click <strong>Open</strong> to see
+                      them in PipeLeads or MailBaser.
+                    </Step>
+                  </div>
+
+                  <Note>
+                    MailBaser needs an email address, so leads without one are skipped. They are
+                    added as prospects, not as subscribers who agreed to receive email. You need a
+                    MailBaser account first; if you do not have one, the message says so.
+                  </Note>
+
+                  <Tip>
+                    Select up to hundreds of leads at once: they are sent 50 at a time. Only the
+                    workspace owner can send leads; inside a shared team workspace the buttons
+                    are hidden.
                   </Tip>
                 </CardContent>
               </Card>

@@ -30,6 +30,7 @@ import {
   Target,
 } from "lucide-react"
 import { LeadAIActions } from "@/components/leads/lead-ai-actions"
+import { HandoffButtons } from "@/components/handoff/handoff-buttons"
 import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
 import { useLabels, useApplyLabel } from "@/hooks/useLabels"
 import { appToast } from "@/lib/app-toast"
@@ -71,6 +72,8 @@ interface LeadRowProps {
   lead: LeadData
   selected: boolean
   onSelectChange: (checked: boolean) => void
+  /** Render the "Send to" cell (only when a handoff target is configured). */
+  showHandoff?: boolean
 }
 
 function displayName(lead: LeadData): string {
@@ -205,7 +208,7 @@ function LeadScoreCell({ score }: { score: LeadScoreSummary | null }) {
   )
 }
 
-export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
+export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }: LeadRowProps) {
   const name = displayName(lead)
   const loc = locationText(lead)
 
@@ -382,6 +385,13 @@ export function LeadRow({ lead, selected, onSelectChange }: LeadRowProps) {
       <TableCell>
         <LeadAIActions leadId={lead.id} />
       </TableCell>
+
+      {/* Send to PipeLeads / MailBaser */}
+      {showHandoff && (
+        <TableCell>
+          <HandoffButtons leadIds={[lead.id]} className="flex flex-col items-start gap-1.5" />
+        </TableCell>
+      )}
 
       {/* Contact Info */}
       <TableCell>
