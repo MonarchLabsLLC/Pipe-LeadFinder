@@ -36,6 +36,7 @@ import {
   BrainCircuit,
   Radar,
   Send,
+  Wallet,
 } from "lucide-react"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -392,9 +393,9 @@ export default function TutorialsPage() {
                   </div>
 
                   <Note>
-                    At the top of the sidebar you'll see your <strong>Credits Remaining</strong>{" "}
-                    balance. Each search and enrichment action uses credits. You can buy more by
-                    clicking the <strong>Credit Wallet</strong> button.
+                    Your credit balance sits in the slim <strong>credits bar</strong> pinned to
+                    the bottom of every screen. Each search and enrichment action uses credits.
+                    Hover over the balance and choose <strong>Open Credit Wallet</strong> to buy more.
                   </Note>
 
                   <div className="space-y-3">
@@ -471,15 +472,14 @@ export default function TutorialsPage() {
                   </Tip>
 
                   <p className="text-sm text-muted-foreground">
-                    Your live credit balance is always visible in the sidebar so you know
-                    exactly where you stand. If your balance ever goes negative, it'll turn
-                    red to get your attention — and operations like searches and enrichment
-                    will be paused until you add more credits.
+                    Your live credit balance is always visible in the credits bar at the
+                    bottom of the screen. If it runs out, searches and enrichment pause until
+                    you add more credits.
                   </p>
 
                   <p className="text-sm text-muted-foreground">
-                    To buy more credits, click the <strong>Credit Wallet</strong> button in
-                    the sidebar — it links directly to{" "}
+                    To buy more credits, open the credits bar and choose{" "}
+                    <strong>Open Credit Wallet</strong> — it links directly to{" "}
                     <a
                       href="https://credits.scaleplus.gg/"
                       target="_blank"
@@ -490,6 +490,44 @@ export default function TutorialsPage() {
                     </a>{" "}
                     where you can purchase more.
                   </p>
+                </CardContent>
+              </Card>
+
+              {/* ── The credits bar ── */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet aria-hidden="true" className="h-5 w-5 text-primary" />
+                    The Credits Bar
+                  </CardTitle>
+                  <CardDescription>
+                    Your balance, always in view and never in the way
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground">
+                    A slim bar is pinned to the bottom of every Lead Finder screen showing your
+                    live balance, for example <strong>273,281 credits</strong>. It stays put while
+                    the page scrolls and fits on one line on a phone.
+                  </p>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    {[
+                      ["Grey", "All good. Plenty of credits for your next searches."],
+                      ["Amber", "Running low: less than a 25-result People search at today's price."],
+                      ["Red", "Out of credits. A Top up link appears on the right of the bar."],
+                    ].map(([state, desc]) => (
+                      <div key={state} className="flex gap-2">
+                        <span className="w-16 shrink-0 font-medium text-foreground">{state}</span>
+                        <span>{desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Tip>
+                    <strong>Hover over the balance</strong> (or click it, tap it, or Tab to it
+                    and press Enter) to see your balance, the credits you've used, the price per
+                    result for each search type, and an <strong>Open Credit Wallet</strong> button.
+                    You're only charged for results we find.
+                  </Tip>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -957,7 +995,7 @@ export default function TutorialsPage() {
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {[
                       ["Name", "Photo, full name, job title, location, and social links"],
-                      ["AI Assistant", "Quick-action buttons to generate messages, summaries, and more for this specific person"],
+                      ["AI Assistant", "One AI menu to generate messages, summaries, and more for this specific person"],
                       ["Lead Score", "A fit score and recommended next step after you run Score Leads"],
                       ["Contact Info", "Email status, phone number, and buttons to add missing contact details"],
                       ["Company", "Company name and LinkedIn link"],
@@ -966,6 +1004,41 @@ export default function TutorialsPage() {
                     ].map(([col, desc]) => (
                       <div key={col} className="flex gap-2">
                         <span className="font-medium shrink-0 w-24">{col}</span>
+                        <span>{desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── The AI menu and email badges ── */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles aria-hidden="true" className="h-5 w-5 text-primary" />
+                    The AI Menu and Email Badges
+                  </CardTitle>
+                  <CardDescription>
+                    A calmer results table: one AI button per lead and badges in plain words
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Each lead has one <strong>AI</strong> button. Open it (click, or Tab to it and
+                    press Enter) and pick Similar People, Direct Message, Summary, Subject Lines,
+                    Email Intro, Custom Prompt or Prompt Library. The arrow keys move through the
+                    menu. The result opens in the side panel, and closing the panel takes you back
+                    to that lead.
+                  </p>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p className="text-sm font-semibold text-foreground">Email badges (hover for the meaning):</p>
+                    {[
+                      ["Email found", "Found — not yet verified"],
+                      ["Possible email", "Potential — guessed from the company website"],
+                      ["No email", "Not found. Use Add Email to look it up."],
+                    ].map(([badge, desc]) => (
+                      <div key={badge} className="flex gap-2">
+                        <span className="w-28 shrink-0 font-medium text-foreground">{badge}</span>
                         <span>{desc}</span>
                       </div>
                     ))}
@@ -1153,9 +1226,9 @@ export default function TutorialsPage() {
                   </Tip>
 
                   <Note>
-                    Enrichment results include a status badge: <strong>Found</strong> (verified
-                    address), <strong>Potential</strong> (likely correct but not fully verified),
-                    or <strong>Not Found</strong> (no data available). Always respect email
+                    Enrichment results include a status badge: <strong>Email found</strong> (found,
+                    not yet verified), <strong>Possible email</strong> (guessed from the company
+                    website), or <strong>No email</strong> (not found). Always respect email
                     deliverability best practices when using Potential emails.
                   </Note>
                 </CardContent>
@@ -1388,11 +1461,11 @@ export default function TutorialsPage() {
                       Navigate to Saved Lists and click on the list containing the lead.
                     </Step>
                     <Step number={2} title="Find the AI Assistant column">
-                      In the results table, the second column is <strong>AI Assistant</strong>.
-                      You'll see small icon buttons for each lead.
+                      In the results table, find the <strong>AI Assistant</strong> column.
+                      Each lead has one <strong>AI</strong> menu button.
                     </Step>
-                    <Step number={3} title="Click the action you want">
-                      Each button triggers a different type of content. The result appears in
+                    <Step number={3} title="Open the menu and pick an action">
+                      Each menu item creates a different type of content. The result appears in
                       a panel alongside the lead's information.
                     </Step>
                   </div>
