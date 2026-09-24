@@ -3,12 +3,12 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { ChevronRight, Search, type LucideIcon } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -31,15 +31,14 @@ import {
 import { cn } from "@/lib/utils"
 import {
   LEAD_FINDER_HOME,
-  adminMenu,
   aiToolsMenu,
   appItems,
   isActivePath,
-  isAdminUser,
   leadSearchItems,
   resourceItems,
   type NavItem,
 } from "@/components/layout/nav-config"
+import { SidebarAccount } from "@/components/layout/sidebar-account"
 
 /**
  * Lead Finder's sidebar. It mirrors PipeLeads Suite's app sidebar piece for
@@ -48,8 +47,6 @@ import {
  */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const showAdmin = isAdminUser(session?.user?.email, session?.user?.role)
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -107,22 +104,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {showAdmin ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <NavSubmenu
-                  title="Settings"
-                  icon={adminMenu.icon}
-                  items={adminMenu.items}
-                  pathname={pathname}
-                />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
-
         <SidebarGroup>
           <SidebarGroupLabel>Resources</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -132,6 +113,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Who you are and your live credit balance, always in view. */}
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarAccount />
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>

@@ -22,10 +22,9 @@ The collapsible sidebar holds:
 
 - **Apps** — PipeLeads CRM, Lead Finder (marked with a dot while you are here) and ProjectBaser. Choosing another app opens it in the same tab.
 - **Lead Search** — New Search, Saved Lists, Custom Labels, and the **AI Tools** submenu (Knowledge Base, AI Assistant, AI Agent)
-- **Admin** — account and configuration settings (administrators only)
 - **Resources** — Integrations, Support and Tutorials
 
-Your credit balance sits in the slim **credits bar** pinned to the bottom of every screen (see "The credits bar" under Credits).
+At the bottom of the sidebar is your **account row**: your avatar, your name and, under it, your live credit balance (see "Your account and credits" under Credits). Click it for usage, prices, the Credit Wallet, theme, help and log out.
 
 The header shows where you are (for example *Lead Search › Saved Lists*), a **Search** box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus **Apps** launcher, the **Agent** button, the light/dark theme toggle, and your avatar menu (Tutorials, Integrations, Support, Log out).
 
@@ -353,25 +352,32 @@ Export any list to CSV from the list detail page:
 
 ## Theme & Display
 
-Lead Finder uses the PipeLeads colour theme, the same one as PipeLeads CRM and ProjectBaser, in a light and a dark mode. It follows your device's setting until you choose one: click the moon (or sun) button in the header to switch between light and dark. Your choice is remembered in this browser.
+Lead Finder uses the PipeLeads colour theme, the same one as PipeLeads CRM and ProjectBaser, in a light and a dark mode. It follows your device's setting until you choose one: click the moon (or sun) button in the header to switch between light and dark, or open your account row at the bottom-left and choose **Theme** → Light, Dark or System. Your choice is remembered in this browser.
 
 ---
 
 ## Credits
 
-### The credits bar
+### Your account and credits
 
-Your live balance sits in a slim bar pinned to the bottom of every Lead Finder screen, for example **273,281 credits**. It stays put while the page scrolls and fits on one line on a phone. The balance updates automatically every 30 seconds, and every 5 seconds while a search or enrichment is running.
+Your live balance sits under your name in the account row at the bottom-left of the sidebar, for example **273,281 credits**. It is always in view whichever page you are on. The balance updates automatically every 30 seconds, and every 5 seconds while a search or enrichment is running.
 
 - **Normal:** the balance shows in quiet grey.
-- **Running low:** the balance turns amber once it no longer covers a 25-result People search at the current price.
-- **Out of credits:** at zero or below the balance turns red and a **Top up** link appears on the right.
+- **Running low:** the balance turns amber, and a small dot appears on your avatar, once it no longer covers a 25-result People search at the current price.
+- **Out of credits:** at zero or below the balance and the dot turn red.
 
-Hover over the balance (or click it, tap it, or Tab to it and press Enter) to open the details: your balance, the credits you have used, the price per result for each search type, a reminder that you are only charged for results we find, and an **Open Credit Wallet** button.
+With the sidebar collapsed to icons, only your avatar shows; point at it to see your balance. On a phone the sidebar is a drawer, so the balance also shows as a small chip in the header; tap it to open the drawer.
+
+Click the account row (or Tab to it and press Enter) to open the account menu above it:
+
+- **Usage** — credits remaining, credits you have used, and a reminder that you are only charged for results we find
+- **What things cost** — the price per result for each search type
+- **Open Credit Wallet** — opens the ScaleCredits portal in a new tab (**Top up in Credit Wallet** when you are out)
+- **Integrations**, **Theme** (Light, Dark or System), **Help & Tutorials**, **Support** and **Log out**
 
 ### Buying Credits
 
-Open the credits bar and choose **Open Credit Wallet** (or **Top up** when you are out) to open the ScaleCredits purchase portal in a new tab. Purchase credits there and your balance updates in the app automatically.
+Click your name at the bottom-left of the sidebar and choose **Open Credit Wallet** to open the ScaleCredits purchase portal in a new tab. Purchase credits there and your balance updates in the app automatically.
 
 ### Credit Checks
 

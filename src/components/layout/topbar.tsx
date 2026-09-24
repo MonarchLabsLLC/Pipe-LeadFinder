@@ -8,6 +8,7 @@ import { HeaderSearch } from "@/components/layout/header-search"
 import { HeaderThemeToggle } from "@/components/layout/header-theme-toggle"
 import { HeaderUserMenu } from "@/components/layout/header-user-menu"
 import { ScalePlusAppLauncher } from "@/components/layout/scaleplus-app-launcher"
+import { MobileCreditsChip } from "@/components/layout/sidebar-account"
 
 /**
  * Lead Finder's app header. Same height, border, spacing and controls as
@@ -36,6 +37,8 @@ export function Topbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          {/* Phones only: the sidebar (and its account row) is a drawer there. */}
+          <MobileCreditsChip />
           <HeaderSearch />
 
           <AgentButton />

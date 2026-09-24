@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { ArrowRight, Loader2, Sparkles, TriangleAlert, Undo2 } from "lucide-react"
 import type { SearchType } from "@/generated/prisma/enums"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,17 @@ export function DescribeSearch({ onSuggested }: { onSuggested: (suggestion: Sear
   const [exampleIndex, setExampleIndex] = useState(0)
   const [notice, setNotice] = useState<{ message: string; purchaseUrl?: string } | null>(null)
   const interpret = useInterpretSearch()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // The box is server-rendered, so it can take keystrokes before React
+  // hydrates it. It is uncontrolled (no value prop) so hydration leaves those
+  // characters in place; here we adopt whatever was typed so far.
+  useEffect(() => {
+    const input = inputRef.current
+    if (!input) return
+    if (input.value) setText(input.value)
+    if (document.activeElement === input) setFocused(true)
+  }, [])
 
   useEffect(() => {
     if (focused || text) return
@@ -83,7 +94,7 @@ export function DescribeSearch({ onSuggested }: { onSuggested: (suggestion: Sear
         </label>
         <Input
           id="describe-search-input"
-          value={text}
+          ref={inputRef}
           onChange={(event) => setText(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}

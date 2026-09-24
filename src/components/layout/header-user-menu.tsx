@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { signOut, useSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { GraduationCap, HelpCircle, LogOut, Webhook } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -13,26 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useKeycloak } from "@/contexts/keycloak-context"
-
-function getInitials(name?: string | null, email?: string | null): string {
-  if (name) {
-    return name
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
-  if (email) return email[0].toUpperCase()
-  return "U"
-}
+import { UserAvatar, useLogout } from "@/components/layout/user-identity"
 
 /** The avatar and account menu, drawn like PipeLeads Suite's. */
 export function HeaderUserMenu() {
   const { data: session } = useSession()
-  const { isKeycloakReady, logout: keycloakLogout } = useKeycloak()
+  const logout = useLogout()
 
   const name = session?.user?.name || "User"
   const email = session?.user?.email
@@ -45,15 +31,7 @@ export function HeaderUserMenu() {
           className="relative size-8 rounded-full p-0"
           aria-label="Account menu"
         >
-          {/* The Suite's default avatar colour, so the same person looks the
-              same in every PipeLeads app. */}
-          <span
-            aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-full text-xs font-semibold"
-            style={{ backgroundColor: "var(--cat-violet)", color: "var(--cat-foreground)" }}
-          >
-            {getInitials(session?.user?.name, email)}
-          </span>
+          <UserAvatar name={session?.user?.name} email={email} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -86,13 +64,7 @@ export function HeaderUserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => {
-            if (isKeycloakReady) {
-              signOut({ redirect: false }).finally(keycloakLogout)
-            } else {
-              signOut({ callbackUrl: "/" })
-            }
-          }}
+          onSelect={logout}
           className="text-destructive focus:text-destructive"
         >
           <LogOut aria-hidden="true" className="mr-2 size-4" />
