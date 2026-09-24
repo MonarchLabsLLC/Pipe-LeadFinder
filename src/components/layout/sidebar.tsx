@@ -1,36 +1,14 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
-import {
-  ChevronRight,
-  Lightbulb,
-  Radar,
-  Search,
-  Settings,
-  HelpCircle,
-  BookOpen,
-  Bot,
-  BrainCircuit,
-  ListPlus,
-  Bookmark,
-  Tags,
-  Building2,
-  Package,
-  CreditCard,
-  Link2,
-  Mail,
-  Webhook,
-  FileText,
-  GraduationCap,
-  Wallet,
-} from "lucide-react"
+import { ChevronRight, Search, Wallet, type LucideIcon } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -38,252 +16,271 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarRail,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useCredits } from "@/contexts/credits-context"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+import { useCredits } from "@/contexts/credits-context"
+import { cn } from "@/lib/utils"
+import {
+  LEAD_FINDER_HOME,
+  adminMenu,
+  aiToolsMenu,
+  appItems,
+  isActivePath,
+  isAdminUser,
+  leadSearchItems,
+  resourceItems,
+  type NavItem,
+} from "@/components/layout/nav-config"
 
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "admin@groovedigital.com")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean)
-const ADMIN_DOMAINS = (process.env.NEXT_PUBLIC_ADMIN_DOMAINS || "")
-  .split(",")
-  .map((d) => d.trim().toLowerCase().replace(/^@/, ""))
-  .filter(Boolean)
+/**
+ * Lead Finder's sidebar. It mirrors PipeLeads Suite's app sidebar piece for
+ * piece (header block, Apps group, separator, the app's own groups, rail) so
+ * moving between the apps never changes the frame around the work.
+ */
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+  const { data: session } = useSession()
+  const showAdmin = isAdminUser(session?.user?.email, session?.user?.role)
 
-function isAdminEmail(email?: string | null) {
-  if (!email) return false
-  const normalized = email.toLowerCase()
   return (
-    ADMIN_EMAILS.includes(normalized) ||
-    ADMIN_DOMAINS.some((domain) => normalized.endsWith(`@${domain}`))
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <AppIdentity />
+      </SidebarHeader>
+
+      <SidebarContent>
+        {/* The PipeLeads apps, identical to the Suite's Apps group */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Apps</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {appItems.map((app) => (
+                <SidebarMenuItem key={app.title}>
+                  <SidebarMenuButton
+                    asChild
+                    aria-current={app.current ? "true" : undefined}
+                    tooltip={app.title}
+                    className={cn(app.current && "font-semibold")}
+                  >
+                    {app.current ? (
+                      <Link href={app.url}>
+                        <app.icon className="size-4" />
+                        <span>{app.title}</span>
+                        <span aria-hidden className="ml-auto size-1.5 rounded-full bg-primary" />
+                      </Link>
+                    ) : (
+                      <a href={app.url}>
+                        <app.icon className="size-4" />
+                        <span>{app.title}</span>
+                      </a>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <CreditsSummary />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Lead Search</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <NavLinks items={leadSearchItems} pathname={pathname} />
+              <NavSubmenu
+                title={aiToolsMenu.title}
+                icon={aiToolsMenu.icon}
+                items={aiToolsMenu.items}
+                pathname={pathname}
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {showAdmin ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <NavSubmenu
+                  title="Settings"
+                  icon={adminMenu.icon}
+                  items={adminMenu.items}
+                  pathname={pathname}
+                />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Resources</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <NavLinks items={resourceItems} pathname={pathname} />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarRail />
+    </Sidebar>
   )
 }
 
-function isAdminUser(email?: string | null, role?: string | null) {
-  return role?.toLowerCase() === "admin" || isAdminEmail(email)
+/** Styled exactly like the Suite's project switcher, but it names this app. */
+function AppIdentity() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton size="lg" asChild tooltip="Lead Finder">
+          <Link href={LEAD_FINDER_HOME}>
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Search className="size-4" aria-hidden />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">Lead Finder</span>
+              {/* The sidebar is dark in both themes: use its own muted text. */}
+              <span className="truncate text-xs text-sidebar-muted-foreground">
+                PipeLeads Lead Finder
+              </span>
+            </div>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
 }
 
-const navSections = [
-  {
-    label: "AI Tools",
-    icon: Lightbulb,
-    defaultOpen: false,
-    adminOnly: false,
-    items: [
-      { label: "Knowledge Base", href: "/ai/knowledge-base", icon: BookOpen },
-      { label: "AI Assistant", href: "/ai/ai-assistant", icon: Bot },
-      { label: "AI Agent", href: "/ai/ai-agent", icon: BrainCircuit },
-    ],
-  },
-  {
-    label: "Lead Search",
-    icon: Search,
-    defaultOpen: true,
-    adminOnly: false,
-    items: [
-      { label: "New Search", href: "/lead-search/new-search", icon: ListPlus },
-      { label: "Saved Lists", href: "/lead-search/saved-lists", icon: Bookmark },
-      { label: "Custom Labels", href: "/lead-search/custom-labels", icon: Tags },
-    ],
-  },
-  {
-    label: "Admin",
-    icon: Settings,
-    defaultOpen: false,
-    adminOnly: true,
-    items: [
-      { label: "Business Account", href: "/admin/business-account", icon: Building2 },
-      { label: "Packages", href: "/admin/packages", icon: Package },
-      { label: "Stripe", href: "/admin/stripe", icon: CreditCard },
-      { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
-      { label: "Custom Links", href: "/admin/custom-links", icon: Link2 },
-      { label: "SMTP", href: "/admin/smtp", icon: Mail },
-      { label: "Webhooks", href: "/admin/webhooks", icon: Webhook },
-      { label: "Email Templates", href: "/admin/email-templates", icon: FileText },
-      { label: "Training Content", href: "/admin/training-content", icon: GraduationCap },
-    ],
-  },
-  {
-    label: "Resources",
-    icon: HelpCircle,
-    defaultOpen: false,
-    adminOnly: false,
-    items: [
-      { label: "Integrations", href: "/resources/integrations", icon: Webhook },
-      { label: "Support", href: "/resources/support", icon: HelpCircle },
-      { label: "Tutorials", href: "/resources/tutorials", icon: GraduationCap },
-    ],
-  },
-]
+function NavLinks({ items, pathname }: { items: NavItem[]; pathname: string }) {
+  return items.map((item) => (
+    <SidebarMenuItem key={item.url}>
+      <SidebarMenuButton asChild isActive={isActivePath(pathname, item.url)} tooltip={item.title}>
+        <Link href={item.url}>
+          <item.icon className="size-4" />
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  ))
+}
 
-export function AppSidebar() {
-  const pathname = usePathname()
-  const { data: session } = useSession()
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
-  const { balance, isLoading: creditsLoading, formatCredits, purchaseUrl } = useCredits()
-
-  const userName = session?.user?.name ?? "User"
-  const userEmail = session?.user?.email ?? ""
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-
-  function isActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/")
-  }
-
-  function isSectionActive(items: { href: string }[]) {
-    return items.some((item) => isActive(item.href))
-  }
+function NavSubmenu({
+  title,
+  icon: Icon,
+  items,
+  pathname,
+}: {
+  title: string
+  icon: LucideIcon
+  items: NavItem[]
+  pathname: string
+}) {
+  const containsActive = items.some((item) => isActivePath(pathname, item.url))
+  const { state, setOpen } = useSidebar()
+  const [expanded, setExpanded] = React.useState(containsActive)
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Radar className="h-5 w-5" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-sidebar-foreground">
-                PipeLeads
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-                LeadFinder AI
-              </span>
-            </div>
-          )}
-        </Link>
-      </SidebarHeader>
+    <Collapsible
+      asChild
+      open={expanded}
+      onOpenChange={setExpanded}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={title}
+            isActive={containsActive && state === "collapsed"}
+            onClick={(event) => {
+              // On the icon rail the submenu has nowhere to show: open the
+              // sidebar with this submenu expanded instead.
+              if (state === "collapsed") {
+                event.preventDefault()
+                setOpen(true)
+                setExpanded(true)
+              }
+            }}
+          >
+            <Icon className="size-4" />
+            <span>{title}</span>
+            <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {items.map((item) => (
+              <SidebarMenuSubItem key={item.url}>
+                <SidebarMenuSubButton asChild isActive={isActivePath(pathname, item.url)}>
+                  <Link href={item.url}>
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
 
-      {!isCollapsed && (
-        <>
-          <div className="px-4 pb-2">
-            <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/60">
-                Credits Remaining
-              </p>
-              <p className={`text-2xl font-bold ${
-                balance && balance.availableCredits < 0
-                  ? "text-destructive"
-                  : "text-sidebar-foreground"
-              }`}>
-                {creditsLoading
-                  ? "..."
-                  : formatCredits(balance?.availableCredits ?? 0)}
-              </p>
-              <a
-                href={purchaseUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-semibold no-underline"
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: '#1a1a1a',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                }}
-              >
-                <Wallet className="h-3.5 w-3.5" style={{ color: '#1a1a1a' }} />
-                <span style={{ color: '#1a1a1a' }}>Credit Wallet</span>
-              </a>
-            </div>
-          </div>
-          <Separator className="bg-sidebar-border" />
-        </>
-      )}
+/** Credits remaining and the wallet link, compact, in sidebar tokens. */
+function CreditsSummary() {
+  const { balance, isLoading, formatCredits, purchaseUrl } = useCredits()
+  const available = balance?.availableCredits ?? 0
+  const label = isLoading ? "…" : formatCredits(available)
 
-      <SidebarContent>
-        <ScrollArea className="flex-1">
-          {navSections
-            .filter((section) => {
-              if (!section.adminOnly) return true
-              return isAdminUser(userEmail, session?.user?.role)
-            })
-            .map((section) => {
-            const sectionActive = isSectionActive(section.items)
-            return (
-              <Collapsible
-                key={section.label}
-                defaultOpen={section.defaultOpen || sectionActive}
-                className="group/collapsible"
-              >
-                <SidebarGroup>
-                  <SidebarGroupLabel asChild>
-                    <CollapsibleTrigger className="flex w-full items-center gap-2 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors">
-                      <section.icon className="h-4 w-4" />
-                      {!isCollapsed && (
-                        <>
-                          <span className="flex-1 text-left">{section.label}</span>
-                          <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </>
-                      )}
-                    </CollapsibleTrigger>
-                  </SidebarGroupLabel>
-                  <CollapsibleContent>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {section.items.map((item) => {
-                          const active = isActive(item.href)
-                          return (
-                            <SidebarMenuItem key={item.href}>
-                              <SidebarMenuButton
-                                asChild
-                                isActive={active}
-                                tooltip={item.label}
-                              >
-                                <Link href={item.href}>
-                                  <item.icon className="h-4 w-4" />
-                                  <span>{item.label}</span>
-                                </Link>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          )
-                        })}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                </SidebarGroup>
-              </Collapsible>
-            )
-          })}
-        </ScrollArea>
-      </SidebarContent>
-
-      <SidebarFooter>
-        <Separator className="bg-sidebar-border" />
-        <div className="p-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {!isCollapsed && (
-              <div className="flex flex-col overflow-hidden">
-                <span className="truncate text-sm font-medium text-sidebar-foreground">
-                  {userName}
-                </span>
-                <span className="truncate text-xs text-sidebar-foreground/60">
-                  {userEmail}
-                </span>
-              </div>
-            )}
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent>
+        {/* Expanded: a small card. Collapsed to the icon rail: one wallet button. */}
+        <div className="space-y-2 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-2.5 group-data-[collapsible=icon]:hidden">
+          <div className="flex items-baseline justify-between gap-2 px-0.5">
+            <span className="text-xs text-sidebar-muted-foreground">Credits remaining</span>
+            <span
+              className={cn(
+                "truncate text-sm font-semibold tabular-nums",
+                available < 0 ? "text-destructive" : "text-sidebar-foreground"
+              )}
+            >
+              {label}
+            </span>
           </div>
+          <a
+            href={purchaseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-7 w-full items-center justify-center gap-1.5 rounded-md bg-sidebar-primary text-xs font-medium text-sidebar-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
+          >
+            <Wallet className="size-3.5" aria-hidden />
+            Credit Wallet
+          </a>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+        <SidebarMenu className="hidden group-data-[collapsible=icon]:flex">
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={`Credits: ${label}`}>
+              <a href={purchaseUrl} target="_blank" rel="noopener noreferrer">
+                <Wallet className="size-4" />
+                <span>Credit Wallet</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }

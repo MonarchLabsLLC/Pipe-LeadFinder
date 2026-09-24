@@ -1,13 +1,12 @@
 "use client"
 
-import Script from "next/script"
-import { useCallback, useEffect, useRef } from "react"
+import * as React from "react"
 
 const SCRIPT_ID = "scaleplus-app-launcher-script"
 const SCRIPT_URL =
   process.env.NEXT_PUBLIC_SCALEPLUS_APP_LAUNCHER_URL ||
   "https://app.scaleplus.gg/app-launcher.js"
-const ANCHOR_SELECTOR = "[data-scaleplus-launcher-anchor]"
+const ANCHOR_SELECTOR = '[data-scaleplus-launcher-anchor="app-shell"]'
 
 type LauncherInstance = {
   destroy(): void
@@ -26,37 +25,55 @@ type LauncherWindow = typeof window & {
   ScalePlusAppLauncher?: LauncherApi
 }
 
-/** Loads the shared launcher only inside PipeLeads LeadFinder's app shell. */
+/**
+ * Loads the shared ScalePlus launcher inside Lead Finder's app shell and
+ * mounts its "Apps" pill next to the header anchor. Same loader as PipeLeads
+ * Suite's, with Lead Finder marked as the current app.
+ */
 export function ScalePlusAppLauncher() {
-  const instanceRef = useRef<LauncherInstance | undefined>(undefined)
-
-  const mount = useCallback(() => {
+  React.useEffect(() => {
     if (!document.querySelector(ANCHOR_SELECTOR)) return
 
-    instanceRef.current?.destroy()
     const launcherWindow = window as LauncherWindow
-    instanceRef.current = launcherWindow.ScalePlusAppLauncher?.mount({
-      currentApp: "pipeleadsfinder",
-      anchor: ANCHOR_SELECTOR,
-      navigation: "direct",
-      target: "_self",
-    })
-  }, [])
+    let instance: LauncherInstance | undefined
+    let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null
+    let createdScript = false
+    let cancelled = false
 
-  useEffect(() => {
+    const mount = () => {
+      if (cancelled || instance || !document.querySelector(ANCHOR_SELECTOR)) return
+
+      instance = launcherWindow.ScalePlusAppLauncher?.mount({
+        currentApp: "pipeleadsfinder",
+        anchor: ANCHOR_SELECTOR,
+        navigation: "direct",
+        target: "_self",
+      })
+    }
+
+    if (launcherWindow.ScalePlusAppLauncher) {
+      mount()
+    } else {
+      if (!script) {
+        script = document.createElement("script")
+        script.id = SCRIPT_ID
+        script.src = SCRIPT_URL
+        script.async = true
+        script.dataset.autoMount = "false"
+        document.body.appendChild(script)
+        createdScript = true
+      }
+
+      script.addEventListener("load", mount, { once: true })
+    }
+
     return () => {
-      instanceRef.current?.destroy()
-      instanceRef.current = undefined
+      cancelled = true
+      script?.removeEventListener("load", mount)
+      instance?.destroy()
+      if (createdScript) script?.remove()
     }
   }, [])
 
-  return (
-    <Script
-      id={SCRIPT_ID}
-      src={SCRIPT_URL}
-      strategy="afterInteractive"
-      data-auto-mount="false"
-      onReady={mount}
-    />
-  )
+  return null
 }

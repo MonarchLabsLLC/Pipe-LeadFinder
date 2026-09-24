@@ -1,12 +1,180 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
-@import 'tailwindcss';
-@import 'tw-animate-css';
-
-/* Theme files */
-@import '../themes/amber.css';
-@import '../themes/indigo.css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.9816 0.0017 247.8390);
+  --foreground: oklch(0.2167 0.0098 294.7400);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.2167 0.0098 294.7400);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.2167 0.0098 294.7400);
+  --primary: oklch(0.5420 0.2189 292.7172);
+  --primary-foreground: oklch(1.0000 0 0);
+  --secondary: oklch(0.9670 0.0029 264.5419);
+  --secondary-foreground: oklch(0.2781 0.0296 256.8480);
+  --muted: oklch(0.9670 0.0029 264.5419);
+  --muted-foreground: oklch(0.5400 0.0234 264.3637);
+  --accent: oklch(0.9691 0.0161 293.7558);
+  --accent-foreground: oklch(0.5413 0.2466 293.0090);
+  --destructive: oklch(0.5580 0.2078 25.3313);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.9276 0.0058 264.5313);
+  /* The boundary of a form control, so it carries the 3:1 the theme's soft
+     --border does not: see src/lib/color/theme-contrast.test.ts. */
+  --input: oklch(0.6480 0.0120 264.5313);
+  --ring: oklch(0.5800 0.1900 293.5412);
+  --chart-1: oklch(0.6056 0.2189 292.7172);
+  --chart-2: oklch(0.6559 0.2118 354.3084);
+  --chart-3: oklch(0.6668 0.2591 322.1499);
+  --chart-4: oklch(0.5854 0.2041 277.1173);
+  --chart-5: oklch(0.6450 0.2154 16.4393);
+  --sidebar: oklch(0.2925 0.0399 294.2254);
+  --sidebar-foreground: oklch(0.9816 0.0017 247.8390);
+  --sidebar-primary: oklch(0.5420 0.2189 292.7172);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.4092 0.0568 294.5601);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.4092 0.0568 294.5601);
+  /* The sidebar surface is dark in both themes, so --muted-foreground is
+     unreadable on it. Secondary text inside the sidebar uses this instead. */
+  --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
+  --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  --font-sans: Inter, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: JetBrains Mono, monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-blur: 10px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.05;
+  --shadow-color: #000000;
+  --shadow-2xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.03);
+  --shadow-xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.03);
+  --shadow-sm: 0px 2px 10px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow: 0px 2px 10px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow-md: 0px 2px 10px 0px hsl(0 0% 0% / 0.05), 0px 2px 4px -1px hsl(0 0% 0% / 0.05);
+  --shadow-lg: 0px 2px 10px 0px hsl(0 0% 0% / 0.05), 0px 4px 6px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xl: 0px 2px 10px 0px hsl(0 0% 0% / 0.05), 0px 8px 10px -1px hsl(0 0% 0% / 0.05);
+  --shadow-2xl: 0px 2px 10px 0px hsl(0 0% 0% / 0.13);
+  --tracking-normal: -0.01em;
+  --spacing: 0.25rem;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 2px;
+  --letter-spacing: -0.01em;
+
+  /* Semantic status tokens. Use these instead of Tailwind palette classes
+     (bg-green-600) or raw oklch() literals, so status reads the same in both
+     themes. Each pairs with a -foreground for text placed on a solid fill. */
+  --success: oklch(0.5020 0.1400 150);
+  --success-foreground: oklch(1.0000 0 0);
+  --warning: oklch(0.5150 0.1400 85);
+  --warning-foreground: oklch(1.0000 0 0);
+  --info: oklch(0.5120 0.1500 245);
+  --info-foreground: oklch(1.0000 0 0);
+  --danger: oklch(0.5250 0.2000 25);
+  --danger-foreground: oklch(1.0000 0 0);
+
+  /* Categorical palette for user-chosen colors: pipeline stages, card labels,
+     board backgrounds and avatars. Hues are evenly spread and lightness is held
+     low enough that --cat-foreground stays legible on a solid fill. */
+  --cat-blue: oklch(0.5580 0.1700 255);
+  --cat-teal: oklch(0.5320 0.1200 205);
+  --cat-violet: oklch(0.5760 0.2100 293);
+  --cat-pink: oklch(0.5820 0.2100 354);
+  --cat-orange: oklch(0.5680 0.1600 55);
+  --cat-indigo: oklch(0.5680 0.1900 275);
+  --cat-green: oklch(0.5400 0.1400 150);
+  --cat-red: oklch(0.5800 0.2100 25);
+  --cat-slate: oklch(0.5540 0.0300 260);
+  --cat-yellow: oklch(0.5560 0.1500 85);
+  --cat-foreground: oklch(0.9900 0 0);
+}
+
+.dark {
+  --background: oklch(0.2077 0.0398 265.7549);
+  --foreground: oklch(0.9842 0.0034 247.8575);
+  --card: oklch(0.2795 0.0368 260.0310);
+  --card-foreground: oklch(0.9842 0.0034 247.8575);
+  --popover: oklch(0.2795 0.0368 260.0310);
+  --popover-foreground: oklch(0.9842 0.0034 247.8575);
+  --primary: oklch(0.7600 0.1500 293.5412);
+  --primary-foreground: oklch(0.2077 0.0398 265.7549);
+  --secondary: oklch(0.3717 0.0392 257.2870);
+  --secondary-foreground: oklch(0.9842 0.0034 247.8575);
+  --muted: oklch(0.2795 0.0368 260.0310);
+  --muted-foreground: oklch(0.7107 0.0351 256.7878);
+  --accent: oklch(0.3796 0.1783 293.7446);
+  --accent-foreground: oklch(0.9842 0.0034 247.8575);
+  --destructive: oklch(0.4437 0.1613 26.8994);
+  --destructive-foreground: oklch(0.9842 0.0034 247.8575);
+  --border: oklch(0.4200 0.0392 257.2870);
+  --input: oklch(0.5540 0.0392 257.2870);
+  --ring: oklch(0.7090 0.1592 293.5412);
+  --chart-1: oklch(0.7090 0.1592 293.5412);
+  --chart-2: oklch(0.7253 0.1752 349.7607);
+  --chart-3: oklch(0.7477 0.2070 322.1604);
+  --chart-4: oklch(0.6801 0.1583 276.9349);
+  --chart-5: oklch(0.7192 0.1690 13.4280);
+  --sidebar: oklch(0.1288 0.0406 264.6952);
+  --sidebar-foreground: oklch(0.9842 0.0034 247.8575);
+  --sidebar-primary: oklch(0.7090 0.1592 293.5412);
+  --sidebar-primary-foreground: oklch(0.2077 0.0398 265.7549);
+  --sidebar-accent: oklch(0.2795 0.0368 260.0310);
+  --sidebar-accent-foreground: oklch(1.0000 0 0);
+  --sidebar-border: oklch(0.3717 0.0392 257.2870);
+  --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
+  --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  --font-sans: Inter, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: JetBrains Mono, monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0px;
+  --shadow-y: 4px;
+  --shadow-blur: 12px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.4;
+  --shadow-color: #000000;
+  --shadow-2xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.20);
+  --shadow-xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.20);
+  --shadow-sm: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);
+  --shadow: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);
+  --shadow-md: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 2px 4px -1px hsl(0 0% 0% / 0.40);
+  --shadow-lg: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 4px 6px -1px hsl(0 0% 0% / 0.40);
+  --shadow-xl: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 8px 10px -1px hsl(0 0% 0% / 0.40);
+  --shadow-2xl: 0px 4px 12px 0px hsl(0 0% 0% / 1.00);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
+  --letter-spacing: -0.01em;
+  --spacing: 0.25rem;
+
+  /* Status on dark: lighter fills, so the paired foreground turns dark. */
+  --success: oklch(0.7300 0.1400 150);
+  --success-foreground: oklch(0.1800 0.0300 150);
+  --warning: oklch(0.7800 0.1400 85);
+  --warning-foreground: oklch(0.2200 0.0400 85);
+  --info: oklch(0.7400 0.1300 245);
+  --info-foreground: oklch(0.1800 0.0400 245);
+  --danger: oklch(0.7300 0.1600 25);
+  --danger-foreground: oklch(0.1800 0.0400 25);
+
+  /* Categorical palette on dark: a touch lighter and less saturated so the
+     colors read against the dark background, while staying dark enough for
+     --cat-foreground to keep its contrast on solid fills. */
+  --cat-blue: oklch(0.6080 0.1400 255);
+  --cat-teal: oklch(0.5960 0.1000 205);
+  --cat-violet: oklch(0.6220 0.1600 293);
+  --cat-pink: oklch(0.6260 0.1500 354);
+  --cat-orange: oklch(0.6180 0.1400 55);
+  --cat-indigo: oklch(0.6160 0.1500 275);
+  --cat-green: oklch(0.5920 0.1300 150);
+  --cat-red: oklch(0.6260 0.1600 25);
+  --cat-slate: oklch(0.6060 0.0300 260);
+  --cat-yellow: oklch(0.6080 0.1400 85);
+  --cat-foreground: oklch(0.2100 0 0);
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -40,58 +208,144 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: 'Inter', sans-serif;
-  --font-heading: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
-  --radius-2xl: 10px;
-  --radius-3xl: 12px;
-  --radius-4xl: 14px;
-}
+  --color-cat-blue: var(--cat-blue);
+  --color-cat-teal: var(--cat-teal);
+  --color-cat-violet: var(--cat-violet);
+  --color-cat-pink: var(--cat-pink);
+  --color-cat-orange: var(--cat-orange);
+  --color-cat-indigo: var(--cat-indigo);
+  --color-cat-green: var(--cat-green);
+  --color-cat-red: var(--cat-red);
+  --color-cat-slate: var(--cat-slate);
+  --color-cat-yellow: var(--cat-yellow);
+  --color-cat-foreground: var(--cat-foreground);
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
+  --font-sans: Inter, sans-serif;
+  --font-mono: JetBrains Mono, monospace;
+  --font-serif: Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  --radius: 0.5rem;
+  --spacing: var(--spacing);
+  --letter-spacing: var(--letter-spacing);
+  --shadow-offset-y: var(--shadow-offset-y);
+  --shadow-offset-x: var(--shadow-offset-x);
+  --shadow-spread: var(--shadow-spread);
+  --shadow-blur: var(--shadow-blur);
+  --shadow-opacity: var(--shadow-opacity);
+  --color-shadow-color: var(--shadow-color);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
   }
-
-  .font-heading {
-    font-family: var(--font-heading);
+  /* Numbers line up in tables, KPI tiles and anything that counts. */
+  th,
+  td,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Force square corners globally — Scale.gg style */
-*,
-*::before,
-*::after {
-  border-radius: 4px !important;
+/* Printing a record — a deal, a contact, a company — should give the record,
+   not the application around it. The shell is dropped, the scroll containers
+   are released so nothing is cut off at a fold, and the page is forced light
+   so a dark theme does not print a black rectangle. */
+@media print {
+  :root,
+  .dark {
+    color-scheme: light;
+  }
+  [data-slot="sidebar-wrapper"] > [data-slot="sidebar"],
+  header,
+  [data-print-hide],
+  [data-sonner-toaster],
+  [data-scaleplus-app-launcher] {
+    display: none !important;
+  }
+  main,
+  [data-slot="sidebar-inset"] {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    word-break: break-all;
+  }
+  /* A card must not be split across two sheets. */
+  [data-slot="card"] {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
 }
 
-/* Allow fully round elements to stay round (avatars, status dots) */
-.rounded-full {
-  border-radius: 9999px !important;
+/* Someone who has asked their system for less movement gets none of ours: the
+   board drags, the dialog scale-ins, the skeleton shimmer and the toasts all
+   collapse to an instant change. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* The shared ScalePlus app launcher mounts itself at z-index 2147483000, which
+   puts its "Apps" pill on top of our menus, dialogs, and sheets (all z-50).
+   Keep it above page content but below overlays. */
+[data-scaleplus-app-launcher] {
+  z-index: 40 !important;
+}
+
+/* Lead Finder pages still use `font-heading` on titles; in the suite design
+   system headings are set in the same sans face. */
+.font-heading {
+  font-family: var(--font-sans);
 }

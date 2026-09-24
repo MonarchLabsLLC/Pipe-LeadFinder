@@ -16,14 +16,17 @@ In production, PipeLeads uses your Keycloak account. Sign in through the Keycloa
 
 ### Dashboard Overview
 
-After login, you land on the dashboard with a collapsible sidebar navigation:
+After login, you land on the dashboard. Lead Finder uses the same frame as the rest of PipeLeads, so the sidebar and header look and work the same whichever PipeLeads app you are in.
 
-- **Credits Remaining** — displays your current credit balance
-- **AI Tools** — Knowledge Base, AI Assistant, AI Agent
-- **Lead Search** — New Search, Saved Lists, Custom Labels
-- **Admin** — account and configuration settings
-- **Resources** — help and documentation
-- **User menu** — account settings, theme, logout
+The collapsible sidebar holds:
+
+- **Apps** — PipeLeads CRM, Lead Finder (marked with a dot while you are here) and ProjectBaser. Choosing another app opens it in the same tab.
+- **Credits remaining** — your current credit balance, with a **Credit Wallet** button
+- **Lead Search** — New Search, Saved Lists, Custom Labels, and the **AI Tools** submenu (Knowledge Base, AI Assistant, AI Agent)
+- **Admin** — account and configuration settings (administrators only)
+- **Resources** — Integrations, Support and Tutorials
+
+The header shows where you are (for example *Lead Search › Saved Lists*), a **Search** box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus **Apps** launcher, the **Agent** button, the light/dark theme toggle, and your avatar menu (Tutorials, Integrations, Support, Log out).
 
 ---
 
@@ -323,14 +326,7 @@ Export any list to CSV from the list detail page:
 
 ## Theme & Display
 
-The application supports two color themes and two display modes:
-
-- **Warm (Amber)** — warm, golden accent colors
-- **Cool (Indigo)** — cool, blue accent colors
-- **Light Mode** — light backgrounds
-- **Dark Mode** — dark backgrounds
-
-Access the theme selector from the user menu or settings.
+Lead Finder uses the PipeLeads colour theme, the same one as PipeLeads CRM and ProjectBaser, in a light and a dark mode. It follows your device's setting until you choose one: click the moon (or sun) button in the header to switch between light and dark. Your choice is remembered in this browser.
 
 ---
 
