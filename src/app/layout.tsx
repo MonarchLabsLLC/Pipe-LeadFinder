@@ -38,9 +38,6 @@ export default function RootLayout({
       className="scroll-smooth"
       suppressHydrationWarning
     >
-      <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-      </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         {/* Same theme wiring as PipeLeads Suite, so light/dark behaves the
             same in every PipeLeads app. */}

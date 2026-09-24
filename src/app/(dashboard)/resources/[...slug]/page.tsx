@@ -1,5 +1,5 @@
 import { HelpCircle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from "@/components/ui/badge"
 
 const resourcePages: Record<string, { title: string; description: string }> = {
@@ -30,21 +30,26 @@ export default async function ResourcesCatchAllPage({
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardContent className="flex flex-col items-center gap-4 pt-8 pb-8">
-          <HelpCircle className="h-12 w-12 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {page.title}
-          </h1>
-          <Badge variant="secondary">Coming Soon</Badge>
-          <p className="text-muted-foreground">{page.description}</p>
-          <p className="text-sm text-muted-foreground/70">
-            This feature is under development and will be available in a
-            future update.
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <PageHeader
+        title={page.title}
+        description={page.description}
+        actions={<Badge variant="secondary">Coming soon</Badge>}
+      />
+      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border bg-card px-6 py-16 text-center">
+        <div className="relative">
+          <div aria-hidden="true" className="absolute -inset-3 rounded-full border border-dashed border-border" />
+          <div className="relative flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <HelpCircle aria-hidden="true" className="size-6" />
+          </div>
+        </div>
+        <div className="mt-2 max-w-sm space-y-1">
+          <h2 className="text-lg font-semibold tracking-tight">Coming soon</h2>
+          <p className="text-sm text-muted-foreground">
+            This feature is under development and will be available in a future update.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

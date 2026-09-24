@@ -37,6 +37,7 @@ import {
   Radar,
   Send,
 } from "lucide-react"
+import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -64,18 +65,18 @@ import {
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm">
-      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-      <div className="text-foreground/80">{children}</div>
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4">
+      <Lightbulb aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+      <div className="min-w-0 text-sm text-muted-foreground [&_strong]:text-foreground">{children}</div>
     </div>
   )
 }
 
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-800 dark:bg-blue-950/30">
-      <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-      <div className="text-foreground/80">{children}</div>
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4">
+      <HelpCircle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+      <div className="min-w-0 text-sm text-muted-foreground [&_strong]:text-foreground">{children}</div>
     </div>
   )
 }
@@ -91,12 +92,12 @@ function Step({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
         {number}
       </div>
       <div className="flex-1 pt-0.5">
-        <p className="font-semibold mb-1">{title}</p>
-        <div className="text-sm text-muted-foreground">{children}</div>
+        <p className="mb-1 font-semibold text-foreground">{title}</p>
+        <div className="text-sm leading-relaxed text-muted-foreground">{children}</div>
       </div>
     </div>
   )
@@ -104,9 +105,9 @@ function Step({
 
 function VideoPlaceholder({ title }: { title: string }) {
   return (
-    <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-background border flex items-center justify-center">
-      <div className="text-center space-y-3">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border bg-muted/40">
+      <div className="space-y-3 text-center">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
           <PlayCircle className="h-8 w-8 text-primary" />
         </div>
         <div>
@@ -190,44 +191,33 @@ export default function TutorialsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/lead-search/new-search">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <PageHeader
+        title="Tutorials & User Guide"
+        description="Everything you need to find, enrich, and connect with your ideal leads"
+        actions={
+          <>
+            <Button asChild variant="outline">
+              <Link href="/lead-search/new-search">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                Back to search
+              </Link>
             </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold leading-tight">Tutorials & User Guide</h1>
-              <p className="text-xs text-muted-foreground">
-                Everything you need to find, enrich, and connect with your ideal leads
-              </p>
-            </div>
-          </div>
-        </div>
-        <a
-          href="https://support.groovedigital.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button variant="outline" size="sm" className="gap-2">
-            <HelpCircle className="h-4 w-4" />
-            Support Center
-            <ExternalLink className="h-3 w-3" />
-          </Button>
-        </a>
-      </div>
+            <Button asChild variant="outline">
+              <a href="https://support.groovedigital.com/" target="_blank" rel="noopener noreferrer">
+                <HelpCircle aria-hidden="true" className="size-4" />
+                Support Center
+                <ExternalLink aria-hidden="true" className="size-3.5" />
+              </a>
+            </Button>
+          </>
+        }
+      />
 
       {/* Video intro collapsible */}
       <Collapsible open={isVideoOpen} onOpenChange={setIsVideoOpen}>
         <CollapsibleTrigger asChild>
-          <div className="flex cursor-pointer items-center justify-between rounded-lg border bg-card p-4 hover:bg-muted/40 transition-colors">
+          <div className={cn("flex cursor-pointer items-center justify-between border bg-card p-4 transition-colors hover:bg-muted/40", isVideoOpen ? "rounded-t-xl" : "rounded-xl")}>
             <div className="flex items-center gap-3">
               <PlayCircle className="h-5 w-5 text-primary" />
               <span className="font-medium text-sm">Watch: PipeLeads Overview (5 min)</span>
@@ -241,7 +231,7 @@ export default function TutorialsPage() {
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="rounded-b-lg border-x border-b p-4 pt-0 bg-card">
+          <div className="rounded-b-xl border-x border-b bg-card p-4 pt-0">
             <VideoPlaceholder title="Welcome to PipeLeads — Platform Overview" />
           </div>
         </CollapsibleContent>
@@ -250,16 +240,16 @@ export default function TutorialsPage() {
       {/* Two-level Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* Level 1 — Category tabs */}
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="h-auto w-full justify-start gap-1 bg-muted/50 p-1 inline-flex md:w-auto">
+        <div className="-mx-1 overflow-x-auto px-1">
+          <TabsList className="flex h-auto w-max group-data-[orientation=horizontal]/tabs:h-auto gap-1 rounded-xl border bg-card p-1.5">
             {categories.map((cat) => (
               <TabsTrigger
                 key={cat.id}
                 value={cat.id}
-                className="gap-2 px-3 py-2 text-sm"
+                className="h-auto flex-none gap-2 rounded-lg border-0 px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none hover:bg-muted hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
               >
-                <cat.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{cat.label}</span>
+                <cat.icon aria-hidden="true" className="size-4" />
+                <span>{cat.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -271,7 +261,7 @@ export default function TutorialsPage() {
             value={activeSubTab["getting-started"]}
             onValueChange={(v) => subTab("getting-started", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "overview", label: "Overview" },
                 { value: "dashboard", label: "Your Dashboard" },
@@ -280,7 +270,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -512,7 +502,7 @@ export default function TutorialsPage() {
             value={activeSubTab["lead-search"]}
             onValueChange={(v) => subTab("lead-search", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6 overflow-x-auto">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "search-types", label: "Search Types" },
                 { value: "people", label: "People Search" },
@@ -523,7 +513,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm whitespace-nowrap"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -912,7 +902,7 @@ export default function TutorialsPage() {
             value={activeSubTab["saved-lists"]}
             onValueChange={(v) => subTab("saved-lists", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "viewing-results", label: "Viewing Results" },
                 { value: "managing-leads", label: "Managing Leads" },
@@ -921,7 +911,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -1097,7 +1087,7 @@ export default function TutorialsPage() {
             value={activeSubTab["enrichment"]}
             onValueChange={(v) => subTab("enrichment", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "what-is-enrichment", label: "What Is Enrichment?" },
                 { value: "email-enrichment", label: "Email Enrichment" },
@@ -1106,7 +1096,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -1281,7 +1271,7 @@ export default function TutorialsPage() {
             value={activeSubTab["ai-tools"]}
             onValueChange={(v) => subTab("ai-tools", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "knowledge-base", label: "Knowledge Base" },
                 { value: "ai-assistant", label: "AI Assistant" },
@@ -1290,7 +1280,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -1351,7 +1341,7 @@ export default function TutorialsPage() {
                       { label: "PDF Upload", desc: "Upload brochures, case studies, or other documents" },
                     ].map((item) => (
                       <div key={item.label} className="flex gap-2 text-sm">
-                        <Star className="h-4 w-4 mt-0.5 shrink-0 text-yellow-500" />
+                        <Star className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
                         <span>
                           <strong>{item.label}</strong>{" "}
                           <span className="text-muted-foreground">— {item.desc}</span>
@@ -1522,7 +1512,7 @@ export default function TutorialsPage() {
             value={activeSubTab["labels-export"]}
             onValueChange={(v) => subTab("labels-export", v)}
           >
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-6 mb-6">
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "labels", label: "Custom Labels" },
                 { value: "export", label: "Exporting CSV" },
@@ -1531,7 +1521,7 @@ export default function TutorialsPage() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm"
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
                 >
                   {t.label}
                 </TabsTrigger>
