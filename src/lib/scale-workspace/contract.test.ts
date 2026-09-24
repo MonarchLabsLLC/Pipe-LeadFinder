@@ -153,6 +153,8 @@ describe("member allowlist", () => {
       "/api/location-search",
       "/api/credits/pricing",
       "/api/scale-workspace/display-context",
+      "/api/search/recent",
+      "/api/search/interpret",
     ]) {
       expect(isGeneralMemberWorkspacePath(path), path).toBe(true)
     }

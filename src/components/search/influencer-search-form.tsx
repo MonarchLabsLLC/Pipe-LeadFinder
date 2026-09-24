@@ -1,19 +1,17 @@
 "use client"
 
+import { useEffect } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, Coins, Lightbulb } from "lucide-react"
+import { ArrowRight, Lightbulb } from "lucide-react"
 import {
   influencerSearchSchema,
   type InfluencerSearchInput,
 } from "@/lib/validators/search"
-import {
-  formatScaledCreditText,
-  getPipeLeadsCreditCost,
-} from "@/lib/pipeleads-credit-pricing"
-import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { SearchCostEstimate } from "@/components/search/search-cost-estimate"
+import { AUTO_LIST_ID, buildAutoListName } from "@/lib/search-summary"
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -89,41 +87,49 @@ interface InfluencerSearchFormProps {
   onSubmit: (data: InfluencerSearchInput & { listId?: string }) => void
   onCancel: () => void
   isLoading?: boolean
+  /** Pre-fills the form (an example chip or "Describe who you want"). */
+  initialValues?: Partial<InfluencerSearchInput>
 }
 
 export function InfluencerSearchForm({
   onSubmit,
   onCancel,
   isLoading,
+  initialValues,
 }: InfluencerSearchFormProps) {
-  const { pricingMap } = usePipeLeadsPricing()
-  const creditText = formatScaledCreditText(
-    getPipeLeadsCreditCost("search:influencer", pricingMap),
-    "profile"
-  )
+  const defaults: Partial<InfluencerSearchInput> = {
+    platform: "instagram",
+    resultsLimit: 10,
+    hashtags: [],
+    description: "",
+    location: "",
+    listId: AUTO_LIST_ID,
+    accountType: "any",
+    verified: false,
+    language: "any",
+  }
   const {
     register,
     handleSubmit,
+    reset,
     control,
     setValue,
     formState: { errors },
   } = useForm<InfluencerSearchInput>({
     resolver: zodResolver(influencerSearchSchema) as AnyResolver,
-    defaultValues: {
-      platform: "instagram",
-      resultsLimit: 10,
-      hashtags: [],
-      description: "",
-      location: "",
-      listId: "",
-      accountType: "any",
-      verified: false,
-      language: "any",
-    },
+    defaultValues: { ...defaults, ...initialValues },
   })
 
   const platform = useWatch({ control, name: "platform" })
-  const listId = useWatch({ control, name: "listId" })
+  const values = useWatch({ control })
+  const listId = values.listId
+  const autoName = buildAutoListName(SearchType.INFLUENCER, values)
+
+  // A new example or AI suggestion replaces what is in the form.
+  useEffect(() => {
+    if (initialValues) reset({ ...defaults, ...initialValues })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, reset])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -335,11 +341,8 @@ export function InfluencerSearchForm({
             value={listId || undefined}
             onChange={(value) => setValue("listId", value, { shouldDirty: true, shouldValidate: true })}
             searchType={SearchType.INFLUENCER}
+            autoName={autoName}
           />
-          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-            <Coins className="size-3.5 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Influencer search consumes {creditText} returned.</p>
-          </div>
           <div className="mt-4 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>Cancel</Button>
             <Button type="submit" disabled={isLoading || !listId} className="min-w-32">
@@ -347,6 +350,7 @@ export function InfluencerSearchForm({
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>
           </div>
+          <SearchCostEstimate searchType={SearchType.INFLUENCER} resultsLimit={values.resultsLimit} />
         </section>
       </div>
     </form>

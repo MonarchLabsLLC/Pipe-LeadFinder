@@ -1,17 +1,15 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, Coins } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
 import { localSearchSchema, type LocalSearchInput } from "@/lib/validators/search"
-import {
-  formatScaledCreditText,
-  getPipeLeadsCreditCost,
-} from "@/lib/pipeleads-credit-pricing"
-import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { SearchCostEstimate } from "@/components/search/search-cost-estimate"
+import { AUTO_LIST_ID, buildAutoListName } from "@/lib/search-summary"
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -29,30 +27,37 @@ interface LocalSearchFormProps {
   onSubmit: (data: LocalSearchInput & { listId?: string }) => void
   onCancel: () => void
   isLoading?: boolean
+  /** Pre-fills the form (an example chip or "Describe who you want"). */
+  initialValues?: Partial<LocalSearchInput>
 }
 
-export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFormProps) {
-  const { pricingMap } = usePipeLeadsPricing()
-  const localSearchCreditText = formatScaledCreditText(
-    getPipeLeadsCreditCost("search:local", pricingMap),
-    "business"
-  )
+export function LocalSearchForm({ onSubmit, onCancel, isLoading, initialValues }: LocalSearchFormProps) {
+  const defaults: Partial<LocalSearchInput> = {
+    businessType: "",
+    location: "",
+    resultsLimit: 10,
+    listId: AUTO_LIST_ID,
+  }
   const {
     register,
     handleSubmit,
+    reset,
     control,
     setValue,
     formState: { errors },
   } = useForm<LocalSearchInput>({
     resolver: zodResolver(localSearchSchema) as Resolver<LocalSearchInput>,
-    defaultValues: {
-      businessType: "",
-      location: "",
-      resultsLimit: 10,
-      listId: "",
-    },
+    defaultValues: { ...defaults, ...initialValues },
   })
-  const listId = useWatch({ control, name: "listId" })
+  const values = useWatch({ control })
+  const listId = values.listId
+  const autoName = buildAutoListName(SearchType.LOCAL, values)
+
+  // A new example or AI suggestion replaces what is in the form.
+  useEffect(() => {
+    if (initialValues) reset({ ...defaults, ...initialValues })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, reset])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -152,16 +157,8 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
               setValue("listId", value, { shouldDirty: true, shouldValidate: true })
             }
             searchType={SearchType.LOCAL}
+            autoName={autoName}
           />
-
-          {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-            <Coins className="size-3.5 shrink-0 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">
-              <p>Local search will consume {localSearchCreditText} returned.</p>
-              <p>No credits will be consumed if email addresses are not found.</p>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="mt-4 flex items-center justify-end gap-3">
@@ -177,6 +174,7 @@ export function LocalSearchForm({ onSubmit, onCancel, isLoading }: LocalSearchFo
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>
           </div>
+          <SearchCostEstimate searchType={SearchType.LOCAL} resultsLimit={values.resultsLimit} />
         </div>
 
       </div>

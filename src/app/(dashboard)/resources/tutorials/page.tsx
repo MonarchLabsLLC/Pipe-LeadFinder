@@ -543,6 +543,7 @@ export default function TutorialsPage() {
             <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "search-types", label: "Search Types" },
+                { value: "welcome", label: "Describe & Examples" },
                 { value: "people", label: "People Search" },
                 { value: "local", label: "Local Search" },
                 { value: "company-domain", label: "Company & Domain" },
@@ -558,6 +559,82 @@ export default function TutorialsPage() {
               ))}
             </TabsList>
 
+            {/* ── New Search page: describe box, examples, recent searches ── */}
+            <TabsContent value="welcome" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <WandSparkles className="h-5 w-5 text-primary" />
+                    Describe who you want
+                  </CardTitle>
+                  <CardDescription>
+                    The fastest way to start: say it in your own words and we set up the search for you
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="space-y-4">
+                    <Step number={1} title="Type a sentence">
+                      At the top of <strong>Lead Search → New Search</strong>, type who you're looking
+                      for — for example "dentists in Tampa, FL", "marketing directors at SaaS companies
+                      in Texas" or "people who work at acme.com" — and click{" "}
+                      <strong>Set up my search</strong>.
+                    </Step>
+                    <Step number={2} title="Check what we picked">
+                      We choose the matching search, open its form already filled in, and tell you why
+                      in one line ("We picked Local search because you described businesses in a
+                      place"). If it's not what you meant, click{" "}
+                      <strong>Not right? Choose another search</strong>.
+                    </Step>
+                    <Step number={3} title="Review, then run">
+                      Nothing runs until you click <strong>Continue</strong>. Change any field first — we
+                      only fill in what you actually said.
+                    </Step>
+                  </div>
+                  <Note>
+                    Reading your description uses a small amount of AI credits, like the other AI
+                    tools. If we can't tell what you mean, we say so and you can rephrase or pick a
+                    search yourself — nothing else is charged.
+                  </Note>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Examples, lists and cost
+                  </CardTitle>
+                  <CardDescription>What the search cards and forms now show you before you spend anything</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground [&_strong]:text-foreground">
+                  <p>
+                    <strong>Search cards.</strong> Each card says what it finds, who it's best for, what
+                    you get back and its price per result. Click a <strong>Try "…"</strong> example to
+                    open that search already filled in.
+                  </p>
+                  <p>
+                    <strong>No list to make first.</strong> "Save results to" starts on{" "}
+                    <strong>New list (auto-named)</strong>. When you run the search we create a list
+                    named from your criteria and the date, like "Dentist – Tampa, FL – Sep 24". You
+                    can still pick one of your existing lists of the same search type, or choose{" "}
+                    <strong>New list with my own name</strong>.
+                  </p>
+                  <p>
+                    <strong>Cost before you search.</strong> Under the Continue button you'll see the
+                    most a search can cost, for example "Up to 25 results × 50 credits = 1,250
+                    credits". You're only charged for results we actually find. If that's more than
+                    your balance, a note links to your Credit Wallet.
+                  </p>
+                  <p>
+                    <strong>Pick up where you left off.</strong> Below the cards you'll find your last
+                    six searches with how many results each found. Click <strong>Open list</strong>{" "}
+                    to see the leads, or <strong>Run again</strong> to repeat the same search into the
+                    same list (it's charged like a new search).
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="search-types" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -571,10 +648,11 @@ export default function TutorialsPage() {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    When you click <strong>Lead Search → New Search</strong>, you'll see five
-                    cards. Each one is a different kind of search. Click a card to select it —
-                    you'll see a checkmark appear — then fill in the form that appears below and
-                    click <strong>→ Continue</strong>.
+                    When you click <strong>Lead Search → New Search</strong>, you can describe who
+                    you want in your own words (see <strong>Describe &amp; Examples</strong>) or pick
+                    one of five search cards. Click a card to select it — you'll see a checkmark
+                    appear — then fill in the form that appears below and click{" "}
+                    <strong>→ Continue</strong>.
                   </p>
 
                   <div className="space-y-3">
@@ -634,8 +712,8 @@ export default function TutorialsPage() {
                   </div>
 
                   <Note>
-                    Every search saves leads to a <strong>list</strong>. You can select an
-                    existing list or create a new one each time you search. This lets you keep
+                    Every search saves leads to a <strong>list</strong>. By default we create a new
+                    list named after your search, or you can pick an existing one. This lets you keep
                     different campaigns organized in separate lists. Your credit balance is
                     checked before every search — if it's negative, the search won't run
                     until you add more credits.

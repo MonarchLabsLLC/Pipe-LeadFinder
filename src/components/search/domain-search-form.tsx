@@ -1,18 +1,14 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm, Controller, useWatch, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, Coins } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { domainSearchSchema, type DomainSearchInput } from "@/lib/validators/search"
-import {
-  formatDisplayCredits,
-  formatScaledCreditText,
-  getScaledDisplayCredits,
-  getPipeLeadsCreditCost,
-} from "@/lib/pipeleads-credit-pricing"
-import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { SearchCostEstimate } from "@/components/search/search-cost-estimate"
+import { AUTO_LIST_ID, buildAutoListName } from "@/lib/search-summary"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -29,31 +25,35 @@ interface DomainSearchFormProps {
   onSubmit: (data: DomainSearchInput & { listId?: string }) => void
   onCancel: () => void
   isLoading?: boolean
+  /** Pre-fills the form (an example chip or "Describe who you want"). */
+  initialValues?: Partial<DomainSearchInput>
 }
 
-export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearchFormProps) {
-  const { pricingMap } = usePipeLeadsPricing()
-  const domainSearchCredits = getScaledDisplayCredits(
-    getPipeLeadsCreditCost("search:domain", pricingMap)
-  )
-  const domainSearchCreditText = formatScaledCreditText(
-    getPipeLeadsCreditCost("search:domain", pricingMap),
-    "individual result"
-  )
+export function DomainSearchForm({ onSubmit, onCancel, isLoading, initialValues }: DomainSearchFormProps) {
+  const defaults: Partial<DomainSearchInput> = {
+    resultsLimit: 10,
+    listId: AUTO_LIST_ID,
+  }
   const {
     control,
     register,
     handleSubmit,
+    reset,
     setValue,
     formState: { errors },
   } = useForm<DomainSearchInput>({
     resolver: zodResolver(domainSearchSchema) as Resolver<DomainSearchInput>,
-    defaultValues: {
-      resultsLimit: 10,
-      listId: "",
-    },
+    defaultValues: { ...defaults, ...initialValues },
   })
-  const listId = useWatch({ control, name: "listId" })
+  const values = useWatch({ control })
+  const listId = values.listId
+  const autoName = buildAutoListName(SearchType.DOMAIN, values)
+
+  // A new example or AI suggestion replaces what is in the form.
+  useEffect(() => {
+    if (initialValues) reset({ ...defaults, ...initialValues })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, reset])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -131,19 +131,8 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
               setValue("listId", value, { shouldDirty: true, shouldValidate: true })
             }
             searchType={SearchType.DOMAIN}
+            autoName={autoName}
           />
-
-          {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-            <Coins className="size-3.5 shrink-0 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">
-              <p>Domain search will consume {domainSearchCreditText}.</p>
-              <p>
-                Example: 7 staff with emails ={" "}
-                {formatDisplayCredits(domainSearchCredits * 7)} credits consumed.
-              </p>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="mt-4 flex items-center justify-end gap-3">
@@ -159,6 +148,7 @@ export function DomainSearchForm({ onSubmit, onCancel, isLoading }: DomainSearch
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>
           </div>
+          <SearchCostEstimate searchType={SearchType.DOMAIN} resultsLimit={values.resultsLimit} />
         </div>
 
       </div>

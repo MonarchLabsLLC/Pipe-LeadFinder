@@ -1,18 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChevronDown, ArrowRight, Lightbulb, Coins } from "lucide-react"
+import { ChevronDown, ArrowRight, Lightbulb } from "lucide-react"
 
 import { peopleSearchSchema, type PeopleSearchInput } from "@/lib/validators/search"
-import {
-  formatScaledCreditText,
-  getPipeLeadsCreditCost,
-} from "@/lib/pipeleads-credit-pricing"
-import { usePipeLeadsPricing } from "@/hooks/usePipeLeadsPricing"
 import { SearchType } from "@/generated/prisma/enums"
 import { ListSelector } from "@/components/search/list-selector"
+import { SearchCostEstimate } from "@/components/search/search-cost-estimate"
+import { AUTO_LIST_ID, buildAutoListName } from "@/lib/search-summary"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -73,6 +70,23 @@ const EMPLOYEE_COUNT_OPTIONS = [
   { value: "10001+", label: "10,001+" },
 ]
 
+const ADVANCED_FIELDS = [
+  "jobTitle",
+  "department",
+  "managementLevel",
+  "changedJobsWithin",
+  "skills",
+  "yearsOfExperience",
+  "companyNameOrDomain",
+  "employeeCount",
+  "industry",
+  "school",
+] as const
+
+function hasAdvancedValues(values?: Partial<PeopleSearchInput>) {
+  return ADVANCED_FIELDS.some((field) => Boolean(values?.[field]))
+}
+
 // ─── Helper components ─────────────────────────────────────
 
 function FormField({
@@ -126,33 +140,46 @@ interface PeopleSearchFormProps {
   onSubmit: (data: PeopleSearchInput & { listId?: string }) => void
   onCancel: () => void
   isLoading?: boolean
+  /** Pre-fills the form (an example chip or "Describe who you want"). */
+  initialValues?: Partial<PeopleSearchInput>
 }
 
-export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearchFormProps) {
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-  const { pricingMap } = usePipeLeadsPricing()
-  const peopleSearchCreditText = formatScaledCreditText(
-    getPipeLeadsCreditCost("search:people", pricingMap),
-    "record"
-  )
+export function PeopleSearchForm({ onSubmit, onCancel, isLoading, initialValues }: PeopleSearchFormProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(() => hasAdvancedValues(initialValues))
+  // Open the advanced filters when new pre-filled values use them.
+  const [seenInitialValues, setSeenInitialValues] = useState(initialValues)
+  if (seenInitialValues !== initialValues) {
+    setSeenInitialValues(initialValues)
+    if (hasAdvancedValues(initialValues)) setAdvancedOpen(true)
+  }
 
+  const defaults: Partial<PeopleSearchInput> = {
+    description: "",
+    location: "",
+    resultsLimit: 10,
+    listId: AUTO_LIST_ID,
+  }
   const {
     register,
     handleSubmit,
+    reset,
     control,
     setValue,
     formState: { errors },
   } = useForm<PeopleSearchInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(peopleSearchSchema) as any,
-    defaultValues: {
-      description: "",
-      location: "",
-      resultsLimit: 10,
-      listId: "",
-    },
+    defaultValues: { ...defaults, ...initialValues },
   })
-  const listId = useWatch({ control, name: "listId" })
+  const values = useWatch({ control })
+  const listId = values.listId
+  const autoName = buildAutoListName(SearchType.PEOPLE, values)
+
+  // A new example or AI suggestion replaces what is in the form.
+  useEffect(() => {
+    if (initialValues) reset({ ...defaults, ...initialValues })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, reset])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -337,15 +364,8 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
               setValue("listId", value, { shouldDirty: true, shouldValidate: true })
             }
             searchType={SearchType.PEOPLE}
+            autoName={autoName}
           />
-
-          {/* Credit Info */}
-          <div className="mt-4 flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-            <Coins className="size-3.5 shrink-0 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
-              People search will consume {peopleSearchCreditText} returned.
-            </p>
-          </div>
 
           {/* Action Buttons */}
           <div className="mt-4 flex items-center justify-end gap-3">
@@ -361,6 +381,7 @@ export function PeopleSearchForm({ onSubmit, onCancel, isLoading }: PeopleSearch
               {!isLoading && <ArrowRight className="ml-2 size-4" />}
             </Button>
           </div>
+          <SearchCostEstimate searchType={SearchType.PEOPLE} resultsLimit={values.resultsLimit} />
         </div>
 
       </div>

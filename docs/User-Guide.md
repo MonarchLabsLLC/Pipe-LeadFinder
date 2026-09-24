@@ -45,9 +45,21 @@ Pro Max unlocks access; Scale Credits meter AI usage and existing paid product o
 
 When CRM transfers are enabled, select saved leads, open **Send selected leads to CRM**, and choose an authorized CRM workspace, pipeline, and stage. Review the exact contact/deal fields, skipped rows, duplicates, and possible workflow effects. **Review and approve in CRM** opens the destination approval card; nothing is created until you approve it there (or through the external client's human approval form). Existing matches are skipped, not overwritten. Records need a name and email; incomplete or ambiguous matches stay flagged. Use **Refresh progress** or **Restore transfer** to return to results and record links. Do not repeat an uncertain transfer: review its saved outcome first.
 
+### The New Search page: describe, examples and recent searches
+
+**Describe who you want.** At the top of **Lead Search → New Search**, type who you're looking for in your own words — "dentists in Tampa, FL", "marketing directors at SaaS companies in Texas", "fitness creators on Instagram with 10k–100k followers" or "people who work at acme.com" — and click **Set up my search**. PipeLeads picks the matching search, opens its form already filled in, and explains its choice in one line (for example "We picked **Local search** because you described businesses in a place"). Click **Not right? Choose another search** to pick a different one. Nothing runs until you review the form and click **Continue**, and only fields you actually described are filled in. Reading your description uses a small amount of AI credits, like the other AI tools; if the text can't be turned into a search you'll see a short message asking you to rephrase or pick a search below.
+
+**Search cards with examples.** Each card shows what it finds, who it's best for, what you get back and the live price per result ("… credits per contact · charged only for results"). Click a **Try "…"** example to open that search pre-filled.
+
+**Lists are made for you.** **Save results to** starts on **New list (auto-named)**: when you click Continue, PipeLeads creates a list named from your criteria and the date (for example "Dentist – Tampa, FL – Sep 24") and runs the search into it. You can still choose one of your existing lists (only lists of the same search type are offered) or **New list with my own name**. If the search can't start, the empty auto-named list is removed.
+
+**Cost estimate.** Under each form's **Continue** button you'll see the most the search can cost — "Up to 25 results × 50 credits = 1,250 credits. You're only charged for results we find." It updates as you change **Results Limit**. If that worst case is more than your balance, a note links to your Credit Wallet.
+
+**Pick up where you left off.** Below the cards are your last six searches, each with its type, a plain-English summary, the number of results and when it ran. **Open list** shows the leads; **Run again** repeats the same search into the same list and is charged like a new search. Team guests see the owner's recent searches but cannot use Run again. New users see "Your first search" until they run one.
+
 ### Starting a New Search
 
-Navigate to **Lead Search → New Search**. You'll see five search type cards:
+Navigate to **Lead Search → New Search**. Describe who you want (above), or use one of the five search type cards:
 
 | Search Type | What It Finds | Credits |
 |-------------|--------------|---------|
@@ -60,7 +72,7 @@ Navigate to **Lead Search → New Search**. You'll see five search type cards:
 **To run a search:**
 1. Click a search type card (selected card shows a checkmark)
 2. Fill in the search form that appears below
-3. Select an existing list or click "Create new list"
+3. Keep **New list (auto-named)**, or choose an existing list or **New list with my own name**
 4. Click **→ Continue**
 
 ### People Search

@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai"
 
-export type AiRuntimeFeature = "assistant" | "agent" | "scoring"
+export type AiRuntimeFeature = "assistant" | "agent" | "scoring" | "search-interpret"
 export type AiProviderName = "openai"
 
 export interface AiRuntimeConfig {
