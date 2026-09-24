@@ -4,7 +4,10 @@ import { useState, useCallback, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAgent, useUpdateAgent, useRunAgent, type AgentSummary } from "@/hooks/useAgents"
 import type { AgentStatus } from "@/generated/prisma/enums"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeader } from "@/components/layout/page-header"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -23,7 +26,7 @@ import {
 import { appToast } from "@/lib/app-toast"
 import { JobProgressBanner } from "@/components/jobs/job-progress-banner"
 import { useQueryClient } from "@tanstack/react-query"
-import { ArrowLeft, Save, Play, Plus, X } from "lucide-react"
+import { ArrowLeft, Bot, Save, Play, Plus, X } from "lucide-react"
 
 interface AgentConfig {
   searchType: string
@@ -66,26 +69,28 @@ const actionOptions = [
   { value: "ai_direct_message", label: "AI Direct Message" },
 ]
 
-function statusBadgeClass(status: AgentStatus) {
+/** Same status accents as PipeLeads Suite's workflow list. */
+function statusAccent(status: AgentStatus) {
   switch (status) {
     case "ACTIVE":
-      return "bg-green-600 hover:bg-green-600 text-white"
+      return "var(--chart-1)"
     case "PAUSED":
-      return "bg-yellow-500 hover:bg-yellow-500 text-white"
+      return "var(--chart-3)"
     case "DRAFT":
     default:
-      return ""
+      return "var(--muted-foreground)"
   }
 }
 
-function statusBadgeVariant(status: AgentStatus) {
+function statusLabel(status: AgentStatus) {
   switch (status) {
     case "ACTIVE":
-      return "default" as const
+      return "Active"
     case "PAUSED":
-      return "secondary" as const
+      return "Paused"
+    case "DRAFT":
     default:
-      return "outline" as const
+      return "Draft"
   }
 }
 
@@ -130,31 +135,35 @@ export default function AgentBuilderPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-3xl">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+      <div className="flex w-full max-w-3xl flex-col gap-6" aria-busy="true" aria-label="Loading agent">
+        <Skeleton className="h-9 w-64" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     )
   }
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <p className="text-destructive">Failed to load this agent.</p>
-        <Button variant="outline" onClick={() => refetch()}>Try again</Button>
-      </div>
+      <ErrorState
+        title="We could not load this agent"
+        message="Failed to load this agent."
+        onRetry={() => refetch()}
+      />
     )
   }
 
   if (!agent) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground">Agent not found.</p>
-        <Button variant="link" onClick={() => router.push("/ai/ai-agent")}>
-          Back to Agents
-        </Button>
-      </div>
+      <EmptyState
+        icon={Bot}
+        title="Agent not found"
+        description="It may have been deleted, or it belongs to another workspace."
+        action={{
+          label: "Back to Agents",
+          onClick: () => router.push("/ai/ai-agent"),
+        }}
+      />
     )
   }
 
@@ -167,7 +176,7 @@ export default function AgentBuilderPage() {
 
 function StepBadge({ number }: { number: number }) {
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
       {number}
     </span>
   )
@@ -176,30 +185,25 @@ function StepBadge({ number }: { number: number }) {
 function StepCard({
   number,
   title,
+  description,
   children,
-  isLast = false,
 }: {
   number: number
   title: string
+  description?: string
   children: React.ReactNode
-  isLast?: boolean
 }) {
   return (
-    <div className="relative">
-      {/* Vertical connector line */}
-      {!isLast && (
-        <div className="absolute left-[13px] top-[calc(100%)] h-4 w-px bg-border z-10" />
-      )}
-      <Card className="overflow-hidden">
-        <div className="flex items-center gap-3 px-6 pt-5 pb-0">
-          <StepBadge number={number} />
-          <h3 className="text-base font-semibold">{title}</h3>
+    <Card>
+      <CardHeader className="flex flex-row items-start gap-3">
+        <StepBadge number={number} />
+        <div className="min-w-0 space-y-1.5 pt-1">
+          <CardTitle>{title}</CardTitle>
+          {description ? <CardDescription>{description}</CardDescription> : null}
         </div>
-        <CardContent className="pt-4 pl-16">
-          {children}
-        </CardContent>
-      </Card>
-    </div>
+      </CardHeader>
+      <CardContent className="sm:pl-16">{children}</CardContent>
+    </Card>
   )
 }
 
@@ -326,39 +330,45 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
   }
 
   return (
-    <div className="max-w-3xl space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
+    <div className="flex w-full max-w-3xl flex-col gap-6">
+      <div className="flex flex-col gap-3">
         <Button
           variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
+          size="sm"
+          className="-ml-2 w-fit text-muted-foreground"
           onClick={() => router.push("/ai/ai-agent")}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden />
+          Back to AI Agents
         </Button>
-        <div className="flex-1 min-w-0">
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="text-lg font-semibold border-none shadow-none px-0 focus-visible:ring-0 h-auto"
-            placeholder="Agent name"
-          />
-        </div>
-        <Badge
-          variant={statusBadgeVariant(agent.status)}
-          className={statusBadgeClass(agent.status)}
-        >
-          {agent.status}
-        </Badge>
-        <Button variant="outline" size="sm" onClick={handleSave} disabled={updateAgent.isPending || !name.trim()}>
-          <Save className="mr-2 h-4 w-4" />
-          {updateAgent.isPending ? "Saving..." : "Save"}
-        </Button>
-        <Button size="sm" onClick={handleRun} disabled={runAgent.isPending || updateAgent.isPending || !name.trim()}>
-          <Play className="mr-2 h-4 w-4" />
-          {runAgent.isPending ? "Running..." : "Run"}
-        </Button>
+        <PageHeader
+          title={
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="min-w-0 break-words">{name.trim() || "Untitled agent"}</span>
+              <Badge variant="outline" className="gap-1.5 text-xs font-medium">
+                <span
+                  aria-hidden
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: statusAccent(agent.status) }}
+                />
+                {statusLabel(agent.status)}
+              </Badge>
+            </span>
+          }
+          description="What this agent searches for, what it does with the results, and when it runs."
+          actions={
+            <>
+              <Button variant="outline" onClick={handleSave} disabled={updateAgent.isPending || !name.trim()}>
+                <Save className="mr-2 h-4 w-4" aria-hidden />
+                {updateAgent.isPending ? "Saving..." : "Save"}
+              </Button>
+              <Button onClick={handleRun} disabled={runAgent.isPending || updateAgent.isPending || !name.trim()}>
+                <Play className="mr-2 h-4 w-4" aria-hidden />
+                {runAgent.isPending ? "Running..." : "Run"}
+              </Button>
+            </>
+          }
+        />
       </div>
 
       <JobProgressBanner
@@ -369,18 +379,30 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         }}
       />
 
+      <Card>
+        <CardContent className="space-y-2">
+          <Label htmlFor="agent-name">Agent name</Label>
+          <Input
+            id="agent-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Agent name"
+          />
+        </CardContent>
+      </Card>
+
       {/* Step 1 - Search */}
-      <StepCard number={1} title="Search">
+      <StepCard number={1} title="Search" description="Who this agent looks for.">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Search Type</Label>
+            <Label htmlFor="agent-search-type">Search Type</Label>
             <Select
               value={config.searchType}
               onValueChange={(val) =>
                 setConfig((prev) => ({ ...prev, searchType: val }))
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id="agent-search-type" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -393,8 +415,9 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label htmlFor="agent-search-description">Description</Label>
             <Textarea
+              id="agent-search-description"
               placeholder="e.g., Web Designers in San Francisco"
               value={config.searchDescription}
               onChange={(e) =>
@@ -404,8 +427,9 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Location</Label>
+            <Label htmlFor="agent-search-location">Location</Label>
             <Input
+              id="agent-search-location"
               placeholder="e.g., San Francisco, CA"
               value={config.searchLocation}
               onChange={(e) =>
@@ -417,11 +441,8 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
       </StepCard>
 
       {/* Step 2 - Actions */}
-      <StepCard number={2} title="Actions">
+      <StepCard number={2} title="Actions" description="Select actions to perform on search results.">
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Select actions to perform on search results.
-          </p>
           {actionOptions.map((opt) => (
             <div key={opt.value} className="flex items-center gap-2">
               <Checkbox
@@ -429,7 +450,7 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
                 checked={config.actions.includes(opt.value)}
                 onCheckedChange={() => toggleAction(opt.value)}
               />
-              <Label htmlFor={`action-${opt.value}`} className="text-sm cursor-pointer">
+              <Label htmlFor={`action-${opt.value}`} className="cursor-pointer font-normal">
                 {opt.label}
               </Label>
             </div>
@@ -438,21 +459,19 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
       </StepCard>
 
       {/* Step 3 - Connections */}
-      <StepCard number={3} title="Connections">
+      <StepCard number={3} title="Connections" description="Add webhook URLs to send results to external services.">
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Add webhook URLs to send results to external services.
-          </p>
           {config.connections.map((url, i) => (
             <div key={i} className="flex items-center gap-2">
-              <Input value={url} readOnly className="flex-1 text-sm bg-muted/30" />
+              <Input value={url} readOnly aria-label={`Webhook ${i + 1}`} className="flex-1 bg-muted/50" />
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-destructive"
+                className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={() => removeConnection(i)}
+                aria-label={`Remove webhook ${i + 1}`}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden />
               </Button>
             </div>
           ))}
@@ -464,8 +483,8 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
               onKeyDown={(e) => e.key === "Enter" && addConnection()}
               className="flex-1"
             />
-            <Button variant="outline" size="sm" onClick={addConnection}>
-              <Plus className="mr-1 h-4 w-4" />
+            <Button variant="outline" onClick={addConnection} className="shrink-0">
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
               Add
             </Button>
           </div>
@@ -473,7 +492,7 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
       </StepCard>
 
       {/* Step 4 - Schedule */}
-      <StepCard number={4} title="Schedule" isLast>
+      <StepCard number={4} title="Schedule" description="Run it yourself, or on a repeating schedule.">
         <RadioGroup
           value={config.schedule}
           onValueChange={(val) =>
@@ -483,25 +502,25 @@ function AgentBuilderForm({ agent }: { agent: AgentSummary }) {
         >
           <div className="flex items-center gap-2">
             <RadioGroupItem value="manual" id="schedule-manual" />
-            <Label htmlFor="schedule-manual" className="text-sm cursor-pointer">
+            <Label htmlFor="schedule-manual" className="cursor-pointer font-normal">
               Manual
             </Label>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="daily" id="schedule-daily" />
-            <Label htmlFor="schedule-daily" className="text-sm cursor-pointer">
+            <Label htmlFor="schedule-daily" className="cursor-pointer font-normal">
               Daily
             </Label>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="weekly" id="schedule-weekly" />
-            <Label htmlFor="schedule-weekly" className="text-sm cursor-pointer">
+            <Label htmlFor="schedule-weekly" className="cursor-pointer font-normal">
               Weekly
             </Label>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="monthly" id="schedule-monthly" />
-            <Label htmlFor="schedule-monthly" className="text-sm cursor-pointer">
+            <Label htmlFor="schedule-monthly" className="cursor-pointer font-normal">
               Monthly
             </Label>
           </div>

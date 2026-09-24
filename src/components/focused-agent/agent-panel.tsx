@@ -15,7 +15,17 @@ import {
 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
+import {
+  codeBlockClass,
+  disclosureSummaryClass,
+  nativeCheckboxClass,
+  nativeSelectClass,
+} from "./styles"
 import { CrmHandoff } from "./crm-handoff"
 
 type Access = { userId: string; workspaceId: string; writesEnabled: boolean; handoffEnabled?: boolean }
@@ -366,11 +376,12 @@ export function AgentPanel({ access }: { access: Access }) {
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/35" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex h-dvh w-full min-w-0 flex-col overflow-hidden border-l bg-background shadow-2xl outline-none sm:max-w-[580px]">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex h-dvh w-full min-w-0 flex-col overflow-hidden border-l bg-background shadow-lg outline-none transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:duration-500 data-[state=open]:slide-in-from-right sm:max-w-[580px]">
           <header className="flex shrink-0 items-center justify-between gap-3 border-b p-4">
-            <div>
-              <Dialog.Title className="font-semibold">
+            <div className="min-w-0 space-y-1">
+              <Dialog.Title className="flex items-center gap-2 font-semibold text-foreground">
+                <MessageSquare className="size-4 text-primary" aria-hidden />
                 Lead Finder Agent
               </Dialog.Title>
               <Dialog.Description className="text-xs text-muted-foreground">
@@ -379,7 +390,7 @@ export function AgentPanel({ access }: { access: Access }) {
             </div>
             <Dialog.Close asChild>
               <Button variant="ghost" size="icon" aria-label="Close Agent">
-                <X className="size-5" />
+                <X className="size-4" />
               </Button>
             </Dialog.Close>
           </header>
@@ -387,7 +398,7 @@ export function AgentPanel({ access }: { access: Access }) {
             <div className="flex gap-2">
               <select
                 aria-label="Conversation history"
-                className="min-w-0 flex-1 rounded-md border bg-background p-2 text-sm"
+                className={cn(nativeSelectClass, "flex-1")}
                 value={threadId}
                 onChange={(e) => {
                   setState(null)
@@ -413,13 +424,13 @@ export function AgentPanel({ access }: { access: Access }) {
               </Button>
             </div>
             <details>
-              <summary className="cursor-pointer text-sm font-medium">
+              <summary className={disclosureSummaryClass}>
                 Selected list ({resourceIds.length})
               </summary>
-              <input
+              <Input
                 aria-label="Find a list"
                 placeholder="Find a list…"
-                className="mt-2 w-full rounded border bg-background p-2 text-sm"
+                className="mt-2"
                 value={resourceQuery}
                 onChange={(e) => setResourceQuery(e.target.value)}
               />
@@ -427,10 +438,11 @@ export function AgentPanel({ access }: { access: Access }) {
                 {resources.map((r) => (
                   <label
                     key={r.id}
-                    className="flex min-h-11 items-center gap-2 text-sm"
+                    className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm hover:bg-muted/50"
                   >
                     <input
                       type="checkbox"
+                      className={nativeCheckboxClass}
                       checked={resourceIds.includes(r.id)}
                       onChange={(e) => {
                         setResourceIds(e.target.checked ? [r.id] : [])
@@ -459,12 +471,13 @@ export function AgentPanel({ access }: { access: Access }) {
             </details>
             <div className="flex flex-wrap gap-1">
               {resourceIds.map((id) => (
-                <span
-                  className="max-w-full break-words rounded bg-muted px-2 py-1 text-xs"
+                <Badge
+                  variant="secondary"
+                  className="max-w-full whitespace-normal break-words"
                   key={id}
                 >
                   {resources.find((r) => r.id === id)?.name || "Selected list"}
-                </span>
+                </Badge>
               ))}
             </div>
           </div>
@@ -489,9 +502,14 @@ export function AgentPanel({ access }: { access: Access }) {
             {state?.messages.map((m) => (
               <article
                 key={m.id}
-                className={`min-w-0 rounded-xl border p-3 ${m.role === "user" ? "bg-muted/50" : "bg-background"}`}
+                className={cn(
+                  "min-w-0 rounded-xl border p-3",
+                  m.role === "user"
+                    ? "ml-6 border-primary/20 bg-primary/5"
+                    : "mr-6 bg-card shadow-xs"
+                )}
               >
-                <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
                   {m.role === "user" ? "You" : "Lead Finder Agent"}
                 </p>
                 <AgentMarkdown text={m.content} />
@@ -501,7 +519,7 @@ export function AgentPanel({ access }: { access: Access }) {
             {state?.approvals.map((p) => (
               <section
                 key={p.id}
-                className="min-w-0 space-y-3 rounded-xl border border-amber-300 bg-amber-50/30 p-3"
+                className="min-w-0 space-y-3 rounded-xl border border-warning/40 bg-warning/10 p-3"
                 aria-label="Operation approval"
               >
                 <p className="text-sm font-semibold">
@@ -516,10 +534,10 @@ export function AgentPanel({ access }: { access: Access }) {
                   {p.preview.cost.note}
                 </p>
                 <details>
-                  <summary className="cursor-pointer text-sm font-medium">
+                  <summary className={disclosureSummaryClass}>
                     Exact records and proposed changes
                   </summary>
-                  <pre className="mt-2 max-h-80 overflow-y-auto whitespace-pre-wrap break-all rounded bg-muted p-2 font-mono text-xs text-slate-800 dark:text-slate-200">
+                  <pre className={cn(codeBlockClass, "mt-2")}>
                     {JSON.stringify(
                       {
                         before: p.preview.before,
@@ -539,10 +557,10 @@ export function AgentPanel({ access }: { access: Access }) {
                   </p>
                 )}
                 {p.result?.error && (
-                  <p className="text-sm text-red-700">{p.result.error}</p>
+                  <p className="text-sm text-destructive">{p.result.error}</p>
                 )}
                 {p.job?.result != null && (
-                  <pre className="whitespace-pre-wrap break-all text-xs">
+                  <pre className={codeBlockClass}>
                     {JSON.stringify(p.job.result, null, 2)}
                   </pre>
                 )}
@@ -553,13 +571,13 @@ export function AgentPanel({ access }: { access: Access }) {
                 ))}
                 <Link
                   href={p.result?.url || p.preview.list.url}
-                  className="inline-block text-sm underline"
+                  className="inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
                 >
                   Open list
                 </Link>
                 {p.status === "pending" && (
                   <>
-                    <p className="text-xs">
+                    <p className="text-xs text-muted-foreground">
                       Preview expires {new Date(p.expiresAt).toLocaleString()}.
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -592,7 +610,7 @@ export function AgentPanel({ access }: { access: Access }) {
               .map((r) => (
                 <p
                   role="status"
-                  className="rounded border border-amber-300 p-3 text-sm"
+                  className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
                   key={r.runId}
                 >
                   {r.status === "needs_review" ? "Needs review: " : ""}
@@ -611,7 +629,7 @@ export function AgentPanel({ access }: { access: Access }) {
             {error && (
               <p
                 role="alert"
-                className="break-words rounded border border-red-300 p-3 text-sm text-red-700"
+                className="break-words rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
               >
                 {error}
               </p>
@@ -626,14 +644,14 @@ export function AgentPanel({ access }: { access: Access }) {
               }}
               className="flex items-end gap-2"
             >
-              <textarea
+              <Textarea
                 aria-label="Message the Agent"
                 placeholder="Ask about your selected lists…"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={8000}
                 rows={2}
-                className="min-w-0 flex-1 resize-none rounded-lg border bg-background p-2 text-sm"
+                className="max-h-40 min-w-0 flex-1 resize-none"
               />
               <Button
                 type="submit"
@@ -645,7 +663,7 @@ export function AgentPanel({ access }: { access: Access }) {
               </Button>
             </form>
             <details className="text-xs">
-              <summary className="cursor-pointer font-medium">
+              <summary className="cursor-pointer font-medium text-foreground marker:text-muted-foreground">
                 Connect to Superpowers
               </summary>
               <p className="mt-2 text-muted-foreground">
@@ -654,16 +672,17 @@ export function AgentPanel({ access }: { access: Access }) {
                 External conversations stay in that app.
               </p>
               <a
-                className="mt-2 inline-block underline"
+                className="mt-2 inline-block font-medium text-primary underline-offset-4 hover:underline"
                 href="https://clickcampaigns.ai/god-mode-guide"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Open installation and connection guide
               </a>
-              <label className="mt-2 flex min-h-11 items-center gap-2">
+              <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 text-muted-foreground">
                 <input
                   type="checkbox"
+                  className={nativeCheckboxClass}
                   checked={shared}
                   onChange={(e) => setShared(e.target.checked)}
                 />
@@ -714,8 +733,8 @@ function LeadSelector({
     return () => abort.abort()
   }, [listId])
   return (
-    <details className="rounded border p-3">
-      <summary className="cursor-pointer text-sm font-medium">
+    <details className="rounded-xl border bg-card p-3">
+      <summary className={disclosureSummaryClass}>
         Selected saved leads ({selected.length}/50)
       </summary>
       <p className="mt-2 text-xs text-muted-foreground">
@@ -726,10 +745,11 @@ function LeadSelector({
         {rows.map((r) => (
           <label
             key={r.id}
-            className="flex min-h-11 items-center gap-2 text-sm"
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm hover:bg-muted/50"
           >
             <input
               type="checkbox"
+              className={nativeCheckboxClass}
               checked={selected.includes(r.id)}
               disabled={!selected.includes(r.id) && selected.length >= 50}
               onChange={(e) =>
@@ -750,7 +770,7 @@ function LeadSelector({
       {cursor && (
         <button
           type="button"
-          className="min-h-11 text-sm underline"
+          className="min-h-11 text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-50"
           disabled={busy}
           onClick={async () => {
             setBusy(true)
@@ -774,10 +794,10 @@ function LeadSelector({
         </button>
       )}
       {!rows.length && !error && (
-        <p className="py-2 text-xs">No saved leads in this list yet.</p>
+        <p className="py-2 text-xs text-muted-foreground">No saved leads in this list yet.</p>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-xs text-destructive">
           {error}
         </p>
       )}
@@ -787,14 +807,14 @@ function LeadSelector({
 
 export function AgentMarkdown({ text }: { text: string }) {
   return (
-    <div className="min-w-0 break-words text-sm leading-relaxed [&_a]:underline [&_code]:font-mono [&_code]:text-slate-700 [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-slate-100 [&_pre]:p-3 [&_ul]:list-disc">
+    <div className="min-w-0 break-words text-sm leading-relaxed text-foreground [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.8125rem] [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:bg-muted/50 [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:list-disc">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         skipHtml
         components={{
           table: ({ children }) => (
             <div className="max-w-full overflow-x-auto">
-              <table className="w-full border-collapse text-left [&_td]:border [&_td]:p-2 [&_th]:border [&_th]:p-2">
+              <table className="w-full border-collapse text-left text-sm [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:bg-muted/50 [&_th]:p-2 [&_th]:font-medium">
                 {children}
               </table>
             </div>
@@ -817,7 +837,7 @@ function CopyMessage({ text }: { text: string }) {
   return (
     <button
       type="button"
-      className="mt-2 flex min-h-11 items-center gap-1 text-xs text-muted-foreground"
+      className="mt-2 flex min-h-11 items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text)

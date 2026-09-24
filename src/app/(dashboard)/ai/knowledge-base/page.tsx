@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/components/layout/page-header"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 import { appToast } from "@/lib/app-toast"
 import { Save, Loader2, Trash2, Globe, FileText, HelpCircle, File, Plus, Building2, Database } from "lucide-react"
 
@@ -107,11 +112,11 @@ async function deleteSource(id: string) {
 
 export default function KnowledgeBasePage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
-        Configure your business identity and connect data sources. This information powers all
-        AI-generated outreach, summaries, and personalized messaging across the platform.
-      </p>
+    <div className="flex w-full max-w-4xl flex-col gap-6">
+      <PageHeader
+        title="Knowledge Base"
+        description="Configure your business identity and connect data sources. This information powers all AI-generated outreach, summaries, and personalized messaging across the platform."
+      />
 
       <BusinessProfileSection />
       <DataSourcesSection />
@@ -132,22 +137,30 @@ function BusinessProfileSection() {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="flex items-center gap-2 py-8 text-muted-foreground justify-center">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading profile...
-        </div>
+      <Card aria-busy="true" aria-label="Loading profile">
+        <CardHeader>
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </CardHeader>
+        <CardContent className="grid gap-5 sm:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ))}
+        </CardContent>
       </Card>
     )
   }
 
   if (isError) {
     return (
-      <Card className="p-6 text-center">
-        <p className="text-sm text-destructive">Failed to load the business profile.</p>
-        <Button variant="outline" className="mt-4" onClick={() => refetch()}>
-          Try again
-        </Button>
-      </Card>
+      <ErrorState
+        title="We could not load your business profile"
+        message="Failed to load the business profile."
+        onRetry={() => refetch()}
+      />
     )
   }
 
@@ -199,20 +212,19 @@ function BusinessProfileForm({
   }
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <Building2 className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-base font-semibold">Your Business Profile</h2>
-        </div>
-      </div>
-      <p className="text-sm text-muted-foreground mb-6 ml-11">
-        This information powers your AI-generated outreach content.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden />
+          Your Business Profile
+        </CardTitle>
+        <CardDescription>
+          This information powers your AI-generated outreach content.
+        </CardDescription>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-5 ml-11">
+      <CardContent>
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Row 1: Business Name | Business Website */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -290,7 +302,7 @@ function BusinessProfileForm({
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end border-t pt-5">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -301,6 +313,7 @@ function BusinessProfileForm({
           </Button>
         </div>
       </form>
+      </CardContent>
     </Card>
   )
 }
@@ -354,33 +367,31 @@ function DataSourcesSection() {
   })
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <Database className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-base font-semibold">Data Sources</h2>
-        </div>
-      </div>
-      <p className="text-sm text-muted-foreground mb-6 ml-11">
-        Add context from your website, documents, or custom text.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Database className="h-4 w-4 text-muted-foreground" aria-hidden />
+          Data Sources
+        </CardTitle>
+        <CardDescription>
+          Add context from your website, documents, or custom text.
+        </CardDescription>
+      </CardHeader>
 
-      <div className="ml-11 space-y-6">
+      <CardContent className="space-y-6">
         <Tabs defaultValue="website">
-          <TabsList className="bg-muted rounded-lg p-1 h-auto">
-            <TabsTrigger value="website" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm px-3 py-1.5 text-sm">
-              <Globe className="mr-1.5 h-3.5 w-3.5" /> Website
+          <TabsList className="w-full sm:w-fit">
+            <TabsTrigger value="website" className="sm:px-3">
+              <Globe aria-hidden /> Website
             </TabsTrigger>
-            <TabsTrigger value="text" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm px-3 py-1.5 text-sm">
-              <FileText className="mr-1.5 h-3.5 w-3.5" /> Text
+            <TabsTrigger value="text" className="sm:px-3">
+              <FileText aria-hidden /> Text
             </TabsTrigger>
-            <TabsTrigger value="qa" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm px-3 py-1.5 text-sm">
-              <HelpCircle className="mr-1.5 h-3.5 w-3.5" /> Q&A
+            <TabsTrigger value="qa" className="sm:px-3">
+              <HelpCircle aria-hidden /> Q&A
             </TabsTrigger>
-            <TabsTrigger value="pdf" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm px-3 py-1.5 text-sm">
-              <File className="mr-1.5 h-3.5 w-3.5" /> PDF
+            <TabsTrigger value="pdf" className="sm:px-3">
+              <File aria-hidden /> PDF
             </TabsTrigger>
           </TabsList>
 
@@ -415,37 +426,39 @@ function DataSourcesSection() {
         </Tabs>
 
         {/* Existing Data Sources */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Existing Sources ({sources.length})
+        <div className="space-y-3 border-t pt-6">
+          <h3 className="text-sm font-medium">
+            Existing sources
+            <span className="ml-2 font-normal text-muted-foreground">{sources.length}</span>
           </h3>
 
           {isLoading && (
-            <div className="flex items-center gap-2 py-4 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+            <div className="space-y-2" aria-busy="true" aria-label="Loading data sources">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
             </div>
           )}
 
-          {!isLoading && sources.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4">
-              No data sources yet. Add one above to get started.
-            </p>
+          {!isLoading && !isError && sources.length === 0 && (
+            <EmptyState
+              icon={Database}
+              title="No data sources yet"
+              description="Add one above to get started."
+            />
           )}
 
           {isError && (
-            <div className="py-4 text-sm text-destructive">
-              Failed to load data sources.
-              <Button variant="link" className="ml-1 h-auto p-0" onClick={() => refetch()}>
-                Try again
-              </Button>
-            </div>
+            <ErrorState
+              message="Failed to load data sources."
+              onRetry={() => refetch()}
+            />
           )}
 
           <div className="space-y-2">
             {sources.map((source) => (
               <div
                 key={source.id}
-                className="group flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/50"
+                className="flex items-center justify-between gap-3 rounded-md border px-3 py-3 transition-colors hover:bg-muted/50 sm:px-4"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <SourceIcon type={source.type} />
@@ -454,11 +467,11 @@ function DataSourcesSection() {
                       <span className="text-sm font-medium truncate">
                         {source.name ?? source.sourceUrl ?? source.type}
                       </span>
-                      <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground tracking-wider">
+                      <Badge variant="secondary" className="shrink-0 text-[10px] uppercase tracking-wider">
                         {source.type}
-                      </span>
+                      </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 break-all">
                       {source.content.slice(0, 120)}
                       {source.content.length > 120 ? "..." : ""}
                     </p>
@@ -467,7 +480,7 @@ function DataSourcesSection() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="shrink-0 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
+                  className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
                   onClick={() => deleteMutation.mutate(source.id)}
                   disabled={deleteMutation.isPending}
                   aria-label={`Delete ${source.name ?? source.sourceUrl ?? source.type} source`}
@@ -478,7 +491,7 @@ function DataSourcesSection() {
             ))}
           </div>
         </div>
-      </div>
+      </CardContent>
     </Card>
   )
 }
@@ -520,14 +533,15 @@ function WebsiteTab({
   return (
     <div className="space-y-4 pt-4">
       <div className="space-y-2">
-        <Label className="text-sm">Crawl entire website</Label>
-        <div className="flex gap-2">
+        <Label htmlFor="kb-crawl-website">Crawl entire website</Label>
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Input
+            id="kb-crawl-website"
             placeholder="https://example.com"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
           />
-          <Button onClick={handleCrawlWebsite} disabled={isLoading || !websiteUrl.trim()} size="sm" className="shrink-0">
+          <Button onClick={handleCrawlWebsite} disabled={isLoading || !websiteUrl.trim()} className="shrink-0">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
             Crawl Web
           </Button>
@@ -535,14 +549,15 @@ function WebsiteTab({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm">Or add a single page</Label>
-        <div className="flex gap-2">
+        <Label htmlFor="kb-crawl-link">Or add a single page</Label>
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Input
+            id="kb-crawl-link"
             placeholder="https://example.com/about"
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
           />
-          <Button variant="secondary" onClick={handleCrawlLink} disabled={isLoading || !linkUrl.trim()} size="sm" className="shrink-0">
+          <Button variant="outline" onClick={handleCrawlLink} disabled={isLoading || !linkUrl.trim()} className="shrink-0">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
             Crawl Link
           </Button>
@@ -579,12 +594,13 @@ function TextTab({
     <div className="space-y-3 pt-4">
       <Textarea
         rows={6}
+        aria-label="Text content"
         placeholder="Paste or type text content about your business..."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isLoading || !text.trim()} size="sm">
+        <Button onClick={handleSave} disabled={isLoading || !text.trim()}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           Save
         </Button>
@@ -624,16 +640,18 @@ function QATab({
   return (
     <div className="space-y-4 pt-4">
       <div className="space-y-2">
-        <Label>Question</Label>
+        <Label htmlFor="kb-qa-question">Question</Label>
         <Input
+          id="kb-qa-question"
           placeholder="What services do you offer?"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
       </div>
       <div className="space-y-2">
-        <Label>Answer</Label>
+        <Label htmlFor="kb-qa-answer">Answer</Label>
         <Textarea
+          id="kb-qa-answer"
           rows={4}
           placeholder="We offer..."
           value={answer}
@@ -641,7 +659,7 @@ function QATab({
         />
       </div>
       <div className="flex justify-end">
-        <Button onClick={handleAdd} disabled={isLoading || !question.trim() || !answer.trim()} size="sm">
+        <Button onClick={handleAdd} disabled={isLoading || !question.trim() || !answer.trim()}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
           Add
         </Button>
@@ -649,7 +667,7 @@ function QATab({
 
       {sources.length > 0 && (
         <div className="space-y-2 pt-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Existing Q&A pairs</h4>
+          <h4 className="text-sm font-medium">Existing Q&A pairs</h4>
           {sources.map((s) => {
             let qa: { question?: string; answer?: string } = {}
             try {
@@ -658,7 +676,7 @@ function QATab({
               /* ignore */
             }
             return (
-              <div key={s.id} className="rounded-lg border bg-muted/30 p-3 text-sm space-y-1">
+              <div key={s.id} className="space-y-1 rounded-md border bg-muted/50 p-3 text-sm">
                 <p className="font-medium">Q: {qa.question ?? s.content}</p>
                 <p className="text-muted-foreground">A: {qa.answer ?? ""}</p>
               </div>
@@ -695,8 +713,9 @@ function PDFTab({
 
   return (
     <div className="space-y-3 pt-4">
-      <Label>Upload PDF</Label>
+      <Label htmlFor="kb-pdf">Upload PDF</Label>
       <Input
+        id="kb-pdf"
         key={file?.name ?? "empty"}
         type="file"
         accept=".pdf"
@@ -709,7 +728,7 @@ function PDFTab({
           Selected: {file.name}
         </p>
       )}
-      <Button variant="secondary" disabled={isLoading || !file} onClick={handleUpload}>
+      <Button disabled={isLoading || !file} onClick={handleUpload}>
         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <File className="mr-2 h-4 w-4" />}
         {isLoading ? "Uploading..." : "Upload PDF"}
       </Button>
@@ -722,15 +741,10 @@ function PDFTab({
 // ---------------------------------------------------------------------------
 
 function SourceIcon({ type }: { type: DataSource["type"] }) {
-  const base = "h-4 w-4"
-  switch (type) {
-    case "WEBSITE":
-      return <Globe className={`${base} text-blue-500`} />
-    case "TEXT":
-      return <FileText className={`${base} text-green-500`} />
-    case "QA":
-      return <HelpCircle className={`${base} text-amber-500`} />
-    case "PDF":
-      return <File className={`${base} text-red-500`} />
-  }
+  const Icon = { WEBSITE: Globe, TEXT: FileText, QA: HelpCircle, PDF: File }[type]
+  return (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <Icon className="h-4 w-4" aria-hidden />
+    </span>
+  )
 }
