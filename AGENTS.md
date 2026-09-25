@@ -131,6 +131,7 @@ Copy `.env.example` to `.env`. Key required variables:
 - `DEV_AUTO_LOGIN=true` — enables dev auto-login
 - `OPEN_ROUTER_API_KEY` (or `OPENROUTER_API_KEY`) — OpenRouter key for every AI feature; optional `LEADFINDER_AI_MODEL` overrides the primary model
 - `APIFY_API_KEY` — Apify platform API key
+- `APIFY_ENRICH_API_KEY` — optional separate Apify account (organization) for phone and email lookups, whose finders need full account access; falls back to `APIFY_API_KEY`
 - `APIFY_ACTOR_ENRICH_EMAIL=code_crafter/personal-email-finder` — person-level email enrichment actor
 - `APIFY_ACTOR_ENRICH_PHONE=code_crafter/mobile-finder` — person-level phone enrichment actor
 - `APIFY_ACTOR_PEOPLE`, `APIFY_ACTOR_LOCAL`, `APIFY_ACTOR_COMPANY`, `APIFY_ACTOR_DOMAIN`, `APIFY_ACTOR_INFLUENCER` — search actors (see `.env.example` for defaults)

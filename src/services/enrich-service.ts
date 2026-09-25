@@ -1,4 +1,4 @@
-import { apifyClient } from "@/lib/apify"
+import { enrichApifyClient } from "@/lib/apify"
 import { prisma } from "@/lib/prisma"
 import { extractPrimaryEmail } from "@/lib/contact-info"
 import { findWebsiteEmails } from "@/lib/website-email-discovery"
@@ -129,8 +129,8 @@ export async function enrichEmail(leadId: string, guard?: EnrichmentGuard) {
     try {
       const actorId = getEmailActorId()
       for (const input of inputs) {
-        const run = await apifyClient.actor(actorId).call(input)
-        const { items } = await apifyClient
+        const run = await enrichApifyClient.actor(actorId).call(input)
+        const { items } = await enrichApifyClient
           .dataset(run.defaultDatasetId)
           .listItems()
 
@@ -180,8 +180,8 @@ export async function enrichPhone(leadId: string, guard?: EnrichmentGuard) {
   const actorId = getPhoneActorId()
   const input = buildPhoneActorInput(lead)
 
-  const run = await apifyClient.actor(actorId).call(input)
-  const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems()
+  const run = await enrichApifyClient.actor(actorId).call(input)
+  const { items } = await enrichApifyClient.dataset(run.defaultDatasetId).listItems()
 
   const { phone, phoneStatus } = parsePhoneResult(
     items as Record<string, unknown>[]

@@ -48,6 +48,7 @@ Required environment variables:
 - `DATABASE_URL` — PostgreSQL connection string
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `APIFY_API_KEY` — your Apify API token
+- `APIFY_ENRICH_API_KEY` — optional; a separate Apify account for phone and email lookups (falls back to `APIFY_API_KEY`)
 - `OPEN_ROUTER_API_KEY` (or `OPENROUTER_API_KEY`) — OpenRouter key for every AI feature; optional `LEADFINDER_AI_MODEL` overrides the model
 - `NEXT_PUBLIC_KEYCLOAK_URL`, `NEXT_PUBLIC_KEYCLOAK_REALM`, `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` — production authentication
 - `PIPELEADS_AGENT_CRON_SECRET` — required to trigger scheduled AI agents
