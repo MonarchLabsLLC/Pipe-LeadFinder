@@ -299,7 +299,7 @@ export async function handleService(
         enabled: true,
         writesEnabled: writesEnabled(),
         actions: [...SERVICE_ACTIONS, "execute_proposal"],
-        limits: { lists: 1, leads: 50 },
+        limits: { lists: 1, leads: 50, bulkEnrichmentLeads: 500, recentSearches: 10 },
         history: "tool-activity-and-approvals",
       })
     if (action === "workspaces")

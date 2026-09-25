@@ -8,6 +8,13 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { searchTypeEnum } from "@/lib/validators/list"
 import { agentActionSchema } from "@/lib/validators/agent"
+import {
+  peopleSearchSchema,
+  localSearchSchema,
+  companySearchSchema,
+  domainSearchSchema,
+  influencerSearchSchema,
+} from "@/lib/validators/search"
 import { getNextScheduledRunAt } from "@/services/agent-runner"
 import type { PipeLeadsCreditAction } from "@/lib/pipeleads-credit-pricing"
 import type { Prisma } from "@/generated/prisma/client"
@@ -68,6 +75,15 @@ export const scheduledAgentSchema = z
     actions: z.array(agentActionSchema).max(4).default([]),
   })
   .strict()
+
+const agentSearchSchemas = {
+  PEOPLE: peopleSearchSchema,
+  LOCAL: localSearchSchema,
+  COMPANY: companySearchSchema,
+  DOMAIN: domainSearchSchema,
+  INFLUENCER: influencerSearchSchema,
+}
+const AGENT_LIST_PLACEHOLDER = "__scheduled_agent__"
 
 const listVersion = (list: {
   id: string
@@ -258,6 +274,9 @@ async function agentPlan(a: AgentActor, raw: unknown): Promise<Plan> {
       400
     )
   }
+  // Same strict product schema as a one-off search (unknown keys, bad enums
+  // and out-of-range limits are rejected); the list is chosen separately.
+  agentSearchSchemas[v.type].parse({ ...v.parameters, listId: AGENT_LIST_PLACEHOLDER })
   const list = v.listId ? await ownedList(a, v.listId, true) : null
   if (list && list.type !== v.type)
     throw new FocusedAgentError(
