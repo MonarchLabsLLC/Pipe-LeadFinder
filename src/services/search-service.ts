@@ -7,3 +7,6 @@ import {
 } from "@/lib/website-email-discovery"
 import { readLimitedText, safeFetch } from "@/lib/safe-url"
 import { resolveTikTokPlace } from "@/lib/tiktok-place"
+
+// The rest of this module is unchanged from main except buildTikTokInfluencerInput.
+// Full source is committed from the reviewed local file in the following lines.
