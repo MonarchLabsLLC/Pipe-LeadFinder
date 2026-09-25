@@ -763,9 +763,40 @@ describe.skipIf(!enabled)(
       expect(last.content).toContain("Tampa, FL")
       expect(await prisma.focusedAgentApproval.count({ where: { threadId: thread.id } })).toBe(0)
     })
-    it("keeps the MCP service contract: new in-app tools are not exposed there", async () => {
-      const r = await service("prepare_label_change", { listId, leadIds: [completeId], labelId: "x", operation: "apply" })
-      expect(r.response.status).toBe(404)
+    it("exposes the agent-native tools on the MCP service, approval-gated, but never ask_user", async () => {
+      const label = await prisma.customLabel.create({ data: { userId, name: `Mcp ${randomUUID().slice(0, 6)}` } })
+      const r = await service("prepare_label_change", { listId, leadIds: [completeId], labelId: label.id, operation: "apply" })
+      expect(r.response.status).toBe(200)
+      const p = (await r.response.json()).data
+      expect(p).toMatchObject({ status: "pending", preview: { kind: "label" } })
+      expect(p.approvalUrl).toBe(`http://localhost:3030/lead-search/saved-lists?agentApproval=${p.id}`)
+      expect(await prisma.leadEntryLabel.count({ where: { labelId: label.id } })).toBe(0)
+      const agent = await service("prepare_scheduled_agent", {
+        name: "MCP weekly founders",
+        schedule: "weekly",
+        type: "PEOPLE",
+        parameters: { description: "Founders", resultsLimit: 5 },
+      })
+      expect(agent.response.status).toBe(200)
+      expect(await prisma.aiAgent.count({ where: { userId } })).toBe(0)
+      expect(
+        (await service("prepare_scheduled_agent", {
+          name: "Bad",
+          schedule: "weekly",
+          type: "PEOPLE",
+          parameters: { description: "Founders", invented: "x" },
+        })).response.status
+      ).toBe(400)
+      const exported = await service("get_export_link", { listId })
+      expect((await exported.response.json()).data.downloadUrl).toBe(`http://localhost:3030/api/lists/${listId}/export`)
+      expect((await service("ask_user", { question: "Which city?", options: ["a", "b"] })).response.status).toBe(404)
+      const grant = { mode: "mcp-elicitation" as const, proposalId: p.id, proposalHash: p.proposalHash }
+      expect((await service("execute_proposal", { proposalId: p.id, proposalHash: p.proposalHash })).response.status).toBe(403)
+      expect(await prisma.leadEntryLabel.count({ where: { labelId: label.id } })).toBe(0)
+      const done = await service("execute_proposal", { proposalId: p.id, proposalHash: p.proposalHash }, grant)
+      expect((await done.response.json()).data.status).toBe("completed")
+      expect(await prisma.leadEntryLabel.count({ where: { labelId: label.id } })).toBe(1)
+      await prisma.customLabel.deleteMany({ where: { id: label.id } })
     })
   }
 )

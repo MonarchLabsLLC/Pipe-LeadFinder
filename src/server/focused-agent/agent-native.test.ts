@@ -42,7 +42,7 @@ describe("tool registry", () => {
       if (name.startsWith("prepare_")) expect(definition.tier).toBe("prepare")
     }
   })
-  it("keeps the ClickCampaigns MCP contract unchanged", () => {
+  it("exposes the agent-native tools to the ClickCampaigns MCP service, except ask_user", () => {
     expect([...SERVICE_ACTIONS].sort()).toEqual(
       [
         "get_crm_destinations",
@@ -54,8 +54,38 @@ describe("tool registry", () => {
         "prepare_enrichment",
         "prepare_scoring",
         "get_run",
+        "interpret_request",
+        "get_credits",
+        "list_recent_searches",
+        "list_labels",
+        "get_export_link",
+        "get_handoff_options",
+        "prepare_rerun_search",
+        "prepare_bulk_enrichment",
+        "prepare_label_change",
+        "prepare_handoff",
+        "prepare_scheduled_agent",
       ].sort()
     )
+    expect(SERVICE_ACTIONS).not.toContain("ask_user" as never)
+    // Every registry tool but ask_user is on the service, and none can execute.
+    expect(Object.keys(actions).filter((name) => !(SERVICE_ACTIONS as readonly string[]).includes(name))).toEqual(["ask_user"])
+    for (const name of SERVICE_ACTIONS)
+      expect(actions[name].tier).toBe(name.startsWith("prepare_") ? "prepare" : "read")
+  })
+  it("takes structured parameters (not parametersJson) for the service's search-shaped tools", () => {
+    expect(
+      actions.prepare_scheduled_agent.schema.safeParse({
+        name: "Weekly",
+        schedule: "weekly",
+        type: "PEOPLE",
+        parameters: { description: "Founders" },
+      }).success
+    ).toBe(true)
+    expect(
+      actions.prepare_scheduled_agent.schema.safeParse({ name: "Weekly", schedule: "weekly", type: "PEOPLE", parametersJson: "{}" }).success
+    ).toBe(false)
+    expect(actions.prepare_search.schema.safeParse({ type: "PEOPLE", parametersJson: "{}" }).success).toBe(false)
   })
   it("validates the new tools strictly", () => {
     expect(actions.prepare_label_change.schema.safeParse({ listId: "l", leadIds: [], labelId: "x", operation: "apply" }).success).toBe(false)

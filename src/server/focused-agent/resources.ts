@@ -10,6 +10,18 @@ export const id = z.string().trim().min(1).max(200)
 export const leadSelectionSchema = z
   .object({ listId: id, leadIds: z.array(id).min(1).max(50) })
   .strict()
+/** The app's configured public origin (AUTH_URL / NEXTAUTH_URL), or "" when unset. */
+export function publicOrigin() {
+  const configured = process.env.AUTH_URL || process.env.NEXTAUTH_URL
+  if (!configured) return ""
+  try {
+    return new URL(configured).origin
+  } catch {
+    return ""
+  }
+}
+/** An in-app path made absolute for callers outside the app (MCP). */
+export const absoluteUrl = (path: string) => `${publicOrigin()}${path}`
 export const listUrl = (id: string) =>
   `/lead-search/saved-lists/${encodeURIComponent(id)}`
 export async function ownedList(a: AgentActor, id: string, active = false) {

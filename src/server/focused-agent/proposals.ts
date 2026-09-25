@@ -6,7 +6,7 @@ import type { FocusedAgentApproval } from "@/generated/prisma/client"
 import { resolveActor, assertWrites, type AgentActor } from "./access"
 import { buildPlan, type PlanAction } from "./plans"
 import { requireCredits } from "./pricing"
-import { json } from "./resources"
+import { json, absoluteUrl } from "./resources"
 import { exactHash, hashCanonical, FocusedAgentError } from "./security"
 import { recoverApprovedJob } from "./job-recovery"
 import { EXTRA_PLAN_ACTIONS, executeExtraPlan, type ExtraPlanAction } from "./plans-extra"
@@ -70,7 +70,6 @@ export async function proposalView(p: FocusedAgentApproval) {
       })
     }
   }
-  const url = process.env.AUTH_URL || process.env.NEXTAUTH_URL
   const result = p.result as { jobId?: string } | null
   const recorded = result?.jobId
     ? await prisma.jobRun.findFirst({
@@ -95,7 +94,7 @@ export async function proposalView(p: FocusedAgentApproval) {
     expiresAt: p.expiresAt.toISOString(),
     result: p.result,
     warnings: ["Review the exact records, cost and effects before approval."],
-    approvalUrl: `${url ? new URL(url).origin : ""}/lead-search/saved-lists?agentApproval=${p.id}`,
+    approvalUrl: absoluteUrl(`/lead-search/saved-lists?agentApproval=${p.id}`),
     job: job ? publicJobRun(job) : null,
   }
 }

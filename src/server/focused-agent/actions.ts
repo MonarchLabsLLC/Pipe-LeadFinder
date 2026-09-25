@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { publicJobRun } from "@/lib/jobs/service"
-import { listResources, getList, id, leadSelectionSchema, ownedList, listUrl } from "./resources"
+import { listResources, getList, id, leadSelectionSchema, ownedList, listUrl, absoluteUrl } from "./resources"
 import { prepareSearchSchema, enrichSchema } from "./plans"
 import { prepareProposal } from "./proposals"
 import { FocusedAgentError } from "./security"
@@ -142,7 +142,13 @@ export const actions = {
 
 export type ActionName = keyof typeof actions
 
-/** The contract ClickCampaigns GodMode (MCP) already knows. New tools stay in-app. */
+/**
+ * The actions the signed ClickCampaigns Superpowers (MCP) service exposes:
+ * every registry tool except ask_user (the MCP host asks the user itself).
+ * The same schemas, ownership checks and proposal/approval path apply;
+ * prepare_* only creates a proposal, and only a signed human approval grant
+ * on proposals/:id/execute runs it.
+ */
 export const SERVICE_ACTIONS = [
   "get_crm_destinations",
   "get_crm_transfer_status",
@@ -153,6 +159,17 @@ export const SERVICE_ACTIONS = [
   "prepare_enrichment",
   "prepare_scoring",
   "get_run",
+  "interpret_request",
+  "get_credits",
+  "list_recent_searches",
+  "list_labels",
+  "get_export_link",
+  "get_handoff_options",
+  "prepare_rerun_search",
+  "prepare_bulk_enrichment",
+  "prepare_label_change",
+  "prepare_handoff",
+  "prepare_scheduled_agent",
 ] as const satisfies readonly ActionName[]
 
 export async function getApprovedJob(a: AgentActor, jobId: string) {
@@ -256,10 +273,15 @@ export async function dispatch(
       }
     case "get_export_link": {
       const list = await ownedList(a, String(input.listId))
+      const path = `/api/lists/${encodeURIComponent(list.id)}/export`
+      // MCP clients run outside the app, so they need the public origin.
+      const mcp = a.origin === "mcp"
       return {
-        list: { id: list.id, name: list.name, url: listUrl(list.id) },
-        downloadUrl: `/api/lists/${encodeURIComponent(list.id)}/export`,
-        note: "Opening the link downloads a CSV of every lead in the list. It does not use credits.",
+        list: { id: list.id, name: list.name, url: mcp ? absoluteUrl(listUrl(list.id)) : listUrl(list.id) },
+        downloadUrl: mcp ? absoluteUrl(path) : path,
+        note: mcp
+          ? "Opening the link in a browser signed in to Lead Finder downloads a CSV of every lead in the list. It does not use credits."
+          : "Opening the link downloads a CSV of every lead in the list. It does not use credits.",
       }
     }
     case "get_handoff_options":

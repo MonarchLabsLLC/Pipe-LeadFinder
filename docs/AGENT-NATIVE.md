@@ -75,8 +75,27 @@ questions per request and says to ask only what `interpret_request`
 | `prepare_scheduled_agent` | prepare | Creates an ACTIVE `AiAgent`, first run one period after approval |
 | `prepare_crm_transfer` | prepare | GodMode CRM bridge (existing) |
 
-The ClickCampaigns MCP service keeps its original contract (`SERVICE_ACTIONS`);
-the new tools are in-app only.
+The signed ClickCampaigns Superpowers (MCP) service exposes every tool above
+except `ask_user` (`SERVICE_ACTIONS`; the MCP host asks its user itself):
+`interpret_request`, `get_credits`, `list_recent_searches`, `list_labels`,
+`get_export_link`, `get_handoff_options`, `prepare_rerun_search`,
+`prepare_bulk_enrichment`, `prepare_label_change`, `prepare_handoff` and
+`prepare_scheduled_agent`, alongside the original nine. They use the same
+signature, Pro Max check, workspace scoping, `assertWrites()`, idempotency key
+and proposal path. MCP differences:
+
+- `prepare_search` and `prepare_scheduled_agent` take a structured
+  `parameters` object (the in-app model sends a `parametersJson` string, which
+  `normalizeToolInput()` turns into the same input). Scheduled-agent
+  parameters are validated against the same strict per-type search schema.
+- Proposal results keep `approvalUrl` (the in-app runtime strips it because
+  the card is shown in chat). Nothing runs until
+  `POST /proposals/:id/execute` carries the signed human approval grant for
+  that exact proposal and hash.
+- `get_export_link` returns absolute URLs built from `AUTH_URL`; the CSV
+  download still requires the user's signed-in browser session.
+- `interpret_request` is token-billed exactly as in-app, keyed by the MCP
+  request's idempotency key.
 
 Adding a tool: add it to `actions` with a strict zod schema and a tier; read
 tools return data from a scoped query; prepare tools build a deterministic
