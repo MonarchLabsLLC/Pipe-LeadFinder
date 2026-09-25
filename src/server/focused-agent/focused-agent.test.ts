@@ -664,5 +664,107 @@ describe.skipIf(!enabled)(
         })
       ).toBe(0)
     })
+    it("prepares a search into a new list, creates it only on approval and binds the job to it", async () => {
+      const a = await actor()
+      const before = await prisma.leadList.count({ where: { userId } })
+      const p = await prep("prepare_search", {
+        type: "PEOPLE",
+        parameters: { description: "Founders in Ohio", resultsLimit: 2 },
+        newList: { name: "Agent – Founders in Ohio" },
+      })
+      expect(p.preview).toMatchObject({ kind: "search", list: { id: null, name: "Agent – Founders in Ohio", isNew: true } })
+      expect(await prisma.leadList.count({ where: { userId } })).toBe(before)
+      const v = await decideProposal(a, p.id, p.proposalHash, "approve")
+      const result = v.result as { jobId: string; listId: string }
+      const created = await prisma.leadList.findUniqueOrThrow({ where: { id: result.listId } })
+      expect(created).toMatchObject({ userId, name: "Agent – Founders in Ohio", type: "PEOPLE" })
+      await runTrackedJob(result.jobId, () => processSearchJob(result.jobId))
+      expect(state.searches).toBe(1)
+      const view = await proposalView(await prisma.focusedAgentApproval.findUniqueOrThrow({ where: { id: p.id } }))
+      expect(view.summary).toMatchObject({ list: { id: result.listId }, total: 1 })
+    })
+    it("bulk enrichment picks only this user's leads missing the field, and stays inside a selected list", async () => {
+      const bulkList = (await prisma.leadList.create({ data: { userId, name: "Bulk", type: "PEOPLE" } })).id
+      const missing = (await prisma.lead.create({ data: { userId, sourceType: "PEOPLE", fullName: "No email" } })).id
+      const has = (await prisma.lead.create({ data: { userId, sourceType: "PEOPLE", fullName: "Has email", email: "has@test.invalid" } })).id
+      await prisma.leadListEntry.createMany({ data: [{ listId: bulkList, leadId: missing }, { listId: bulkList, leadId: has }] })
+      const p = await prep("prepare_bulk_enrichment", { listId: bulkList, field: "email" })
+      expect(p.preview).toMatchObject({ kind: "enrich", eligibleCount: 1, eligibleLeadIds: [missing] })
+      await expect(prep("prepare_bulk_enrichment", { listId: otherList })).rejects.toMatchObject({ code: "LIST_NOT_FOUND" })
+      await expect(
+        dispatch(await actor(), "prepare_bulk_enrichment", { listId: bulkList }, { key: randomUUID(), allowedIds: [listId] })
+      ).rejects.toMatchObject({ code: "RESOURCE_SELECTION_REQUIRED" })
+      expect(state.enrichments).toBe(0)
+    })
+    it("applies a label only after approval and never touches another user's label", async () => {
+      const a = await actor()
+      const label = await prisma.customLabel.create({ data: { userId, name: `Hot ${randomUUID().slice(0, 6)}` } })
+      const foreign = await prisma.customLabel.create({ data: { userId: otherId, name: `Theirs ${randomUUID().slice(0, 6)}` } })
+      await expect(
+        prep("prepare_label_change", { listId, leadIds: [completeId], labelId: foreign.id, operation: "apply" })
+      ).rejects.toMatchObject({ code: "LABEL_NOT_FOUND" })
+      const p = await prep("prepare_label_change", { listId, leadIds: [completeId], labelId: label.id, operation: "apply" })
+      expect(await prisma.leadEntryLabel.count({ where: { labelId: label.id } })).toBe(0)
+      const done = await decideProposal(a, p.id, p.proposalHash, "approve")
+      expect(done.status).toBe("completed")
+      expect(await prisma.leadEntryLabel.count({ where: { labelId: label.id } })).toBe(1)
+      await expect(
+        prep("prepare_label_change", { listId, leadIds: [completeId], labelId: label.id, operation: "apply" })
+      ).rejects.toMatchObject({ code: "NO_ELIGIBLE_LEADS" })
+      await prisma.customLabel.deleteMany({ where: { id: { in: [label.id, foreign.id] } } })
+    })
+    it("saves a scheduled AI Agent only on approval, with the first run one period later", async () => {
+      const a = await actor()
+      const p = await prep("prepare_scheduled_agent", {
+        name: "Weekly Ohio founders",
+        schedule: "weekly",
+        type: "PEOPLE",
+        parameters: { description: "Founders", location: "Ohio", resultsLimit: 5 },
+      })
+      expect(p.preview).toMatchObject({ kind: "agent", schedule: "weekly", cost: { maximumCredits: 35 } })
+      expect(await prisma.aiAgent.count({ where: { userId } })).toBe(0)
+      const done = await decideProposal(a, p.id, p.proposalHash, "approve")
+      const agentId = (done.result as { agentId: string }).agentId
+      const saved = await prisma.aiAgent.findUniqueOrThrow({ where: { id: agentId } })
+      const config = saved.config as { searchDescription: string; searchLocation: string; schedule: string; nextScheduledRunAt: string }
+      expect(saved.status).toBe("ACTIVE")
+      expect(config).toMatchObject({ searchDescription: "Founders", searchLocation: "Ohio", schedule: "weekly" })
+      expect(Date.parse(config.nextScheduledRunAt)).toBeGreaterThan(Date.now() + 6 * 86400000)
+      await prisma.aiAgent.deleteMany({ where: { userId } })
+    })
+    it("ends the turn on ask_user with tap-to-answer choices and prepares nothing", async () => {
+      const a = await actor(),
+        thread = await createThread(a)
+      state.modelCalls = [
+        {
+          toolName: "ask_user",
+          toolCallId: "ask1",
+          input: { question: "Which city?", options: ["Tampa, FL", "Miami, FL"] },
+        },
+      ]
+      const r = await enqueueChat(a, {
+        threadId: thread.id,
+        message: "Find dentists",
+        resourceIds: [],
+        leadIds: [],
+        idempotencyKey: randomUUID(),
+      })
+      await runChat(r.runId)
+      expect(state.generations).toBe(1)
+      expect((await getRun(a, r.runId)).status).toBe("completed")
+      const saved = await getState(a, thread.id)
+      const last = saved.messages.at(-1)!
+      expect(last.role).toBe("assistant")
+      expect(last.metadata).toMatchObject({
+        kind: "question",
+        question: { question: "Which city?", options: ["Tampa, FL", "Miami, FL"], allowOther: true },
+      })
+      expect(last.content).toContain("Tampa, FL")
+      expect(await prisma.focusedAgentApproval.count({ where: { threadId: thread.id } })).toBe(0)
+    })
+    it("keeps the MCP service contract: new in-app tools are not exposed there", async () => {
+      const r = await service("prepare_label_change", { listId, leadIds: [completeId], labelId: "x", operation: "apply" })
+      expect(r.response.status).toBe(404)
+    })
   }
 )

@@ -80,14 +80,26 @@ export async function requireApprovedJob(
       "The original user is no longer available."
     )
   const list = await ownedList(actor, payload.listId, true)
-  const listVersion = (p.versions as { list: unknown }).list
+  const versions = p.versions as {
+    list?: unknown
+    newList?: { name: string; type: string }
+  }
+  // A new-list search: the list was created by this approval and recorded on
+  // it before the job was queued, so bind to that list instead of a version.
+  const createdListId = (p.result as { listId?: string } | null)?.listId
+  const newListOk =
+    Boolean(versions.newList) &&
+    createdListId === payload.listId &&
+    list.type === versions.newList!.type
   if (
-    hashCanonical({
-      id: list.id,
-      updatedAt: list.updatedAt.toISOString(),
-      type: list.type,
-      status: list.status,
-    }) !== hashCanonical(listVersion)
+    versions.newList
+      ? !newListOk
+      : hashCanonical({
+          id: list.id,
+          updatedAt: list.updatedAt.toISOString(),
+          type: list.type,
+          status: list.status,
+        }) !== hashCanonical(versions.list)
   )
     throw new FocusedAgentError(
       "STALE_PROPOSAL",
@@ -97,7 +109,7 @@ export async function requireApprovedJob(
   const input = p.input as {
     type?: string
     parameters?: {
-      listId: string
+      listId?: string
       duplicatePolicy: string
       [key: string]: unknown
     }
@@ -109,7 +121,9 @@ export async function requireApprovedJob(
     eligibleLeadIds?: string[]
   }
   if (p.action === "search") {
-    const { listId, duplicatePolicy, ...searchParams } = input.parameters!
+    const { listId: approvedListId, duplicatePolicy, ...searchParams } =
+      input.parameters!
+    const listId = approvedListId ?? createdListId
     if (
       payload.listId !== listId ||
       payload.searchType !== input.type ||

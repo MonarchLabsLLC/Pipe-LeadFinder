@@ -9,6 +9,11 @@ import { requireCredits } from "./pricing"
 import { json } from "./resources"
 import { exactHash, hashCanonical, FocusedAgentError } from "./security"
 import { recoverApprovedJob } from "./job-recovery"
+import { EXTRA_PLAN_ACTIONS, executeExtraPlan, type ExtraPlanAction } from "./plans-extra"
+import { listResultSummary } from "./results"
+
+const isExtra = (action: string): action is ExtraPlanAction =>
+  (EXTRA_PLAN_ACTIONS as readonly string[]).includes(action)
 
 export async function getProposal(a: AgentActor, id: string) {
   const p = await prisma.focusedAgentApproval.findFirst({
@@ -73,8 +78,16 @@ export async function proposalView(p: FocusedAgentApproval) {
       })
     : null
   const job = recorded ? await recoverApprovedJob(recorded) : null
+  const summary =
+    job?.status === "COMPLETED" && ["search", "enrich", "enrich_bulk"].includes(p.action) && job.listId
+      ? await listResultSummary(p.userId, job.listId, job.searchId)
+      : null
   return {
     id: p.id,
+    action: p.action,
+    threadId: p.threadId,
+    createdAt: p.createdAt.toISOString(),
+    summary,
     proposalHash: p.proposalHash,
     workspaceId: p.workspaceId,
     status: job ? job.status.toLowerCase() : p.status,
@@ -252,16 +265,51 @@ export async function decideProposal(
   try {
     const key = `focused-agent:${id}`
     let result: Record<string, unknown>
-    if (fresh.action === "search") {
+    if (isExtra(fresh.action)) {
+      result = await executeExtraPlan(
+        actor,
+        fresh as Parameters<typeof executeExtraPlan>[1],
+        id
+      )
+      await prisma.focusedAgentApproval.update({
+        where: { id },
+        data: { status: "completed", result: json(result) },
+      })
+      await prisma.focusedAgentAudit.create({
+        data: {
+          userId: actor.userId,
+          workspaceId: actor.workspaceId,
+          action: p.action,
+          outcome: "completed",
+          metadata: json({ proposalId: id }),
+        },
+      })
+      return proposalView(await getProposal(actor, id))
+    } else if (fresh.action === "search") {
       const v = fresh.input as {
         type: "PEOPLE" | "LOCAL" | "COMPANY" | "DOMAIN" | "INFLUENCER"
         parameters: {
-          listId: string
+          listId?: string
           duplicatePolicy: "ONLY_NEW" | "ADD_EXISTING" | "RETURN_ALL"
           [key: string]: unknown
         }
+        newList?: { name: string }
       }
-      const { listId, duplicatePolicy, ...searchParams } = v.parameters
+      const { listId: existingListId, duplicatePolicy, ...searchParams } =
+        v.parameters
+      let listId = existingListId ?? ""
+      if (v.newList) {
+        // The approved card named this new list; it is created now, once,
+        // and recorded before the job is queued (job-guard checks it).
+        const created = await prisma.leadList.create({
+          data: { userId: actor.userId, name: v.newList.name, type: v.type },
+        })
+        listId = created.id
+        await prisma.focusedAgentApproval.update({
+          where: { id },
+          data: { result: json({ listId, createdList: true }) },
+        })
+      }
       const queued = await enqueueSearchJob({
         userId: actor.userId,
         userEmail: actor.email,

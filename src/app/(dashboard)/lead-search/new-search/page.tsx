@@ -9,11 +9,8 @@ import { LocalSearchForm } from "@/components/search/local-search-form"
 import { CompanySearchForm } from "@/components/search/company-search-form"
 import { DomainSearchForm } from "@/components/search/domain-search-form"
 import { InfluencerSearchForm } from "@/components/search/influencer-search-form"
-import {
-  DescribeSearch,
-  SuggestionNote,
-  type SearchSuggestion,
-} from "@/components/search/describe-search"
+import { SuggestionNote, type SearchSuggestion } from "@/components/search/describe-search"
+import { AgentFrontDoor } from "@/components/agent/agent-front-door"
 import { RecentSearches } from "@/components/search/recent-searches"
 import type { SearchExample } from "@/components/search/search-guide"
 import { useSearchMutation } from "@/hooks/useSearch"
@@ -159,17 +156,21 @@ export default function NewSearchPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="New search"
-        description="Describe who you want, or pick a search. You review everything before it runs, and results save to a list."
+      <AgentFrontDoor
+        onSuggested={handleSuggested}
+        onEditSearch={(type, values) => open(type, values)}
+        header={
+          <PageHeader
+            title="New search"
+            description="Describe who you want, or pick a search. You review everything before it runs, and results save to a list."
+          />
+        }
       />
-
-      <DescribeSearch onSuggested={handleSuggested} />
 
       <section ref={pickerRef} aria-labelledby="choose-search-title" className="space-y-3">
         <div>
           <h2 id="choose-search-title" className="text-base font-semibold">
-            Or choose a search
+            Or choose a search yourself
           </h2>
           <p className="text-sm text-muted-foreground">
             Not sure which? Tap an example to see it filled in.

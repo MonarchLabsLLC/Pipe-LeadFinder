@@ -123,6 +123,10 @@ All five search types (`/api/search/people`, `/api/search/local`, `/api/search/c
 - **AI Agents** (`/api/ai/agent`): CRUD, manual run, and protected scheduled-run endpoint for `AiAgent` pipelines. The runner can search, enrich, generate summaries or DMs, and POST result payloads to configured webhooks.
 - **Prompt Templates** (`/api/ai/prompts`): CRUD for reusable `PromptTemplate` records.
 
+### Lead Finder agent (Pro Max, agent-native)
+
+`/lead-search/new-search` opens on a ChatGPT-style "Who do you want to find?" for Pro Max users; the header **Agent** button docks the same thread. It is the Focused Agent (`src/server/focused-agent/`) extended: read tools run, `prepare_*` tools only create hashed approval cards, and nothing runs until a person approves (`decideProposal()`); `ask_user` renders tap-to-answer questions; up to 8 billed steps per message; Pro Max is checked fail-closed on every call. UI lives in `src/components/agent/`. Flags: `LEADFINDER_AGENT_ENABLED`, then `LEADFINDER_AGENT_WRITES_ENABLED`. Local dev: `LEADFINDER_AGENT_DEV_BYPASS=promax|none` (honoured only under `NODE_ENV=development`). Full design, tool list and env: `docs/AGENT-NATIVE.md`.
+
 ### Environment Setup
 
 Copy `.env.example` to `.env`. Key required variables:

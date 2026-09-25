@@ -13,6 +13,7 @@ import { getBusinessContext } from "@/services/ai-service"
 import type { PipeLeadsCreditAction } from "@/lib/pipeleads-credit-pricing"
 import { currentPrice } from "./pricing"
 import {
+  id,
   ownedList,
   selectedLeads,
   leadSelectionSchema,
@@ -21,6 +22,7 @@ import {
 } from "./resources"
 import { FocusedAgentError, hashCanonical } from "./security"
 import type { AgentActor } from "./access"
+import { buildExtraPlan, EXTRA_PLAN_ACTIONS, type ExtraPlanAction } from "./plans-extra"
 
 export const searchSchemas = {
   PEOPLE: peopleSearchSchema,
@@ -33,12 +35,32 @@ export const prepareSearchSchema = z
   .object({
     type: z.enum(["PEOPLE", "LOCAL", "COMPANY", "DOMAIN", "INFLUENCER"]),
     parameters: z.record(z.string(), z.unknown()),
+    /** Save results to a new list with this name (instead of parameters.listId). */
+    newList: z
+      .object({ name: z.string().trim().min(1).max(120) })
+      .strict()
+      .optional(),
   })
   .strict()
 export const enrichSchema = leadSelectionSchema
   .extend({ field: z.enum(["email", "phone"]).default("email") })
   .strict()
-export type PlanAction = "search" | "enrich" | "score"
+/** Server-selected leads (every lead in a list missing the field), up to 500. */
+export const bulkEnrichSchema = z
+  .object({
+    listId: id,
+    leadIds: z.array(id).min(1).max(500),
+    field: z.enum(["email", "phone"]),
+  })
+  .strict()
+/** A placeholder that only exists while validating a new-list search. */
+export const NEW_LIST_PLACEHOLDER = "__new_list__"
+export type PlanAction =
+  | "search"
+  | "enrich"
+  | "enrich_bulk"
+  | "score"
+  | ExtraPlanAction
 export type Plan = {
   action: PlanAction
   input: Record<string, unknown>
@@ -50,42 +72,63 @@ export async function buildPlan(
   action: PlanAction,
   raw: unknown
 ): Promise<Plan> {
+  if ((EXTRA_PLAN_ACTIONS as readonly string[]).includes(action))
+    return buildExtraPlan(a, action as ExtraPlanAction, raw)
   if (action === "search") {
     const v = prepareSearchSchema.parse(raw)
-    const parameters = searchSchemas[v.type].parse(v.parameters)
-    const { listId, duplicatePolicy, ...searchParams } = parameters
-    const invalid = await validateSearchTarget(a.userId, listId, v.type)
-    if (invalid)
-      throw new FocusedAgentError(
-        "INVALID_LIST",
-        (await invalid.json()).error,
-        invalid.status
-      )
-    const list = await ownedList(a, listId, true)
-    assertSearchConfigured(v.type, searchParams)
-    const cost = await currentPrice(
-      `search:${v.type.toLowerCase()}` as PipeLeadsCreditAction,
-      parameters.resultsLimit
+    const newList = v.newList && !v.parameters.listId ? v.newList : undefined
+    const parsed = searchSchemas[v.type].parse(
+      newList ? { ...v.parameters, listId: NEW_LIST_PLACEHOLDER } : v.parameters
     )
-    return {
-      action,
-      input: { type: v.type, parameters },
-      versions: {
+    const { listId: parsedListId, duplicatePolicy, ...searchParams } = parsed
+    const parameters = newList
+      ? { ...searchParams, duplicatePolicy }
+      : parsed
+    let target: { id: string | null; name: string; url: string | null }
+    let versions: Record<string, unknown>
+    if (newList) {
+      target = { id: null, name: newList.name, url: null }
+      versions = { newList: { name: newList.name, type: v.type } }
+    } else {
+      const invalid = await validateSearchTarget(a.userId, parsedListId, v.type)
+      if (invalid)
+        throw new FocusedAgentError(
+          "INVALID_LIST",
+          (await invalid.json()).error,
+          invalid.status
+        )
+      const list = await ownedList(a, parsedListId, true)
+      target = { id: list.id, name: list.name, url: listUrl(list.id) }
+      versions = {
         list: {
           id: list.id,
           updatedAt: list.updatedAt.toISOString(),
           type: list.type,
           status: list.status,
         },
-      },
+      }
+    }
+    assertSearchConfigured(v.type, searchParams)
+    const cost = await currentPrice(
+      `search:${v.type.toLowerCase()}` as PipeLeadsCreditAction,
+      parsed.resultsLimit
+    )
+    return {
+      action,
+      input: { type: v.type, parameters, ...(newList ? { newList } : {}) },
+      versions,
       preview: {
-        title: `Search for ${parameters.resultsLimit} ${v.type.toLowerCase()} results`,
-        list: { id: list.id, name: list.name, url: listUrl(list.id) },
+        kind: "search",
+        searchType: v.type,
+        title: `Search for ${parsed.resultsLimit} ${v.type.toLowerCase()} results`,
+        list: { ...target, isNew: Boolean(newList) },
         before: { parameters },
-        after: { maximumResults: parameters.resultsLimit, listName: list.name },
+        after: { maximumResults: parsed.resultsLimit, listName: target.name },
         cost,
         effects: [
-          "Starts one paid search and saves results to this list. Does not create a schedule or send messages.",
+          newList
+            ? `Creates the list "${newList.name}", starts one paid search and saves results there. Does not create a schedule or send messages.`
+            : "Starts one paid search and saves results to this list. Does not create a schedule or send messages.",
           `Duplicate policy: ${duplicatePolicy}. Existing product matching may fill currently blank fields; it does not overwrite existing non-empty lead fields.`,
         ],
       },
@@ -94,12 +137,15 @@ export async function buildPlan(
   const v =
     action === "enrich"
       ? enrichSchema.parse(raw)
-      : leadSelectionSchema.parse(raw)
+      : action === "enrich_bulk"
+        ? bulkEnrichSchema.parse(raw)
+        : leadSelectionSchema.parse(raw)
+  const enriching = action === "enrich" || action === "enrich_bulk"
   const { list, entries } = await selectedLeads(a, v.listId, v.leadIds)
   const field: "email" | "phone" =
     "field" in v && v.field === "phone" ? "phone" : "email"
   const eligible =
-    action === "enrich"
+    enriching
       ? entries.filter((e) =>
           field === "email"
             ? !e.lead.email
@@ -126,7 +172,7 @@ export async function buildPlan(
     )
   const config = getAiRuntimeConfig("scoring")
   const cost =
-    action === "enrich"
+    enriching
       ? await currentPrice(`enrich:${field}`, eligible.length)
       : {
           kind: "tokens",
@@ -141,7 +187,7 @@ export async function buildPlan(
     input: {
       listId: list.id,
       leadIds: entries.map((e) => e.leadId),
-      ...(action === "enrich" ? { field } : {}),
+      ...(enriching ? { field } : {}),
     },
     versions: {
       list: {
@@ -163,15 +209,21 @@ export async function buildPlan(
         : {}),
     },
     preview: {
+      kind: enriching ? "enrich" : "score",
+      field: enriching ? field : undefined,
       title:
-        action === "enrich"
+        enriching
           ? `Find ${field} details for ${eligible.length} leads`
           : `Score ${eligible.length} selected leads`,
       list: { id: list.id, name: list.name, url: listUrl(list.id) },
-      before: eligible.map((e) => leadView(e.lead, list.id)),
+      // Bulk previews show the first 25; eligibleLeadIds stays exact.
+      before: eligible
+        .slice(0, action === "enrich_bulk" ? 25 : eligible.length)
+        .map((e) => leadView(e.lead, list.id)),
+      eligibleCount: eligible.length,
       after: {
         operation:
-          action === "enrich"
+          enriching
             ? `Fill missing ${field}; results are not known until the approved provider job finishes.`
             : "Update saved AI lead scores using your current business context.",
       },

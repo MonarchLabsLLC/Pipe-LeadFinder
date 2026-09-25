@@ -547,6 +547,7 @@ export default function TutorialsPage() {
             <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
               {[
                 { value: "search-types", label: "Search Types" },
+                { value: "agent", label: "Talk to the agent" },
                 { value: "welcome", label: "Describe & Examples" },
                 { value: "people", label: "People Search" },
                 { value: "local", label: "Local Search" },
@@ -562,6 +563,64 @@ export default function TutorialsPage() {
                 </TabsTrigger>
               ))}
             </TabsList>
+
+            {/* ── The Lead Finder agent (Pro Max) ── */}
+            <TabsContent value="agent" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Talk to the Lead Finder agent
+                  </CardTitle>
+                  <CardDescription>
+                    Pro Max: say who you want in your own words; approve each step
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    With Pro Max, <strong>Lead Search → New Search</strong> opens on
+                    "Who do you want to find?". Type who you're after, or tap{" "}
+                    <strong>Find people</strong>, <strong>Find local businesses</strong>,{" "}
+                    <strong>Find companies</strong> or <strong>Find creators</strong> first. The
+                    same conversation opens from <strong>Agent</strong> in the header on any page.
+                  </p>
+                  <div className="space-y-4">
+                    <Step number={1} title="Describe who you want">
+                      For example "dentists in Tampa, I need their emails" or "HR managers in
+                      Chicago, 10 results".
+                    </Step>
+                    <Step number={2} title="Answer a quick question or two">
+                      If something is missing — the city, how many results, which list — the agent
+                      asks with tap-to-answer buttons. Tap one, or choose{" "}
+                      <strong>Something else</strong> and type your own answer.
+                    </Step>
+                    <Step number={3} title="Review the approval card">
+                      The card shows the search type, the criteria, the most it can cost and the
+                      list it saves to (a new list is marked <strong>New</strong>). Press{" "}
+                      <strong>Approve &amp; run</strong>, <strong>Edit</strong> to open the search
+                      form already filled in, or <strong>Reject</strong>.
+                    </Step>
+                    <Step number={4} title="See the results and keep going">
+                      When the search finishes, a results card shows how many leads were found,
+                      how many have an email or phone, and a few examples. Tap{" "}
+                      <strong>Open list</strong>, or a next step such as{" "}
+                      <strong>Enrich the ones without email</strong>,{" "}
+                      <strong>Score them</strong> or <strong>Send to PipeLeads CRM</strong>.
+                    </Step>
+                  </div>
+                  <Tip>
+                    You can also ask it to apply or remove a label, give you the CSV export link,
+                    add leads to a MailBaser list, run a recent search again, tell you your credit
+                    balance, or save a search as a daily, weekly or monthly AI Agent.
+                  </Tip>
+                  <Note>
+                    Nothing that costs credits or changes your data happens until you approve its
+                    card. The conversation itself uses a small amount of AI credits. Without Pro
+                    Max you keep "Describe who you want" and see a link to upgrade.
+                  </Note>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* ── New Search page: describe box, examples, recent searches ── */}
             <TabsContent value="welcome" className="space-y-4">

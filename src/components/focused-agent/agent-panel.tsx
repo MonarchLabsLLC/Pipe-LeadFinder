@@ -1,859 +1,323 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import { useSession } from "next-auth/react"
-import Link from "next/link"
-import { Dialog } from "radix-ui"
-import {
-  Check,
-  Copy,
-  Loader2,
-  MessageSquare,
-  Plus,
-  Send,
-  X,
-} from "lucide-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { useEffect, useState } from "react"
+import { History, MessageSquare, Plus, Settings2, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import {
-  codeBlockClass,
-  disclosureSummaryClass,
-  nativeCheckboxClass,
-  nativeSelectClass,
-} from "./styles"
+  agentApi,
+  AGENT_OPEN_EVENT,
+  type AgentAccess,
+  type AgentResource,
+} from "@/components/agent/agent-api"
+import { AgentAvatar, AgentConversation } from "@/components/agent/agent-conversation"
+import { ProposalCard } from "@/components/agent/proposal-card"
+import { useAgentAccess } from "@/components/agent/use-agent-access"
+import { useAgentThread } from "@/components/agent/use-agent-thread"
+import { disclosureSummaryClass, nativeCheckboxClass } from "./styles"
 import { CrmHandoff } from "./crm-handoff"
+import { LeadSelector } from "./lead-selector"
 
-type Access = { userId: string; workspaceId: string; writesEnabled: boolean; handoffEnabled?: boolean }
-type Resource = {
-  id: string
-  name: string
-  status: string
-  type: string
-  url: string
-}
-type Thread = { id: string; title: string; resourceIds: string[] }
-type Message = { id: string; role: string; content: string }
-type Approval = {
-  id: string
-  status: string
-  proposalHash: string
-  preview: {
-    title: string
-    before: unknown
-    after: unknown
-    cost: {
-      maximumCredits?: number
-      creditsPerUnit?: number
-      maximumUnits?: number
-      note: string
-      model?: string
-    }
-    skipped?: { id: string; name: string; reason: string }[]
-    list: { id: string; name: string; url: string }
-    effects: string[]
-    url: string
-  }
-  expiresAt: string
-  result?: { url?: string; error?: string }
-  job?: {
-    stage?: string
-    progress?: {percent:number}
-    error?: {code:string;message:string}|null
-    result?: unknown
-  }
-}
-type State = {
-  userId: string
-  workspaceId: string
-  threads: Thread[]
-  thread: Thread | null
-  messages: Message[]
-  resources: Resource[]
-  hasMore: boolean
-  runs: { runId: string; threadId: string; status: string; error?: string }[]
-  approvals: Approval[]
-}
+export { AgentMarkdown } from "@/components/agent/agent-markdown"
 
-async function api<T>(
-  path: string,
-  body?: unknown,
-  signal?: AbortSignal
-): Promise<T> {
-  const response = await fetch(`/api/focused-agent/${path}`, {
-    method: body === undefined ? "GET" : "POST",
-    credentials: "same-origin",
-    cache: "no-store",
-    signal,
-    headers:
-      body === undefined
-        ? {}
-        : { "Content-Type": "application/json", "X-Focused-Agent-Action": "1" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
-  const payload = await response.json()
-  if (!response.ok)
-    throw Object.assign(
-      new Error(payload.error?.message || "The Agent request failed."),
-      { status: response.status }
-    )
-  return payload.data
-}
+const DOCK_CLASS = "lf-agent-dock-open"
 
+/** The header "Agent" button. Hidden unless the Agent is on and the user has Pro Max. */
 export function AgentButton({ className }: { className?: string }) {
-  const { data: session, status } = useSession()
-  if (status !== "authenticated" || !session?.user?.id) return null
-  return <AccessGate key={session.user.id} className={className} />
-}
-function AccessGate({ className }: { className?: string }) {
-  const [access, setAccess] = useState<Access | null>(null)
-  useEffect(() => {
-    const abort = new AbortController()
-    const check = () => {
-      void api<Access>("access", undefined, abort.signal)
-        .then(setAccess)
-        .catch(() => {
-          if (!abort.signal.aborted) setAccess(null)
-        })
-    }
-    check()
-    const interval = setInterval(check, 60000)
-    window.addEventListener("focus", check)
-    return () => {
-      abort.abort()
-      clearInterval(interval)
-      window.removeEventListener("focus", check)
-    }
-  }, [])
-  return access ? (
+  const access = useAgentAccess()
+  if (access.status !== "ready") return null
+  return (
     <div className={className}>
-      <AgentPanel
-        key={`${access.userId}:${access.workspaceId}`}
-        access={access}
-      />
+      <AgentDock key={`${access.access.userId}:${access.access.workspaceId}`} access={access.access} />
     </div>
-  ) : null
+  )
 }
 
-export function AgentPanel({ access }: { access: Access }) {
+/**
+ * The same conversation as the new-search page, docked on the right. On wide
+ * screens it pushes the page over (like HD Helpdesk) instead of covering it;
+ * on phones it is full-screen.
+ */
+export function AgentDock({ access }: { access: AgentAccess }) {
   const [open, setOpen] = useState(false)
-  const [state, setState] = useState<State | null>(null)
-  const [threadId, setThreadId] = useState<string>("")
   const [resourceIds, setResourceIds] = useState<string[]>([])
   const [leadIds, setLeadIds] = useState<string[]>([])
-  const [resources, setResources] = useState<Resource[]>([])
-  const [resourceQuery, setResourceQuery] = useState("")
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
-  const [busy, setBusy] = useState(false)
-  const [shared, setShared] = useState(false)
-  const [revision, setRevision] = useState(0)
-  const [now, setNow] = useState(() => Date.now())
-  const generation = useRef(0)
-  const invalidate = useCallback(() => ++generation.current, [])
-  const restoredThread = useRef("")
-  const scroll = useRef<HTMLDivElement>(null)
-  const storageKey = `leadfinder-agent:${access.userId}:${access.workspaceId}`
-  const refresh = () => setRevision((v) => v + 1)
-  const reset = useCallback(() => {
-    setState(null)
-    setResourceIds([])
-    setLeadIds([])
-    setResources([])
-    setMessage("")
-    setShared(false)
-    setThreadId("")
-    setOpen(false)
-  }, [])
+  const agent = useAgentThread({ access, active: open, restore: true, resourceIds, leadIds })
+
   useEffect(() => {
-    let active = true
     queueMicrotask(() => {
-      if (!active) return
-      try {
-        setThreadId(localStorage.getItem(storageKey) || "")
-      } catch {}
-      if (new URLSearchParams(window.location.search).has("agentApproval"))
-        setOpen(true)
+      if (new URLSearchParams(window.location.search).has("agentApproval")) setOpen(true)
     })
-    return () => {
-      active = false
-      invalidate()
-      void api("context", { resourceIds: [] }).catch(() => {})
-    }
-  }, [storageKey, invalidate])
+    const onOpen = () => setOpen(true)
+    window.addEventListener(AGENT_OPEN_EVENT, onOpen)
+    return () => window.removeEventListener(AGENT_OPEN_EVENT, onOpen)
+  }, [])
+
   useEffect(() => {
+    document.documentElement.classList.toggle(DOCK_CLASS, open)
     if (!open) return
-    const timer = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.documentElement.classList.remove(DOCK_CLASS)
+    }
   }, [open])
+
+  // Restore the list a conversation was about when switching to it.
+  const threadResources = agent.state?.thread?.id === agent.threadId ? agent.state?.thread?.resourceIds : undefined
+  const [restoredFor, setRestoredFor] = useState("")
+  if (threadResources && restoredFor !== agent.threadId) {
+    setRestoredFor(agent.threadId)
+    setResourceIds(threadResources)
+    setLeadIds([])
+  }
+
+  const otherPending = (agent.state?.approvals ?? []).filter(
+    (p) => p.status === "pending" && p.threadId !== agent.state?.thread?.id
+  )
+
+  return (
+    <>
+      <Button
+        variant={open ? "secondary" : "outline"}
+        size="sm"
+        aria-expanded={open}
+        aria-controls="lead-finder-agent-dock"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <MessageSquare className="hidden size-4 sm:block" />
+        Agent
+      </Button>
+      <aside
+        id="lead-finder-agent-dock"
+        aria-label="Lead Finder agent"
+        aria-hidden={!open}
+        inert={!open}
+        data-state={open ? "open" : "closed"}
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l bg-background shadow-2xl transition-transform duration-300 ease-out lg:z-30 lg:w-[var(--lf-agent-dock-width)] lg:shadow-none",
+          open ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b px-4">
+          <AgentAvatar />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-sm font-semibold">
+              {agent.state?.thread?.title ?? "Lead Finder agent"}
+            </h2>
+            <p className="truncate text-xs text-muted-foreground">Pro Max · AI uses Scale Credits</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Conversation history">
+                <History className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuLabel>Recent conversations</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(agent.state?.threads ?? []).slice(0, 12).map((t) => (
+                <DropdownMenuItem key={t.id} onSelect={() => agent.selectThread(t.id)}>
+                  <span className="truncate">{t.title}</span>
+                </DropdownMenuItem>
+              ))}
+              {!agent.state?.threads.length ? (
+                <p className="px-2 py-1.5 text-sm text-muted-foreground">No conversations yet.</p>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" aria-label="New conversation" onClick={agent.newConversation}>
+            <Plus className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon" aria-label="Close agent" onClick={() => setOpen(false)}>
+            <X className="size-4" />
+          </Button>
+        </header>
+        {open ? (
+          <>
+            <ContextBar
+              access={access}
+              resourceIds={resourceIds}
+              leadIds={leadIds}
+              onResources={(ids) => {
+                setResourceIds(ids)
+                setLeadIds([])
+              }}
+              onLeads={setLeadIds}
+            />
+            {otherPending.length ? (
+              <details className="shrink-0 border-b px-4 py-2">
+                <summary className={disclosureSummaryClass}>
+                  {otherPending.length} other approval{otherPending.length === 1 ? "" : "s"} waiting
+                </summary>
+                <div className="mt-2 max-h-80 space-y-3 overflow-y-auto pb-2">
+                  {otherPending.map((p) => (
+                    <ProposalCard
+                      key={p.id}
+                      approval={p}
+                      canApprove={access.writesEnabled}
+                      busy={agent.busy}
+                      onDecide={agent.decide}
+                    />
+                  ))}
+                </div>
+              </details>
+            ) : null}
+            <div className="min-h-0 flex-1">
+              <AgentConversation
+                agent={agent}
+                variant="dock"
+                emptyHint={
+                  <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                    Tell me who you want to reach, like “dentists in Tampa with emails”. I&apos;ll ask what&apos;s
+                    missing and show the search and its cost before anything runs. Pick a saved list under
+                    Context to enrich, label, score or send its leads.
+                  </div>
+                }
+              />
+            </div>
+          </>
+        ) : null}
+      </aside>
+    </>
+  )
+}
+
+/** Kept for the dev fixture (dev/focused-agent-preview.tsx). */
+export const AgentPanel = AgentDock
+
+function ContextBar({
+  access,
+  resourceIds,
+  leadIds,
+  onResources,
+  onLeads,
+}: {
+  access: AgentAccess
+  resourceIds: string[]
+  leadIds: string[]
+  onResources: (ids: string[]) => void
+  onLeads: (ids: string[]) => void
+}) {
+  const [query, setQuery] = useState("")
+  const [resources, setResources] = useState<AgentResource[]>([])
+  const [shared, setShared] = useState(false)
   useEffect(() => {
-    if (!open) return
-    const abort = new AbortController()
-    const current = ++generation.current
-    let timer: ReturnType<typeof setTimeout>
-    const load = async () => {
-      try {
-        const next = await api<State>(
-          `state${threadId ? `?threadId=${encodeURIComponent(threadId)}` : ""}`,
-          undefined,
-          abort.signal
-        )
-        if (current !== generation.current) return
-        if (
-          next.userId !== access.userId ||
-          next.workspaceId !== access.workspaceId
-        ) {
-          reset()
-          return
-        }
-        setState(next)
-        if (!resourceQuery) setResources(next.resources)
-        if (
-          next.runs.some((r) => ["queued", "running"].includes(r.status)) ||
-          next.approvals.some((p) =>
-            ["approved", "queued", "running"].includes(p.status)
-          )
-        )
-          timer = setTimeout(load, 2000)
-      } catch (e) {
-        if (abort.signal.aborted) return
-        const status = (e as { status?: number }).status
-        if (status === 401 || status === 403) {
-          reset()
-          return
-        }
-        if (status === 404 && threadId) {
-          setThreadId("")
-          try {
-            localStorage.removeItem(storageKey)
-          } catch {}
-        }
-        setError((e as Error).message)
-      }
-    }
-    void load()
-    return () => {
-      abort.abort()
-      clearTimeout(timer)
-      invalidate()
-    }
-  }, [
-    open,
-    threadId,
-    revision,
-    access.userId,
-    access.workspaceId,
-    reset,
-    storageKey,
-    resourceQuery,
-    invalidate,
-  ])
-  useEffect(() => {
-    if (!state?.thread) {
-      restoredThread.current = ""
-      return
-    }
-    if (state.thread.id === threadId && restoredThread.current !== threadId) {
-      setResourceIds(state.thread.resourceIds)
-      setLeadIds([])
-      restoredThread.current = threadId
-    }
-  }, [state?.thread, threadId]) // Restore once when switching conversations, not on each poll.
-  useEffect(() => {
-    if (!open || !resourceQuery) return
     const abort = new AbortController()
     const timer = setTimeout(() => {
-      void api<{ resources: Resource[] }>(
-        `resources?query=${encodeURIComponent(resourceQuery)}`,
+      void agentApi<{ resources: AgentResource[] }>(
+        `resources?query=${encodeURIComponent(query)}`,
         undefined,
         abort.signal
       )
         .then((r) => setResources(r.resources))
-        .catch((e) => {
-          if (!abort.signal.aborted) setError(e.message)
-        })
+        .catch(() => {})
     }, 250)
     return () => {
       clearTimeout(timer)
       abort.abort()
     }
-  }, [open, resourceQuery])
+  }, [query])
   useEffect(() => {
-    scroll.current?.scrollIntoView({ behavior: "smooth" })
-  }, [state?.messages.length])
-  useEffect(() => {
-    if (!open || !shared) return
-    const share = () => {
-      void api("context", { resourceIds }).catch((e) => setError(e.message))
-    }
+    if (!shared) return
+    const share = () => void agentApi("context", { resourceIds }).catch(() => {})
     share()
-    const timer = setInterval(share, 60000)
+    const timer = setInterval(share, 60_000)
     return () => {
       clearInterval(timer)
-      void api("context", { resourceIds: [] }).catch(() => {})
+      void agentApi("context", { resourceIds: [] }).catch(() => {})
     }
-  }, [open, shared, resourceIds])
-  const remember = (id: string) => {
-    setThreadId(id)
-    try {
-      localStorage.setItem(storageKey, id)
-    } catch {}
-  }
-  const runBusy = state?.runs.some(
-    (r) => r.threadId === threadId && ["queued", "running"].includes(r.status)
-  )
-  async function newConversation() {
-    setBusy(true)
-    setError("")
-    try {
-      const { thread } = await api<{ thread: Thread }>("threads", {})
-      setState(null)
-      setResourceIds([])
-      remember(thread.id)
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
-  async function send() {
-    if (!message.trim() || busy || runBusy) return
-    setBusy(true)
-    setError("")
-    try {
-      let id = threadId
-      if (!id) {
-        const result = await api<{ thread: Thread }>("threads", {})
-        id = result.thread.id
-        remember(id)
-      }
-      await api("chat", {
-        threadId: id,
-        message,
-        resourceIds,
-        leadIds,
-        idempotencyKey: crypto.randomUUID(),
-      })
-      setMessage("")
-      refresh()
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
-  async function decide(p: Approval, decision: "approve" | "reject") {
-    setBusy(true)
-    setError("")
-    try {
-      await api(`approvals/${p.id}/decision`, {
-        decision,
-        proposalHash: p.proposalHash,
-      })
-      refresh()
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  }, [shared, resourceIds])
+  const selected = resources.find((r) => r.id === resourceIds[0])
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(value) => {
-        setOpen(value)
-        if (!value) setShared(false)
-      }}
-    >
-      <Dialog.Trigger asChild>
-        <Button variant="outline" size="sm">
-          <MessageSquare className="hidden size-4 sm:block" />
-          Agent
-        </Button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex h-dvh w-full min-w-0 flex-col overflow-hidden border-l bg-background shadow-lg outline-none transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:duration-500 data-[state=open]:slide-in-from-right sm:max-w-[580px]">
-          <header className="flex shrink-0 items-center justify-between gap-3 border-b p-4">
-            <div className="min-w-0 space-y-1">
-              <Dialog.Title className="flex items-center gap-2 font-semibold text-foreground">
-                <MessageSquare className="size-4 text-primary" aria-hidden />
-                Lead Finder Agent
-              </Dialog.Title>
-              <Dialog.Description className="text-xs text-muted-foreground">
-                Private history · Pro Max · AI uses Scale Credits
-              </Dialog.Description>
-            </div>
-            <Dialog.Close asChild>
-              <Button variant="ghost" size="icon" aria-label="Close Agent">
-                <X className="size-4" />
-              </Button>
-            </Dialog.Close>
-          </header>
-          <div className="shrink-0 space-y-3 border-b p-4">
-            <div className="flex gap-2">
-              <select
-                aria-label="Conversation history"
-                className={cn(nativeSelectClass, "flex-1")}
-                value={threadId}
-                onChange={(e) => {
-                  setState(null)
-                  setLeadIds([])
-                  remember(e.target.value)
-                }}
-              >
-                <option value="">Choose a conversation</option>
-                {state?.threads.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={newConversation}
-                disabled={busy}
-                aria-label="New conversation"
-              >
-                <Plus className="size-4" />
-              </Button>
-            </div>
-            <details>
-              <summary className={disclosureSummaryClass}>
-                Selected list ({resourceIds.length})
-              </summary>
-              <Input
-                aria-label="Find a list"
-                placeholder="Find a list…"
-                className="mt-2"
-                value={resourceQuery}
-                onChange={(e) => setResourceQuery(e.target.value)}
-              />
-              <div className="mt-2 max-h-36 overflow-y-auto">
-                {resources.map((r) => (
-                  <label
-                    key={r.id}
-                    className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm hover:bg-muted/50"
-                  >
-                    <input
-                      type="checkbox"
-                      className={nativeCheckboxClass}
-                      checked={resourceIds.includes(r.id)}
-                      onChange={(e) => {
-                        setResourceIds(e.target.checked ? [r.id] : [])
-                        setLeadIds([])
-                      }}
-                    />
-                    <span className="break-words">
-                      {r.name}{" "}
-                      <span className="text-xs text-muted-foreground">
-                        ({r.type.toLowerCase()} · {r.status.toLowerCase()})
-                      </span>
-                    </span>
-                  </label>
-                ))}
-                {!resources.length && (
-                  <p className="py-2 text-sm text-muted-foreground">
-                    No accessible lists found.
-                  </p>
-                )}
-              </div>
-              {state?.hasMore && (
-                <p className="text-xs text-muted-foreground">
-                  Search to find more lists. Choose one.
-                </p>
-              )}
-            </details>
-            <div className="flex flex-wrap gap-1">
-              {resourceIds.map((id) => (
-                <Badge
-                  variant="secondary"
-                  className="max-w-full whitespace-normal break-words"
-                  key={id}
-                >
-                  {resources.find((r) => r.id === id)?.name || "Selected list"}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
-            {resourceIds[0] && (
-              <LeadSelector
-                key={resourceIds[0]}
-                listId={resourceIds[0]}
-                selected={leadIds}
-                onChange={setLeadIds}
-              />
-            )}
-            {!state?.messages.length && (
-              <p className="text-sm text-muted-foreground">
-                Tell me who you want to reach. I’ll ask a few questions, help
-                you choose a saved list, and preview the cost before any paid
-                search or enrichment. Select saved leads to enrich or score
-                them.
-              </p>
-            )}
-            {access.handoffEnabled && resourceIds[0] && <CrmHandoff key={`handoff:${resourceIds[0]}`} listId={resourceIds[0]} leadIds={leadIds} />}
-            {state?.messages.map((m) => (
-              <article
-                key={m.id}
-                className={cn(
-                  "min-w-0 rounded-xl border p-3",
-                  m.role === "user"
-                    ? "ml-6 border-primary/20 bg-primary/5"
-                    : "mr-6 bg-card shadow-xs"
-                )}
-              >
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  {m.role === "user" ? "You" : "Lead Finder Agent"}
-                </p>
-                <AgentMarkdown text={m.content} />
-                <CopyMessage text={m.content} />
-              </article>
-            ))}
-            {state?.approvals.map((p) => (
-              <section
-                key={p.id}
-                className="min-w-0 space-y-3 rounded-xl border border-warning/40 bg-warning/10 p-3"
-                aria-label="Operation approval"
-              >
-                <p className="text-sm font-semibold">
-                  {p.preview.title} · {p.status}
-                </p>
-                <p className="text-sm">
-                  {p.preview.cost.maximumCredits !== undefined
-                    ? `Maximum cost: ${p.preview.cost.maximumCredits} Scale Credits (${p.preview.cost.maximumUnits} × ${p.preview.cost.creditsPerUnit})`
-                    : `Metered AI tokens · ${p.preview.cost.model ?? "configured model"}`}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {p.preview.cost.note}
-                </p>
-                <details>
-                  <summary className={disclosureSummaryClass}>
-                    Exact records and proposed changes
-                  </summary>
-                  <pre className={cn(codeBlockClass, "mt-2")}>
-                    {JSON.stringify(
-                      {
-                        before: p.preview.before,
-                        after: p.preview.after,
-                        skipped: p.preview.skipped ?? [],
-                      },
-                      null,
-                      2
-                    )}
-                  </pre>
-                </details>
-                {p.job && (
-                  <p role="status" className="text-sm">
-                    {p.job.stage}{" "}
-                    {p.job.progress ? `${p.job.progress.percent}%` : ""}{" "}
-                    {p.job.error?.message}
-                  </p>
-                )}
-                {p.result?.error && (
-                  <p className="text-sm text-destructive">{p.result.error}</p>
-                )}
-                {p.job?.result != null && (
-                  <pre className={codeBlockClass}>
-                    {JSON.stringify(p.job.result, null, 2)}
-                  </pre>
-                )}
-                {p.preview.effects.map((effect) => (
-                  <p key={effect} className="text-xs text-muted-foreground">
-                    {effect}
-                  </p>
-                ))}
-                <Link
-                  href={p.result?.url || p.preview.list.url}
-                  className="inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Open list
-                </Link>
-                {p.status === "pending" && (
-                  <>
-                    <p className="text-xs text-muted-foreground">
-                      Preview expires {new Date(p.expiresAt).toLocaleString()}.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        onClick={() => decide(p, "approve")}
-                        disabled={
-                          busy ||
-                          !access.writesEnabled ||
-                          Date.parse(p.expiresAt) < now
-                        }
-                        size="sm"
-                      >
-                        Approve this operation
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => decide(p, "reject")}
-                        disabled={busy}
-                        size="sm"
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </section>
-            ))}
-            {state?.runs
-              .filter((r) => r.threadId === threadId && r.error)
-              .map((r) => (
-                <p
-                  role="status"
-                  className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
-                  key={r.runId}
-                >
-                  {r.status === "needs_review" ? "Needs review: " : ""}
-                  {r.error}
-                </p>
-              ))}
-            {runBusy && (
-              <p
-                role="status"
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <Loader2 className="size-4 animate-spin" />
-                Working… You can close the panel and return.
-              </p>
-            )}
-            {error && (
-              <p
-                role="alert"
-                className="break-words rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
-              >
-                {error}
-              </p>
-            )}
-            <div ref={scroll} />
-          </div>
-          <footer className="shrink-0 space-y-3 border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                void send()
-              }}
-              className="flex items-end gap-2"
-            >
-              <Textarea
-                aria-label="Message the Agent"
-                placeholder="Ask about your selected lists…"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                maxLength={8000}
-                rows={2}
-                className="max-h-40 min-w-0 flex-1 resize-none"
-              />
-              <Button
-                type="submit"
-                size="icon"
-                disabled={busy || runBusy || !message.trim()}
-                aria-label="Send message"
-              >
-                <Send className="size-4" />
-              </Button>
-            </form>
-            <details className="text-xs">
-              <summary className="cursor-pointer font-medium text-foreground marker:text-muted-foreground">
-                Connect to Superpowers
-              </summary>
-              <p className="mt-2 text-muted-foreground">
-                Use the private ScalePlus ProMax Superpowers plugin in Codex or
-                Claude with the existing ClickCampaigns OAuth connection.
-                External conversations stay in that app.
-              </p>
-              <a
-                className="mt-2 inline-block font-medium text-primary underline-offset-4 hover:underline"
-                href="https://clickcampaigns.ai/god-mode-guide"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open installation and connection guide
-              </a>
-              <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 text-muted-foreground">
-                <input
-                  type="checkbox"
-                  className={nativeCheckboxClass}
-                  checked={shared}
-                  onChange={(e) => setShared(e.target.checked)}
-                />
-                Share this selection with Superpowers while this panel is open
-              </label>
-            </details>
-          </footer>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-
-function LeadSelector({
-  listId,
-  selected,
-  onChange,
-}: {
-  listId: string
-  selected: string[]
-  onChange: (ids: string[]) => void
-}) {
-  const [rows, setRows] = useState<
-    {
-      id: string
-      name: string | null
-      email: string | null
-      company: string | null
-    }[]
-  >([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [error, setError] = useState("")
-  const [busy, setBusy] = useState(false)
-  useEffect(() => {
-    const abort = new AbortController()
-    void api<{ leads: typeof rows; nextCursor: string | null }>(
-      `lists/${encodeURIComponent(listId)}`,
-      undefined,
-      abort.signal
-    )
-      .then((r) => {
-        setRows(r.leads)
-        setCursor(r.nextCursor)
-      })
-      .catch((e) => {
-        if (!abort.signal.aborted) setError(e.message)
-      })
-    return () => abort.abort()
-  }, [listId])
-  return (
-    <details className="rounded-xl border bg-card p-3">
-      <summary className={disclosureSummaryClass}>
-        Selected saved leads ({selected.length}/50)
+    <details className="shrink-0 border-b px-4 py-2">
+      <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium marker:text-muted-foreground">
+        <Settings2 className="size-4 text-muted-foreground" aria-hidden />
+        Context
+        {resourceIds.length ? (
+          <Badge variant="secondary" className="max-w-[60%] truncate">
+            {selected?.name ?? "Selected list"}
+            {leadIds.length ? ` · ${leadIds.length} leads` : ""}
+          </Badge>
+        ) : (
+          <span className="text-xs font-normal text-muted-foreground">All my lists</span>
+        )}
       </summary>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Choose records for enrichment or scoring. Your approved preview always
-        identifies the exact records.
-      </p>
-      <div className="max-h-44 overflow-y-auto">
-        {rows.map((r) => (
-          <label
-            key={r.id}
-            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm hover:bg-muted/50"
+      <div className="mt-2 max-h-[45vh] space-y-3 overflow-y-auto pb-2">
+        <Input
+          aria-label="Find a list"
+          placeholder="Find a list…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="max-h-36 overflow-y-auto">
+          {resources.map((r) => (
+            <label
+              key={r.id}
+              className="flex min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 text-sm hover:bg-muted/50"
+            >
+              <input
+                type="checkbox"
+                className={nativeCheckboxClass}
+                checked={resourceIds.includes(r.id)}
+                onChange={(e) => onResources(e.target.checked ? [r.id] : [])}
+              />
+              <span className="break-words">
+                {r.name}{" "}
+                <span className="text-xs text-muted-foreground">
+                  ({r.type.toLowerCase()} · {r.status.toLowerCase()})
+                </span>
+              </span>
+            </label>
+          ))}
+          {!resources.length ? <p className="py-2 text-sm text-muted-foreground">No lists found.</p> : null}
+        </div>
+        {resourceIds[0] ? (
+          <LeadSelector key={resourceIds[0]} listId={resourceIds[0]} selected={leadIds} onChange={onLeads} />
+        ) : null}
+        {access.handoffEnabled && resourceIds[0] ? (
+          <CrmHandoff key={`handoff:${resourceIds[0]}`} listId={resourceIds[0]} leadIds={leadIds} />
+        ) : null}
+        <details className="text-xs">
+          <summary className="cursor-pointer font-medium text-foreground marker:text-muted-foreground">
+            Connect to Superpowers
+          </summary>
+          <p className="mt-2 text-muted-foreground">
+            Use the private ScalePlus ProMax Superpowers plugin in Codex or Claude with the existing
+            ClickCampaigns OAuth connection. External conversations stay in that app.
+          </p>
+          <a
+            className="mt-2 inline-block font-medium text-primary underline-offset-4 hover:underline"
+            href="https://clickcampaigns.ai/god-mode-guide"
+            target="_blank"
+            rel="noopener noreferrer"
           >
+            Open installation and connection guide
+          </a>
+          <label className="mt-2 flex min-h-10 cursor-pointer items-center gap-2 text-muted-foreground">
             <input
               type="checkbox"
               className={nativeCheckboxClass}
-              checked={selected.includes(r.id)}
-              disabled={!selected.includes(r.id) && selected.length >= 50}
-              onChange={(e) =>
-                onChange(
-                  e.target.checked
-                    ? [...selected, r.id]
-                    : selected.filter((id) => id !== r.id)
-                )
-              }
+              checked={shared}
+              onChange={(e) => setShared(e.target.checked)}
             />
-            <span className="min-w-0 break-words">
-              {r.name || "Unnamed lead"} ·{" "}
-              {r.email || r.company || "Incomplete contact"}
-            </span>
+            Share this selection with Superpowers while this panel is open
           </label>
-        ))}
+        </details>
       </div>
-      {cursor && (
-        <button
-          type="button"
-          className="min-h-11 text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-50"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true)
-            try {
-              const r = await api<{
-                leads: typeof rows
-                nextCursor: string | null
-              }>(
-                `lists/${encodeURIComponent(listId)}?cursor=${encodeURIComponent(cursor)}`
-              )
-              setRows((v) => [...v, ...r.leads])
-              setCursor(r.nextCursor)
-            } catch (e) {
-              setError((e as Error).message)
-            } finally {
-              setBusy(false)
-            }
-          }}
-        >
-          Load more leads
-        </button>
-      )}
-      {!rows.length && !error && (
-        <p className="py-2 text-xs text-muted-foreground">No saved leads in this list yet.</p>
-      )}
-      {error && (
-        <p role="alert" className="text-xs text-destructive">
-          {error}
-        </p>
-      )}
     </details>
-  )
-}
-
-export function AgentMarkdown({ text }: { text: string }) {
-  return (
-    <div className="min-w-0 break-words text-sm leading-relaxed text-foreground [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.8125rem] [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_p:last-child]:mb-0 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:bg-muted/50 [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:list-disc">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        skipHtml
-        components={{
-          table: ({ children }) => (
-            <div className="max-w-full overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:bg-muted/50 [&_th]:p-2 [&_th]:font-medium">
-                {children}
-              </table>
-            </div>
-          ),
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          ),
-        }}
-      >
-        {text}
-      </ReactMarkdown>
-    </div>
-  )
-}
-function CopyMessage({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  const [failed, setFailed] = useState(false)
-  return (
-    <button
-      type="button"
-      className="mt-2 flex min-h-11 items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(text)
-          setCopied(true)
-          setFailed(false)
-        } catch {
-          setFailed(true)
-        }
-      }}
-    >
-      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-      {failed
-        ? "Copy failed — select the text to copy"
-        : copied
-          ? "Copied"
-          : "Copy message"}
-    </button>
   )
 }

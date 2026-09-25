@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { prisma as db } from "@/lib/prisma"
-import { actions, dispatch } from "./actions"
+import { SERVICE_ACTIONS, dispatch } from "./actions"
 import {
   proposalView as approvalView,
   decideProposal,
@@ -21,6 +21,7 @@ import {
   validateResources,
 } from "./runtime"
 import { FocusedAgentError, verifyFocusedRequest } from "./security"
+import { devBypass } from "./dev-bypass"
 import { exportTransfer, crmDestinations, prepareCrmTransfer, crmTransferStatus, handoffEnabled } from "./handoff"
 
 const uuid = z.string().uuid()
@@ -101,6 +102,8 @@ export async function handleNative(
           workspaceId: a.workspaceId,
           writesEnabled: writesEnabled(),
           handoffEnabled: handoffEnabled(),
+          proMax: true,
+          development: devBypass() !== null,
         })
       if (path.length === 1 && path[0] === "resources")
         return ok(
@@ -240,7 +243,7 @@ export async function handleService(
       request.method === "POST" &&
       path.length === 2 &&
       path[0] === "actions" &&
-      (Object.hasOwn(actions, path[1]) || path[1] === "get_run" || path[1] === "export_transfer")
+      ((SERVICE_ACTIONS as readonly string[]).includes(path[1]) || path[1] === "export_transfer")
     )
       action = path[1]
     else if (
@@ -295,7 +298,7 @@ export async function handleService(
         service: "leadfinder",
         enabled: true,
         writesEnabled: writesEnabled(),
-        actions: [...Object.keys(actions), "get_run", "execute_proposal"],
+        actions: [...SERVICE_ACTIONS, "execute_proposal"],
         limits: { lists: 1, leads: 50 },
         history: "tool-activity-and-approvals",
       })
