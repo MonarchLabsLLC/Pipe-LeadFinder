@@ -68,8 +68,8 @@ vi.mock("@/services/search-service", () => ({
     ]
   },
 }))
-vi.mock("@/lib/apify", () => ({
-  apifyClient: {
+vi.mock("@/lib/apify", () => {
+  const client = {
     actor: () => ({
       call: async () => {
         state.enrichments++
@@ -79,8 +79,9 @@ vi.mock("@/lib/apify", () => ({
     dataset: () => ({
       listItems: async () => ({ items: [{ phone: "+15555550123" }] }),
     }),
-  },
-}))
+  }
+  return { apifyClient: client, enrichApifyClient: client }
+})
 vi.mock("@/services/credits-service", () => ({
   getBalance: async () => ({ availableCredits: state.balance }),
   getPipeLeadsPricing: async () =>
