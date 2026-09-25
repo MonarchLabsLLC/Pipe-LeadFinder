@@ -349,3 +349,17 @@
 .font-heading {
   font-family: var(--font-sans);
 }
+
+/* Lead Finder agent dock: on wide screens it pushes the page over instead of
+   covering it (src/components/focused-agent/agent-panel.tsx). */
+:root {
+  --lf-agent-dock-width: 440px;
+}
+[data-slot="sidebar-inset"] {
+  transition: margin-right 300ms ease-out;
+}
+@media (min-width: 1024px) {
+  html.lf-agent-dock-open [data-slot="sidebar-inset"] {
+    margin-right: var(--lf-agent-dock-width);
+  }
+}

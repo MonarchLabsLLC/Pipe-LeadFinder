@@ -6,9 +6,40 @@ import {
   consumeCredits,
 } from "@/services/credits-service"
 import { getAiRuntimeConfig, resolveBilledModel } from "@/services/ai-runtime"
-import type { PipeLeadsCreditAction } from "@/lib/pipeleads-credit-pricing"
+import {
+  CREDIT_COSTS,
+  type PipeLeadsCreditAction,
+} from "@/lib/pipeleads-credit-pricing"
 import { FocusedAgentError, trustedServiceUrl } from "./security"
 import type { AgentActor } from "./access"
+import { devBypass } from "./dev-bypass"
+
+/** Development only: a local balance so the Agent works without ScaleCredits. */
+export const DEV_BALANCE = 1_000_000
+
+/**
+ * The exact token charge sent to Scale Credits for one Agent step. Pure so the
+ * billing contract (provider, billed model, token counts, idempotency key) is
+ * testable without the network.
+ */
+export function tokenBillingPayload(input: {
+  provider: ReturnType<typeof getAiRuntimeConfig>["provider"]
+  model: string
+  runId: string
+  step: number
+  inputTokens: number
+  outputTokens: number
+}) {
+  return {
+    provider: input.provider,
+    model: input.model,
+    inputTokens: input.inputTokens,
+    outputTokens: input.outputTokens,
+    description: "Lead Finder focused Agent",
+    metadata: { feature: "focused-agent", runId: input.runId, step: input.step },
+    idempotencyKey: `focused-agent:${input.runId}:${input.step}`,
+  }
+}
 
 function configured() {
   if (!process.env.MICRO_SERVICE_BASE || !process.env.INTERNAL_WEBHOOK_SECRET)
@@ -20,6 +51,15 @@ function configured() {
   trustedServiceUrl(process.env.MICRO_SERVICE_BASE, "/")
 }
 export async function requireCredits(a: AgentActor, minimum = 0) {
+  if (devBypass()) {
+    if (minimum > DEV_BALANCE)
+      throw new FocusedAgentError(
+        "INSUFFICIENT_CREDITS",
+        `This operation requires up to ${minimum} Scale Credits. Add credits first.`,
+        402
+      )
+    return DEV_BALANCE
+  }
   configured()
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -51,9 +91,19 @@ export async function currentPrice(
   action: PipeLeadsCreditAction,
   maximumUnits: number
 ) {
-  configured()
-  const rows = await getPipeLeadsPricing()
-  const price = rows?.find((row) => row.action === action)
+  const bypass = devBypass()
+  if (!bypass) configured()
+  // Development only: the published price table instead of the service.
+  const rows = bypass ? null : await getPipeLeadsPricing()
+  let price = rows?.find((row) => row.action === action)
+  if (bypass)
+    price = {
+      action,
+      model: action,
+      creditsPerHit: CREDIT_COSTS[action],
+      configured: true,
+      updatedAt: null,
+    } as unknown as NonNullable<typeof price>
   if (
     !price ||
     !price.configured ||
@@ -106,6 +156,7 @@ export async function chargeNativeTokens(
   const config = getAiRuntimeConfig("assistant"),
     billedModel = resolveBilledModel(config, responseModelId),
     requestId = `focused-agent:${runId}:${step}`
+  const bypass = devBypass()
   const usage = await prisma.focusedAgentUsage.upsert({
     where: { requestId },
     create: {
@@ -120,6 +171,14 @@ export async function chargeNativeTokens(
     update: {},
   })
   if (usage.state === "charged") return
+  // Development only: the tokens are recorded, never charged.
+  if (bypass) {
+    await prisma.focusedAgentUsage.updateMany({
+      where: { id: usage.id, state: "pending" },
+      data: { state: "dev_uncharged" },
+    })
+    return
+  }
   if (
     !(
       await prisma.focusedAgentUsage.updateMany({
@@ -135,15 +194,14 @@ export async function chargeNativeTokens(
     )
   const result = await consumeTokenCredits(
     a.userId,
-    {
+    tokenBillingPayload({
       provider: config.provider,
       model: usage.model || billedModel,
+      runId,
+      step,
       inputTokens: inputTokens!,
       outputTokens: outputTokens!,
-      description: "Lead Finder focused Agent",
-      metadata: { feature: "focused-agent", runId, step },
-      idempotencyKey: requestId,
-    },
+    }),
     a.email
   )
   await prisma.focusedAgentUsage.update({
@@ -177,6 +235,7 @@ export async function chargeApprovedUnits(
       409
     )
   if (!units || cost.creditsPerUnit === 0) return
+  if (devBypass()) return // Development only: never charge.
   // The existing credit adapter converts display credits into its fixed-usage units.
   // Omitting metadata.action intentionally locks the already-approved price.
   const result = await consumeCredits(

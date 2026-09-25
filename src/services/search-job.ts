@@ -188,9 +188,11 @@ export async function processSearchJob(jobRunId: string) {
       duplicatePolicy: payload.duplicatePolicy,
       ...(approval
         ? {
+            // A list created by this approval (versions.newList) has no
+            // earlier version to compare with.
             expectedListVersion: (
-              approval.versions.list as { updatedAt: string }
-            ).updatedAt,
+              approval.versions.list as { updatedAt: string } | undefined
+            )?.updatedAt,
           }
         : {}),
     })

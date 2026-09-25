@@ -43,3 +43,5 @@ CRM owns immutable approval, durable execution and source mappings. Approve thro
 ## Verification
 
 Use Node 24, `npm test`, `npx tsc --noEmit`, focused ESLint and `npm run build`. The focused integration suite runs only against an explicitly named disposable loopback database, with network/model/billing calls mocked. It covers ownership, revoked access, pricing, approval hashes/expiry/rejection, retry-safe jobs, record races, MCP approval/replay, private history and uncertain billing.
+
+The Pro Max front door, the newer tools (`ask_user`, `interpret_request`, bulk enrichment, labels, export, suite handoff, credits, recent searches, scheduled agents) and the development-only `LEADFINDER_AGENT_DEV_BYPASS` are described in [AGENT-NATIVE.md](AGENT-NATIVE.md).
