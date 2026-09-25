@@ -89,6 +89,7 @@ export function extractPrimaryEmail(
   const emails = new Set<string>()
 
   addEmailCandidate(emails, value.email, true)
+  addEmailCandidate(emails, value.emailInBio, true)
   addEmailCandidate(emails, value.emailAddress, true)
   addEmailCandidate(emails, value.email_address, true)
   addEmailCandidate(emails, value.contact_email, true)

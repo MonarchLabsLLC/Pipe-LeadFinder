@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
+import { nominatimSearchUrl } from "@/lib/location-query"
 
 // Rate limit: 1 request per second for Nominatim
 const lastRequestByUser = new Map<string, number>()
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&addressdetails=1&limit=5&countrycodes=us`,
+      nominatimSearchUrl(query),
       {
         signal: AbortSignal.timeout(8_000),
         headers: {
