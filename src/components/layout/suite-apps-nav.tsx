@@ -62,8 +62,9 @@ function useStoredOpen() {
 }
 
 /**
- * The suite's shared "Apps" accordion: all six apps in one fixed order,
- * expanded by default, the viewer's choice remembered. Lead Finder is the
+ * The suite's shared "Client Services Suite" section: all six apps in one
+ * fixed order, expanded by default, the viewer's choice remembered. It reads
+ * as one block: a dark title band over a lifted panel. Lead Finder is the
  * current app: bold with a dot, no fill (the fill marks the current page).
  */
 export function SuiteAppsNav() {
@@ -80,46 +81,55 @@ export function SuiteAppsNav() {
       className="group/apps"
     >
       <SidebarGroup>
-        <SidebarGroupLabel asChild>
-          <CollapsibleTrigger className="w-full cursor-pointer hover:text-sidebar-foreground">
-            Apps
-            <ChevronDown
-              aria-hidden
-              className="ml-auto size-3.5! transition-transform duration-200 group-data-[state=closed]/apps:-rotate-90 motion-reduce:transition-none"
-            />
-          </CollapsibleTrigger>
-        </SidebarGroupLabel>
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down motion-reduce:animate-none">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {appItems.map((app) => (
-                <SidebarMenuItem key={app.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={app.title}
-                    className={cn(app.current && "font-semibold")}
-                  >
-                    {app.current ? (
-                      <Link href={app.url} aria-current="true">
-                        <app.icon className="size-4" />
-                        <span>{app.title}</span>
-                        <span
-                          aria-hidden
-                          className="ml-auto size-1.5 shrink-0 rounded-full bg-primary"
-                        />
-                      </Link>
-                    ) : (
-                      <a href={app.url}>
-                        <app.icon className="size-4" />
-                        <span>{app.title}</span>
-                      </a>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </CollapsibleContent>
+        {/* One rounded block: the band alone when collapsed, band over panel
+            when open, and just the panel of icons on the icon rail. */}
+        <div className="overflow-hidden rounded-lg bg-suite-nav-panel">
+          <SidebarGroupLabel asChild>
+            <CollapsibleTrigger
+              className="h-9 w-full cursor-pointer rounded-none bg-suite-nav-header px-3 text-sidebar-muted-foreground transition-[margin,opacity,color] hover:text-sidebar-foreground focus-visible:ring-inset"
+            >
+              Client Services Suite
+              <ChevronDown
+                aria-hidden
+                className="ml-auto size-3.5! transition-transform duration-200 group-data-[state=closed]/apps:-rotate-90 motion-reduce:transition-none"
+              />
+            </CollapsibleTrigger>
+          </SidebarGroupLabel>
+          <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down motion-reduce:animate-none">
+            <SidebarGroupContent className="p-1 group-data-[collapsible=icon]:p-0">
+              <SidebarMenu>
+                {appItems.map((app) => (
+                  <SidebarMenuItem key={app.title}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={app.title}
+                      className={cn(
+                        "hover:bg-suite-nav-hover hover:text-sidebar-foreground active:bg-suite-nav-hover active:text-sidebar-foreground",
+                        app.current && "font-semibold"
+                      )}
+                    >
+                      {app.current ? (
+                        <Link href={app.url} aria-current="true">
+                          <app.icon className="size-4" />
+                          <span>{app.title}</span>
+                          <span
+                            aria-hidden
+                            className="ml-auto size-1.5 shrink-0 rounded-full bg-primary"
+                          />
+                        </Link>
+                      ) : (
+                        <a href={app.url}>
+                          <app.icon className="size-4" />
+                          <span>{app.title}</span>
+                        </a>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsibleContent>
+        </div>
       </SidebarGroup>
     </Collapsible>
   )

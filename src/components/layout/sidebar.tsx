@@ -41,7 +41,7 @@ import { SuiteAppsNav } from "@/components/layout/suite-apps-nav"
 
 /**
  * Lead Finder's sidebar. It mirrors PipeLeads Suite's app sidebar piece for
- * piece (header block, the suite's Apps accordion, separator, the app's own groups, rail) so
+ * piece (header block, the suite's Client Services Suite accordion, separator, the app's own groups, rail) so
  * moving between the apps never changes the frame around the work.
  */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
