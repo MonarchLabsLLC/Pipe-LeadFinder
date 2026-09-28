@@ -47,7 +47,7 @@ export function HeaderUserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/resources/tutorials" className="flex items-center">
             <GraduationCap aria-hidden="true" className="mr-2 size-4" />
-            <span>Tutorials</span>
+            <span>User Guide &amp; Tutorials</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

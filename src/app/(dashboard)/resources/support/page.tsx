@@ -22,7 +22,7 @@ const SUPPORT_URL = "https://support.groovedigital.com/"
 const QUICK_ANSWERS = [
   {
     q: "How do I add more credits?",
-    a: 'Click the "Credit Wallet" button in the sidebar, or visit credits.scaleplus.gg. Credits are added to your account instantly.',
+    a: 'Click your name at the bottom-left of the sidebar and choose "Open Credit Wallet". Credits you buy there show up in your balance automatically.',
   },
   {
     q: "Why did my search return zero results?",
