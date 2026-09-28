@@ -162,6 +162,9 @@ boundary uses `input`, which does.
 | `sidebar-border` | `#4c4466` | `#334155` |
 | `sidebar-muted-foreground` (group labels, sub-lines) | `#a2a2b7` | `#a2a2b7` |
 | `sidebar-ring` | `#a78bfa` | `#a78bfa` |
+| `suite-nav-header` (Client Services Suite title band) | `#1c1829` | `#01040f` |
+| `suite-nav-panel` (Client Services Suite panel) | `#3a3450` | `#141c2e` |
+| `suite-nav-hover` (row hover on that panel) | `#4c4466` | `#2a3650` |
 
 Because the sidebar is dark in both themes, `muted-foreground` is unreadable on
 it. Secondary text inside the sidebar uses `sidebar-muted-foreground`.
@@ -326,16 +329,24 @@ collapsed):
 1. The app identity block at the top: a 32px `rounded-lg` tile in `primary`
    with the app's lucide icon in `primary-foreground`, the app or workspace
    name in `font-semibold`, and a sub-line in `sidebar-muted-foreground`.
-2. **Apps** group, a collapsible accordion that is the same in every app of
-   the family: PipeLeads CRM, Lead Finder, ProjectBaser, CalendarBug, Invoicer
-   and DocSigner, always in that order. The group label is the toggle, with a
-   small chevron on the right that turns when the group closes. It is open by
-   default and the viewer's choice is remembered in localStorage under
-   `suite-apps-nav-open` (`"1"` or `"0"`). Collapsed to icons, the label hides
-   and the six icons stay, each with its tooltip. The current app is
-   `font-semibold` and marked with a 6px `bg-primary` dot on the right. The
-   filled highlight belongs to the page, so two rows never compete for "you are
-   here". The list lives in `src/components/sidebar/suite-apps.ts`.
+2. **Client Services Suite** section, a collapsible accordion that is the same
+   in every app of the family: PipeLeads CRM, Lead Finder, ProjectBaser,
+   CalendarBug, Invoicer and DocSigner, always in that order. It is drawn as one
+   `rounded-lg`, `overflow-hidden` block inside the sidebar's side padding: a
+   title band in `suite-nav-header` (32–36px high, `px-3`, "Client Services
+   Suite" in the group-label style, `text-xs font-medium` in
+   `sidebar-muted-foreground`, brightening to `sidebar-foreground` on hover,
+   with a small chevron on the right that turns when the section closes) over a
+   panel in `suite-nav-panel` (`p-1`) holding the six rows. Rows on the panel
+   hover to `suite-nav-hover`, not `sidebar-accent`, which is too close to the
+   panel in dark mode. Closed, the band alone is fully rounded. The band is the
+   toggle; the section is open by default and the viewer's choice is remembered
+   in localStorage under `suite-apps-nav-open` (`"1"` or `"0"`). Collapsed to
+   icons, the band hides and the six icons stay on the panel colour as one
+   rounded block, each with its tooltip. The current app is `font-semibold` and
+   marked with a 6px `bg-primary` dot on the right, with no fill: the filled
+   highlight belongs to the page, so two rows never compete for "you are here".
+   The list lives in `src/components/sidebar/suite-apps.ts`.
 3. A separator, then the app's own groups. Group labels are `text-xs
    font-medium` in `sidebar-muted-foreground`.
 4. Rows are 32px high with a 16px icon. Hover and active use `sidebar-accent`.
@@ -474,6 +485,9 @@ Copied from PipeLeads Suite `src/app/globals.css`. Use these as full colour valu
   --sidebar-border: oklch(0.4092 0.0568 294.5601);
   --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
   --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  --suite-nav-header: oklch(0.2223 0.0330 294.3606);
+  --suite-nav-panel: oklch(0.3439 0.0487 293.5051);
+  --suite-nav-hover: oklch(0.4092 0.0568 294.5601);
   --success: oklch(0.5020 0.1400 150);
   --success-foreground: oklch(1.0000 0 0);
   --warning: oklch(0.5150 0.1400 85);
@@ -530,6 +544,9 @@ Copied from PipeLeads Suite `src/app/globals.css`. Use these as full colour valu
   --sidebar-border: oklch(0.3717 0.0392 257.2870);
   --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
   --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  --suite-nav-header: oklch(0.1094 0.0315 260.7256);
+  --suite-nav-panel: oklch(0.2283 0.0371 265.3053);
+  --suite-nav-hover: oklch(0.3345 0.0490 264.8904);
   --success: oklch(0.7300 0.1400 150);
   --success-foreground: oklch(0.1800 0.0300 150);
   --warning: oklch(0.7800 0.1400 85);
@@ -591,6 +608,9 @@ For Tailwind 3 apps whose config reads `hsl(var(--x))` or `hsl(var(--x) / <alpha
   --sidebar-border: 254.1 20.0% 33.3%;
   --sidebar-muted-foreground: 240.5 12.7% 67.7%;
   --sidebar-ring: 255.1 91.8% 76.3%;
+  --suite-nav-header: 254.1 26.2% 12.7%;
+  --suite-nav-panel: 252.9 21.2% 25.9%;
+  --suite-nav-hover: 254.1 20.0% 33.3%;
   --success: 146.2 100.0% 23.7%;
   --success-foreground: 0.0 0.0% 100.0%;
   --warning: 44.5 100.0% 25.8%;
@@ -646,6 +666,9 @@ For Tailwind 3 apps whose config reads `hsl(var(--x))` or `hsl(var(--x) / <alpha
   --sidebar-border: 215.3 25.0% 26.7%;
   --sidebar-muted-foreground: 240.5 12.7% 67.7%;
   --sidebar-ring: 255.1 91.8% 76.3%;
+  --suite-nav-header: 227.1 87.5% 3.1%;
+  --suite-nav-panel: 221.5 39.4% 12.9%;
+  --suite-nav-hover: 221.1 31.1% 23.9%;
   --success: 135.3 43.6% 56.2%;
   --success-foreground: 133.1 48.9% 5.6%;
   --warning: 42.3 72.9% 55.5%;

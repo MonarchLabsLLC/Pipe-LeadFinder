@@ -19,15 +19,15 @@ import {
 } from "lucide-react"
 
 /**
- * Where PipeLeads Suite (the CRM and ProjectBaser) lives. The sidebar's Apps
- * group links into it in the same tab, exactly as the Suite links to Lead
+ * Where PipeLeads Suite (the CRM and ProjectBaser) lives. The sidebar's Client
+ * Services Suite section links into it in the same tab, exactly as the Suite links to Lead
  * Finder, so switching apps feels like one product.
  */
 export const PIPELEADS_SUITE_URL = (
   process.env.NEXT_PUBLIC_PIPELEADS_SUITE_URL || "https://go.pipeleads.ai"
 ).replace(/\/+$/, "")
 
-/** Lead Finder's own home, used by the header block and the Apps group. */
+/** Lead Finder's own home, used by the header block and the Client Services Suite section. */
 export const LEAD_FINDER_HOME = "/lead-search/new-search"
 
 export type NavItem = { title: string; url: string; icon: LucideIcon }

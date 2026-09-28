@@ -41,6 +41,12 @@
      unreadable on it. Secondary text inside the sidebar uses this instead. */
   --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
   --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  /* The "Client Services Suite" block at the top of the sidebar: a dark title
+     band over a lifted panel, with its own row hover (sidebar-accent is too
+     close to the panel). Same values in every PipeLeads-family app. */
+  --suite-nav-header: oklch(0.2223 0.0330 294.3606); /* #1c1829 */
+  --suite-nav-panel: oklch(0.3439 0.0487 293.5051); /* #3a3450 */
+  --suite-nav-hover: oklch(0.4092 0.0568 294.5601); /* #4c4466 */
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, monospace;
@@ -127,6 +133,9 @@
   --sidebar-border: oklch(0.3717 0.0392 257.2870);
   --sidebar-muted-foreground: oklch(0.7200 0.0300 286);
   --sidebar-ring: oklch(0.7090 0.1592 293.5412);
+  --suite-nav-header: oklch(0.1094 0.0315 260.7256); /* #01040f */
+  --suite-nav-panel: oklch(0.2283 0.0371 265.3053); /* #141c2e */
+  --suite-nav-hover: oklch(0.3345 0.0490 264.8904); /* #2a3650 */
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, monospace;
@@ -210,6 +219,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-suite-nav-header: var(--suite-nav-header);
+  --color-suite-nav-panel: var(--suite-nav-panel);
+  --color-suite-nav-hover: var(--suite-nav-hover);
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
