@@ -6,8 +6,8 @@ export const size = {
 }
 export const contentType = "image/png"
 
-// Same branded gradient and shape as PipeLeads Suite's favicon, so the tab
-// icon reads as part of the family; only the glyph differs.
+// Client Services Suite favicon: a solid #7946E0 rounded square with the
+// app's own glyph in white, so the tab icon reads as part of the family.
 
 export default function Icon() {
   return new ImageResponse(
@@ -20,7 +20,7 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           borderRadius: "8px",
-          background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+          background: "#7946E0",
         }}
       >
         {/* Radar icon (lucide), the Lead Finder mark */}
@@ -30,7 +30,7 @@ export default function Icon() {
           height="20"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="#FFFFFF"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
