@@ -6,7 +6,7 @@ export const size = {
 }
 export const contentType = "image/png"
 
-// Client Services Suite app icon: a solid #7946E0 square with the app's own
+// Client Services Suite app icon: a solid #FF6F61 square with the app's own
 // glyph in white. Full bleed, because iOS draws its own rounded corners.
 
 export default function AppleIcon() {
@@ -19,7 +19,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#7946E0",
+          background: "#FF6F61",
         }}
       >
         {/* Radar icon (lucide), the Lead Finder mark */}
