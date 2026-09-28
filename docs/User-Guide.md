@@ -2,7 +2,24 @@
 
 ## Pipe-LeadFinder — AI-Powered Lead Intelligence Platform
 
-**Last Updated:** September 2026 (focused Agent, opt-in rollout)
+**Last Updated:** September 28, 2026
+
+The same guide lives inside the app: **Resources → Tutorials** (also **User Guide & Tutorials** in the avatar menu, **Help & Tutorials** in your account menu, or go to `/user-guide`). It has a search box that jumps to any topic.
+
+---
+
+## What's New
+
+- **Sep 28, 2026 — A fuller User Guide.** The in-app guide now has What's New, a search box, a guide to bulk actions on selected leads, and an Integrations, Settings & FAQ section.
+- **Sep 27, 2026 — Client Services Suite in the sidebar.** All six suite apps (PipeLeads CRM, Lead Finder, ProjectBaser, CalendarBug, Invoicer, DocSigner) sit together at the top of the sidebar. Fold the section away with one click; your choice is remembered.
+- **Sep 25, 2026 — Lead Finder in Claude, Codex and Cursor.** ScalePlus Superpowers lets your AI assistant work with your lists, with your approval for anything that costs credits or changes data.
+- **Sep 24, 2026 — Talk to the Lead Finder agent (Pro Max).** New Search opens on "Who do you want to find?"; the header **Agent** button opens the same conversation on any page.
+- **Sep 24, 2026 — Easier searching.** Describe who you want, ready-made examples, a cost estimate before you run, auto-named lists and recent searches with Open list / Run again.
+- **Sep 24, 2026 — One-click Add to PipeLeads and MailBaser** from the Send to column or the bulk actions bar.
+- **Sep 24, 2026 — Live credits in your account row**, one AI menu per lead and plain-language email badges.
+- **Sep 24, 2026 — The PipeLeads look** (shared with PipeLeads CRM and ProjectBaser), in light and dark.
+- **Sep 16, 2026 — Team workspaces.** Teammates in your Scale Plus team workspace can work with your lists; some owner-only actions stay with the owner.
+- **Sep 5, 2026 — Saved-lead automations** (see the end of this guide).
 
 ---
 
@@ -10,9 +27,7 @@
 
 ### First Login
 
-In development mode, you're automatically signed in as `admin@GrooveDigital.com`. No credentials needed — visit any page and you're authenticated.
-
-In production, PipeLeads uses your Keycloak account. Sign in through the Keycloak prompt when it appears. Your account must have the PipeLeads app role; if you see **Access Denied**, contact your administrator to request access.
+Lead Finder uses your Scale Plus account. Open it from the ScalePlus Apps launcher (or from the Client Services Suite section of another PipeLeads app) and you are signed in automatically; if you are not signed in yet you are sent to the Scale Plus sign-in page first. If you see **Access Denied**, your account does not include Lead Finder yet: click **Sign out** and contact support or your account administrator.
 
 ### Dashboard Overview
 
@@ -20,13 +35,14 @@ After login, you land on the dashboard. Lead Finder uses the same frame as the r
 
 The collapsible sidebar holds:
 
-- **Apps** — PipeLeads CRM, Lead Finder (marked with a dot while you are here) and ProjectBaser. Choosing another app opens it in the same tab.
+- **Lead Finder** (top) — the app name; click it to return to New Search.
+- **Client Services Suite** — all six suite apps in one fixed order: PipeLeads CRM, Lead Finder (bold with a dot while you are here), ProjectBaser, CalendarBug, Invoicer and DocSigner. Choosing another app opens it in the same tab. Click the dark **Client Services Suite** band to fold the section; your choice is remembered. With the sidebar collapsed to icons, the six app icons always show.
 - **Lead Search** — New Search, Saved Lists, Custom Labels, and the **AI Tools** submenu (Knowledge Base, AI Assistant, AI Agent)
-- **Resources** — Integrations, Support and Tutorials
+- **Resources** — Integrations, Support and Tutorials (this User Guide)
 
 At the bottom of the sidebar is your **account row**: your avatar, your name and, under it, your live credit balance (see "Your account and credits" under Credits). Click it for usage, prices, the Credit Wallet, theme, help and log out.
 
-The header shows where you are (for example *Lead Search › Saved Lists*), a **Search** box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus **Apps** launcher, the **Agent** button, the light/dark theme toggle, and your avatar menu (Tutorials, Integrations, Support, Log out).
+The header shows where you are (for example *Lead Search › Saved Lists*), a **Search** box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus **Apps** launcher, the **Agent** button, the light/dark theme toggle, and your avatar menu (User Guide & Tutorials, Integrations, Support, Log out).
 
 ---
 
@@ -46,8 +62,7 @@ The header shows where you are (for example *Lead Search › Saved Lists*), a **
 
 Pro Max unlocks the agent and is checked on every message and every approval; Scale Credits meter its AI use (by the tokens each step actually uses) and the paid operations you approve, at current configured prices. Without Pro Max you keep **Describe who you want** and see a small **Talk to the Lead Finder agent — Pro Max** card with an upgrade link. The agent cannot delete records, send outbound email or overwrite existing contact details.
 
-**Connect to Superpowers** (under **Context**) opens the private Codex/Claude installation and ClickCampaigns OAuth guide. No customer API key is required. From Claude Code, Codex or Cursor you can ask for the same things as in the panel: find and read your lists, turn a description into a search, check your credits and prices, see recent searches and labels, get a CSV link (it opens in your signed-in browser), and prepare searches, re-runs, enrichment (selected leads or every lead missing an email or phone), scoring, label changes, sending leads to PipeLeads CRM or MailBaser, and scheduled AI Agents. Each of those arrives as a preview with an approval link; nothing runs or spends credits until you approve it. Sharing your selected list is optional; external conversations remain in Codex or Claude. See [Focused Agent operations](Focused-Agent.md) and [Agent-native design](AGENT-NATIVE.md) for rollout details.
-
+**Connect to Superpowers** (under **Context**) opens the private Codex/Claude installation and ClickCampaigns OAuth guide. No customer API key is required. From Claude Code, Codex or Cursor you can ask for the same things as in the panel: find and read your lists, turn a description into a search, check your credits and prices, see recent searches and labels, get a CSV link (it opens in your signed-in browser), and prepare searches, re-runs, enrichment (selected leads or every lead missing an email or phone), scoring, label changes, sending leads to PipeLeads CRM or MailBaser, and scheduled AI Agents. Each of those arrives as a preview with an approval link; nothing runs or spends credits until you approve it. Sharing your selected list is optional; external conversations remain in Codex or Claude. 
 When CRM transfers are enabled, select saved leads, open **Send selected leads to CRM**, and choose an authorized CRM workspace, pipeline, and stage. Review the exact contact/deal fields, skipped rows, duplicates, and possible workflow effects. **Review and approve in CRM** opens the destination approval card; nothing is created until you approve it there (or through the external client's human approval form). Existing matches are skipped, not overwritten. Records need a name and email; incomplete or ambiguous matches stay flagged. Use **Refresh progress** or **Restore transfer** to return to results and record links. Do not repeat an uncertain transfer: review its saved outcome first.
 
 ### The New Search page: describe, examples and recent searches
@@ -133,13 +148,13 @@ Navigate to **Lead Search → Saved Lists** to view all your lead lists.
 - **Search** — find lists by name
 - **Active / Archive** — toggle between active and archived lists
 - **Grid / List view** — switch display format
-- **+ Create New** — create an empty list
+- **+ Create New** — create an empty list (give it a name and a type)
 
 Each list card shows:
 - Type icon and label
 - Record count and email-found count
 - Creation date
-- Settings gear for rename/archive/delete
+- A **⋯** menu with **Rename**, **Archive** (or **Restore** in the Archive view) and **Delete**
 
 ### List Detail (Results Table)
 
@@ -196,10 +211,28 @@ Lead Finder does not verify email addresses yet, so treat even a found address a
 Above the results table:
 - **History** — opens a side sheet showing all past searches run into this list (date, type, parameters, result count)
 - **Filter tabs** — All | Email found | Email not found | Potential
-- **Data Enrichment** — bulk enrich all leads in this list that are missing emails (calls Apify `code_crafter/personal-email-finder` per lead)
+- **Data Enrichment** — look up emails for every lead in this list that is missing one
 - **Score Leads** — rank the leads by fit using your Knowledge Base context
 - **AI Agent** — navigate to the AI Agent page to create an agent for this list
 - **Export CSV** — download the leads currently in the list
+
+### Working with selected leads (bulk actions)
+
+Tick the box next to any lead, or the box in the table header to select the whole page. A bar appears above the table showing how many leads are selected:
+
+| Button | What it does |
+|--------|--------------|
+| **Email** / **Phone** | Look up missing emails or phone numbers for the selected leads (charged only when found) |
+| **Score** | Score only the selected leads |
+| **Choose label → Apply** | Apply one of your custom labels to all selected leads |
+| **Destination list → Copy / Move** | Copy the leads to another list (they stay here too) or move them there |
+| **Remove** | Take the selected leads out of this list |
+| **ScaleMail CSV** | Download the selected leads as a CSV laid out for ScaleMail |
+| **Webhook → Send** | Shown once you connect a webhook (see Integrations); posts the selected leads to it |
+| **PipeLeads** / **MailBaser** | Shown when connected; see "Sending leads to PipeLeads and MailBaser" |
+| **Clear** | Unselect everything |
+
+Larger jobs are queued and run in the background; a progress banner shows while they work.
 
 ---
 
@@ -211,7 +244,11 @@ Every search run into a list is recorded automatically. To view the history for 
 2. Click **History** in the action bar
 3. A side sheet opens showing the last 50 searches, newest first
 
-Each history entry shows: search type, parameters used, number of results returned, and the date/time the search was run.
+Each history entry shows: search type, parameters used, number of results returned, status (Completed, Running or Failed) and the date/time the search was run.
+
+Completed searches have two buttons:
+- **Run again** — repeats the same search into the same list in the background (charged like a new search)
+- **Weekly** — turns the search into an AI Agent that runs once a week; change or pause it under **AI Tools → AI Agent**
 
 ---
 
@@ -220,7 +257,8 @@ Each history entry shows: search type, parameters used, number of results return
 Navigate to **Lead Search → Custom Labels**.
 
 Labels let you tag leads for tracking outreach status:
-- Type a label name and click **+ Add Label**
+- Type a label name in **Add a label** and click **+ Add**
+- Your labels are listed under **Your labels**; click the × on one to delete it
 - Default labels: Called, Messaged, Emailed, Exported to CSV
 - Labels appear as tags on leads in the results table
 - Apply labels from the "Add" button in the Custom Labels column
@@ -292,30 +330,32 @@ AI Agents automate a prospecting workflow:
 
 Agent statuses: **Draft** (building), **Active** (running), **Paused** (stopped)
 
-Schedules can be Manual, Daily, Weekly, or Monthly. Scheduled runs require the application scheduler to be configured by your administrator.
+The agent page has four steps: **1 Search** (search type, description, location), **2 Actions**, **3 Connections** (webhook addresses that receive each run's results) and **4 Schedule** (Manual, Daily, Weekly or Monthly).
+
+You can also create a weekly agent in one click from a list's **History** (the **Weekly** button), or ask the Pro Max agent to save a search on a schedule.
 
 ---
 
 ## Data Enrichment
 
-Enrich leads with additional contact data. All enrichment uses person-level Apify actors powered by the lead's LinkedIn URL (falls back to name + company if no LinkedIn URL is available).
+Enrich leads with additional contact data. Lookups work best when the lead has a LinkedIn profile; otherwise the lead's name and company are used.
 
 **Per-lead email enrichment** (from results table):
 1. Find a lead whose email shows "Not Found"
 2. Click **Add Email** in the Contact Info column
-3. The system calls `code_crafter/personal-email-finder` with the lead's LinkedIn URL
-4. The email and verification status update in place when the enrichment completes
+3. The email and its status update in place when the lookup finishes
 
 **Per-lead phone enrichment** (from results table):
 1. Find a lead in the Contact Info column
 2. Click **Get Phone Numbers**
-3. The system calls `code_crafter/mobile-finder` with the lead's LinkedIn URL
-4. The phone number updates in place when the enrichment completes
+3. The phone number updates in place when the lookup finishes
 
 **Bulk enrichment** (from action bar):
 1. Click **Data Enrichment** in the action bar
-2. The system enriches all leads in the list where email status is `NOT_FOUND` or `UNKNOWN`
-3. A progress summary is returned showing how many leads were enriched out of the total eligible
+2. Lead Finder looks up an email for every lead in the list that does not have one yet
+3. A notice tells you how many leads were enriched out of those eligible
+
+You can also enrich just some leads: tick them and click **Email** or **Phone** in the bulk actions bar.
 
 Enrichment consumes 25 credits when a matching email or phone number is found. There is no enrichment charge when no result is found.
 
@@ -353,6 +393,33 @@ Export any list to CSV from the list detail page:
 **Exported columns:** Full Name, First Name, Last Name, Title, Email, Email Status, Phone, Phone Status, Company, Company Website, Company LinkedIn, Industry, Location, City, State, Country, LinkedIn, Facebook, Instagram, Twitter, Labels, Created At.
 
 **No credits are charged for exports.**
+
+---
+
+## Integrations (webhooks)
+
+Navigate to **Resources → Integrations** (or **Integrations** in your account menu) to send selected leads to any tool that accepts a webhook, such as Zapier, Make or your own server.
+
+1. Under **Connect webhook**, enter a **Name** (shown in the bulk actions bar), the **HTTPS URL** the leads are posted to, and a **Signing secret** of at least 16 characters. Every request is signed with the secret so the receiving tool can check it came from you.
+2. Click **Connect**. The webhook appears under **Connected webhooks**.
+3. In any saved list, tick leads, pick the webhook in the bulk actions bar and click **Send**. Delivery is queued and runs in the background.
+4. To remove a webhook, click the trash icon next to it.
+
+---
+
+## Support
+
+**Resources → Support** opens the Support page: **Open Support Center** (the support portal in a new tab), links to the knowledge base and this guide, and quick answers to common questions.
+
+### Frequently asked questions
+
+- **How do I add credits?** Click your name at the bottom-left and choose **Open Credit Wallet**.
+- **Am I charged if nothing is found?** No. Searches are charged per result found; email and phone lookups only when something is found.
+- **Why zero results?** Usually too many filters. Start broad, then narrow down.
+- **Are emails verified?** Not yet. Treat "Email found" and "Possible email" as unverified.
+- **Why don't I see the agent?** It is part of Pro Max. Without it you still have Describe who you want and every search form.
+- **Why are the PipeLeads / MailBaser buttons missing?** They appear only when your account is connected, and only for the workspace owner.
+- **A search says Running.** Give it a minute; open **History** to check its status.
 
 ---
 
@@ -412,4 +479,4 @@ When the coordinated Scale Plus connection is enabled, you can start a workflow 
 
 The contact's email must match a saved lead that you own in the selected list. If several entries match, choose the intended entry; the system will not guess. Archived or foreign lists, leads and labels are unavailable. The action does not create a lead or label, run searches, enrich contact information, call AI, send messages, or spend credits.
 
-Saved prospects are not automatically subscribed or granted email permission. This connection is separate from PipeLeads CRM. Adapter rollout includes the source, automation platform and neutral-prospect delivery protections; see [setup and detailed behavior](ScalePlus-Automations.md).
+Saved prospects are not automatically subscribed or granted email permission. This connection is separate from PipeLeads CRM. Where this connection is not yet turned on for your account, you will not see Lead Finder as a workflow source.

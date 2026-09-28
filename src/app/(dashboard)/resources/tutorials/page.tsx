@@ -14,8 +14,13 @@ import {
   Bot,
   Tags,
   Download,
-  PlayCircle,
-  ChevronDown,
+  Megaphone,
+  Webhook,
+  Copy,
+  LayoutGrid,
+  Moon,
+  Plug,
+  X,
   CheckCircle2,
   Lightbulb,
   Target,
@@ -28,7 +33,6 @@ import {
   Mail,
   Phone,
   HelpCircle,
-  ExternalLink,
   Star,
   Clock,
   Filter,
@@ -48,11 +52,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import {
   CREDIT_COSTS,
@@ -104,22 +104,6 @@ function Step({
   )
 }
 
-function VideoPlaceholder({ title }: { title: string }) {
-  return (
-    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border bg-muted/40">
-      <div className="space-y-3 text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <PlayCircle className="h-8 w-8 text-primary" />
-        </div>
-        <div>
-          <p className="font-semibold text-sm">{title}</p>
-          <p className="text-xs text-muted-foreground">Video tutorial coming soon</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 const PEOPLE_SEARCH_CREDIT_LABEL = formatScaledCreditLabel(
   CREDIT_COSTS["search:people"],
   "contact"
@@ -164,10 +148,158 @@ const ENRICH_PHONE_CREDIT_LABEL = formatScaledCreditLabel(
   "lead"
 )
 
+// ─── Guide search index ───────────────────────────────────────────────────────
+// Every topic the guide covers, with the tab (and sub-tab) that holds it, so the
+// search box can jump straight to the right place.
+
+type GuideTopic = { title: string; keywords: string; tab: string; sub?: string }
+
+const GUIDE_TOPICS: GuideTopic[] = [
+  { title: "What's New", keywords: "new release updates changes latest", tab: "whats-new" },
+  { title: "Welcome to PipeLeads", keywords: "overview introduction start what is", tab: "getting-started", sub: "overview" },
+  { title: "Getting around: sidebar, header and account menu", keywords: "dashboard navigation sidebar menu header client services suite apps crm projectbaser calendarbug invoicer docsigner breadcrumb search palette", tab: "getting-started", sub: "dashboard" },
+  { title: "Credits, prices and the Credit Wallet", keywords: "credits balance buy top up wallet cost price billing low amber red", tab: "getting-started", sub: "credits" },
+  { title: "The five search types", keywords: "search types cards list people local company domain influencer", tab: "lead-search", sub: "search-types" },
+  { title: "Talk to the Pro Max agent", keywords: "agent pro max chat conversation approval card approve reject ask", tab: "lead-search", sub: "agent" },
+  { title: "Describe who you want, examples and recent searches", keywords: "describe set up my search examples try recent searches run again auto-named list cost estimate", tab: "lead-search", sub: "welcome" },
+  { title: "People Search", keywords: "people linkedin job title advanced filters", tab: "lead-search", sub: "people" },
+  { title: "Local Search", keywords: "local business google maps city business type", tab: "lead-search", sub: "local" },
+  { title: "Company and Domain Search", keywords: "company domain website accounts contacts at a company", tab: "lead-search", sub: "company-domain" },
+  { title: "Influencer Search", keywords: "influencer instagram tiktok youtube creators followers", tab: "lead-search", sub: "influencer" },
+  { title: "Viewing your results table", keywords: "saved lists results table columns email badge lead score", tab: "saved-lists", sub: "viewing-results" },
+  { title: "Managing leads and bulk actions", keywords: "action bar bulk select copy move remove label scalemail csv webhook send export score enrich", tab: "saved-lists", sub: "managing-leads" },
+  { title: "Search history, Run again and weekly schedules", keywords: "history rerun run again weekly schedule", tab: "saved-lists", sub: "history" },
+  { title: "What is data enrichment?", keywords: "enrichment enrich contact details", tab: "enrichment", sub: "what-is-enrichment" },
+  { title: "Email enrichment", keywords: "add email find email bulk data enrichment", tab: "enrichment", sub: "email-enrichment" },
+  { title: "Phone enrichment", keywords: "phone get phone numbers mobile", tab: "enrichment", sub: "phone-enrichment" },
+  { title: "Knowledge Base", keywords: "business profile data sources website crawl pdf text q&a", tab: "ai-tools", sub: "knowledge-base" },
+  { title: "AI Assistant and prompt templates", keywords: "ai assistant direct message summary subject line intro custom prompt library template", tab: "ai-tools", sub: "ai-assistant" },
+  { title: "AI Agents (scheduled prospecting)", keywords: "ai agent automation schedule daily weekly monthly webhook draft active paused", tab: "ai-tools", sub: "ai-agents" },
+  { title: "Custom labels", keywords: "labels tags called messaged emailed", tab: "labels-export", sub: "labels" },
+  { title: "Exporting to CSV", keywords: "export csv download spreadsheet", tab: "labels-export", sub: "export" },
+  { title: "Send leads to PipeLeads CRM or MailBaser", keywords: "send to pipeleads crm mailbaser handoff deal pipeline stage tags", tab: "labels-export", sub: "send-to" },
+  { title: "Webhook integrations", keywords: "integrations webhook https signing secret zapier make", tab: "account-help", sub: "integrations" },
+  { title: "Superpowers, Claude, Codex and saved-lead automations", keywords: "superpowers claude codex cursor clickcampaigns mcp automations workflow trigger", tab: "account-help", sub: "superpowers" },
+  { title: "Theme, account and signing in", keywords: "theme dark light system log out sign in keycloak access denied account", tab: "account-help", sub: "account" },
+  { title: "Frequently asked questions", keywords: "faq questions help support troubleshooting", tab: "account-help", sub: "faq" },
+]
+
+// ─── What's New and FAQ content ───────────────────────────────────────────────
+
+type WhatsNewEntry = { date: string; title: string; body: string; tab?: string; sub?: string }
+
+const WHATS_NEW: WhatsNewEntry[] = [
+  {
+    date: "Sep 28, 2026",
+    title: "A fuller User Guide",
+    body: "This guide now has What's New, a search box that jumps straight to any topic, a guide to selecting leads in bulk, and a new Integrations, Settings & FAQ section.",
+  },
+  {
+    date: "Sep 27, 2026",
+    title: "Client Services Suite in the sidebar",
+    body: "All six suite apps — PipeLeads CRM, Lead Finder, ProjectBaser, CalendarBug, Invoicer and DocSigner — now sit together in one Client Services Suite section at the top of the sidebar. Fold it away with one click; your choice is remembered.",
+    tab: "getting-started",
+    sub: "dashboard",
+  },
+  {
+    date: "Sep 25, 2026",
+    title: "Lead Finder in Claude, Codex and Cursor",
+    body: "With ScalePlus Superpowers your AI assistant can find your lists, prepare searches, enrichment, scoring and CRM sends, and check your credits. Everything that costs credits or changes data waits for your approval.",
+    tab: "account-help",
+    sub: "superpowers",
+  },
+  {
+    date: "Sep 24, 2026",
+    title: "Talk to the Lead Finder agent (Pro Max)",
+    body: "New Search opens on a “Who do you want to find?” box. Say it in your own words, answer a quick question or two, and approve the card before anything runs. The Agent button in the header opens the same conversation on any page.",
+    tab: "lead-search",
+    sub: "agent",
+  },
+  {
+    date: "Sep 24, 2026",
+    title: "Easier searching",
+    body: "Describe who you want and we fill in the right search form, try a ready-made example, see the most a search can cost before you run it, let lists name themselves, and pick up recent searches with Open list or Run again.",
+    tab: "lead-search",
+    sub: "welcome",
+  },
+  {
+    date: "Sep 24, 2026",
+    title: "One-click Add to PipeLeads and MailBaser",
+    body: "Send leads to your PipeLeads CRM (optionally with a deal and tags) or to MailBaser lists and tags from the Send to column or the bulk actions bar.",
+    tab: "labels-export",
+    sub: "send-to",
+  },
+  {
+    date: "Sep 24, 2026",
+    title: "Live credits in your account row, clearer email badges",
+    body: "Your balance now lives under your name at the bottom of the sidebar and turns amber when low and red when empty. Each lead has one AI menu, and email badges read Email found, Possible email or No email.",
+    tab: "getting-started",
+    sub: "credits",
+  },
+  {
+    date: "Sep 24, 2026",
+    title: "The PipeLeads look, in light and dark",
+    body: "Lead Finder now shares the PipeLeads CRM and ProjectBaser design, with a light and a dark theme.",
+    tab: "account-help",
+    sub: "account",
+  },
+  {
+    date: "Sep 16, 2026",
+    title: "Team workspaces",
+    body: "Teammates invited to your Scale Plus team workspace can work with your Lead Finder lists. Some owner-only actions, such as Run again and sending to PipeLeads or MailBaser, stay with the workspace owner.",
+  },
+  {
+    date: "Sep 5, 2026",
+    title: "Saved-lead automations",
+    body: "Scale Plus workflows can start when a saved prospect is added to one of your lists or gets a label, and can apply one of your labels.",
+    tab: "account-help",
+    sub: "superpowers",
+  },
+]
+
+const FAQ = [
+  {
+    q: "How do I add more credits?",
+    a: "Click your name at the bottom-left of the sidebar and choose Open Credit Wallet. Buy credits there and your balance in Lead Finder updates by itself.",
+  },
+  {
+    q: "Am I charged if a search finds nothing?",
+    a: "No. Searches are charged per result found, and email or phone lookups are charged only when something is found. Local searches are free for businesses with no email.",
+  },
+  {
+    q: "Why did my search return zero results?",
+    a: "Usually there are too many filters. Start with a broader description and location, then add filters after you see the first results.",
+  },
+  {
+    q: "How do I find someone's email address?",
+    a: "Open the list and click Add Email next to the lead, tick several leads and click Email in the bulk bar, or click Data Enrichment to look up every lead missing an email.",
+  },
+  {
+    q: "Are the email addresses verified?",
+    a: "Not yet. Email found means we found an address; Possible email means it was guessed from the company website. Treat both as unverified.",
+  },
+  {
+    q: "Can I export my leads?",
+    a: "Yes. Click Export CSV above any list for the whole list, or select leads and click ScaleMail CSV. Exports are free.",
+  },
+  {
+    q: "Why don't I see the Talk to the agent box?",
+    a: "The agent is part of Pro Max. Without it you still have Describe who you want and every search form, plus a card with an upgrade link.",
+  },
+  {
+    q: "Why are the PipeLeads and MailBaser buttons missing?",
+    a: "They appear only when your account is connected to those apps, and only for the workspace owner. Inside a shared team workspace they are hidden.",
+  },
+  {
+    q: "A search says Running. What should I do?",
+    a: "Give it a minute. Results land in the list on their own; open History to check the status.",
+  },
+]
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TutorialsPage() {
-  const [activeTab, setActiveTab] = useState("getting-started")
+  const [activeTab, setActiveTab] = useState("whats-new")
   const [activeSubTab, setActiveSubTab] = useState<Record<string, string>>({
     "getting-started": "overview",
     "lead-search": "search-types",
@@ -175,27 +307,46 @@ export default function TutorialsPage() {
     "enrichment": "what-is-enrichment",
     "ai-tools": "knowledge-base",
     "labels-export": "labels",
+    "account-help": "account",
   })
-  const [isVideoOpen, setIsVideoOpen] = useState(false)
+  const [query, setQuery] = useState("")
 
   function subTab(main: string, value: string) {
     setActiveSubTab((prev) => ({ ...prev, [main]: value }))
   }
 
+  const trimmedQuery = query.trim().toLowerCase()
+  const searchResults = trimmedQuery
+    ? GUIDE_TOPICS.filter((topic) =>
+        trimmedQuery
+          .split(/\s+/)
+          .every((word) => `${topic.title} ${topic.keywords}`.toLowerCase().includes(word))
+      ).slice(0, 8)
+    : []
+
+  function openTopic(topic: GuideTopic) {
+    setActiveTab(topic.tab)
+    if (topic.sub) subTab(topic.tab, topic.sub)
+    setQuery("")
+    document.getElementById("guide-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   const categories = [
+    { id: "whats-new", label: "What's New", icon: Megaphone },
     { id: "getting-started", label: "Getting Started", icon: BookOpen },
     { id: "lead-search", label: "Lead Search", icon: Search },
     { id: "saved-lists", label: "Saved Lists", icon: List },
     { id: "enrichment", label: "Data Enrichment", icon: Sparkles },
     { id: "ai-tools", label: "AI Tools", icon: Bot },
-    { id: "labels-export", label: "Labels & Export", icon: Tags },
+    { id: "labels-export", label: "Labels, Export & Send", icon: Tags },
+    { id: "account-help", label: "Integrations, Settings & FAQ", icon: Plug },
   ]
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PageHeader
-        title="Tutorials & User Guide"
-        description="Everything you need to find, enrich, and connect with your ideal leads"
+        title="User Guide & Tutorials"
+        description="Everything you need to find, enrich, and connect with your ideal leads in PipeLeads Lead Finder"
         actions={
           <>
             <Button asChild variant="outline">
@@ -205,41 +356,80 @@ export default function TutorialsPage() {
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <a href="https://support.groovedigital.com/" target="_blank" rel="noopener noreferrer">
+              <Link href="/resources/support">
                 <HelpCircle aria-hidden="true" className="size-4" />
                 Support Center
-                <ExternalLink aria-hidden="true" className="size-3.5" />
-              </a>
+              </Link>
             </Button>
           </>
         }
       />
 
-      {/* Video intro collapsible */}
-      <Collapsible open={isVideoOpen} onOpenChange={setIsVideoOpen}>
-        <CollapsibleTrigger asChild>
-          <div className={cn("flex cursor-pointer items-center justify-between border bg-card p-4 transition-colors hover:bg-muted/40", isVideoOpen ? "rounded-t-xl" : "rounded-xl")}>
-            <div className="flex items-center gap-3">
-              <PlayCircle className="h-5 w-5 text-primary" />
-              <span className="font-medium text-sm">Watch: PipeLeads Overview (5 min)</span>
-            </div>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-muted-foreground transition-transform",
-                isVideoOpen && "rotate-180"
-              )}
-            />
+      {/* Documentation search */}
+      <div className="relative">
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && searchResults[0]) openTopic(searchResults[0])
+            if (event.key === "Escape") setQuery("")
+          }}
+          placeholder="Search the guide — try “export”, “credits” or “webhook”"
+          aria-label="Search the user guide"
+          className="h-11 pr-10 pl-9"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-3 -translate-y-1/2 rounded-sm text-muted-foreground hover:text-foreground"
+          >
+            <X aria-hidden="true" className="size-4" />
+          </button>
+        )}
+        {trimmedQuery && (
+          <div className="mt-2 rounded-xl border bg-card p-1.5" role="region" aria-label="Search results">
+            {searchResults.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-muted-foreground">
+                No topics match “{query.trim()}”. Try a simpler word, or open the{" "}
+                <Link href="/resources/support" className="text-primary hover:underline">
+                  Support Center
+                </Link>
+                .
+              </p>
+            ) : (
+              <ul>
+                {searchResults.map((topic) => (
+                  <li key={topic.title}>
+                    <button
+                      type="button"
+                      onClick={() => openTopic(topic)}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm",
+                        "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                      )}
+                    >
+                      <span className="font-medium">{topic.title}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {categories.find((c) => c.id === topic.tab)?.label}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="rounded-b-xl border-x border-b bg-card p-4 pt-0">
-            <VideoPlaceholder title="Welcome to PipeLeads — Platform Overview" />
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+        )}
+      </div>
 
       {/* Two-level Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs id="guide-tabs" value={activeTab} onValueChange={setActiveTab} className="scroll-mt-4 space-y-6">
         {/* Level 1 — Category tabs */}
         <div className="-mx-1 overflow-x-auto px-1">
           <TabsList className="flex h-auto w-max group-data-[orientation=horizontal]/tabs:h-auto gap-1 rounded-xl border bg-card p-1.5">
@@ -358,26 +548,42 @@ export default function TutorialsPage() {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <p className="text-sm text-muted-foreground">
-                    The left sidebar is your main navigation. It has four sections you'll use
-                    regularly. Here's a quick tour:
+                    Lead Finder uses the same frame as the rest of the PipeLeads family, so the
+                    sidebar and header work the same in every app. The left sidebar is your main
+                    navigation. Here's a quick tour, from top to bottom:
                   </p>
 
                   <div className="space-y-4">
                     {[
                       {
-                        icon: Lightbulb,
-                        label: "AI Tools",
-                        desc: "Three powerful features: your Knowledge Base (where you store your business info), the AI Assistant (generates personalized outreach for each lead), and AI Agents (automates your entire prospecting workflow).",
+                        icon: LayoutGrid,
+                        label: "Client Services Suite",
+                        desc: "All six suite apps in one fixed order: PipeLeads CRM, Lead Finder (bold with a dot while you're here), ProjectBaser, CalendarBug, Invoicer and DocSigner. Click another app to open it in the same tab. Click the dark \"Client Services Suite\" band to fold the section away; your choice is remembered.",
                       },
                       {
                         icon: Search,
                         label: "Lead Search",
-                        desc: "Start a new search, view your saved lead lists, and manage your custom labels. You'll spend most of your time in here.",
+                        desc: "New Search, Saved Lists and Custom Labels. You'll spend most of your time in here.",
+                      },
+                      {
+                        icon: Lightbulb,
+                        label: "AI Tools",
+                        desc: "Your Knowledge Base (where you store your business info), the AI Assistant (prompt templates for personalized outreach) and AI Agents (saved searches that run on a schedule).",
                       },
                       {
                         icon: HelpCircle,
                         label: "Resources",
-                        desc: "Tutorials (you're here!), support, and documentation. Bookmark this page—it covers everything.",
+                        desc: "Integrations (webhooks), Support and this User Guide.",
+                      },
+                      {
+                        icon: Wallet,
+                        label: "Your account row",
+                        desc: "Pinned at the bottom of the sidebar: your avatar, your name and your live credit balance. Click it for usage, prices, the Credit Wallet, Integrations, Theme, Help & Tutorials, Support and Log out.",
+                      },
+                      {
+                        icon: Search,
+                        label: "The header",
+                        desc: "Shows where you are (for example Lead Search › Saved Lists), a Search box (press ⌘K or Ctrl+K) that jumps to any page or PipeLeads app, the ScalePlus Apps launcher, the Agent button, the light/dark toggle and your avatar menu.",
                       },
                     ].map((item) => (
                       <div key={item.label} className="flex gap-3">
@@ -1207,12 +1413,12 @@ export default function TutorialsPage() {
                       {
                         icon: Clock,
                         label: "History",
-                        desc: "See a record of every search that has added leads to this list—including the search type, parameters used, how many results came back, and whether the search succeeded.",
+                        desc: "See every search that added leads to this list, with its type, criteria, result count and status. Completed searches have Run again and Weekly buttons.",
                       },
                       {
                         icon: Filter,
                         label: "Email filter tabs",
-                        desc: "Filter leads by email status: All, Email found (verified address), Email not found, or Potential (unverified address). Useful for focusing on leads you can actually contact today.",
+                        desc: "Filter leads by email status: All, Email found, Email not found, or Potential (an address guessed from the company website). Useful for focusing on leads you can contact today.",
                       },
                       {
                         icon: Sparkles,
@@ -1227,7 +1433,7 @@ export default function TutorialsPage() {
                       {
                         icon: BrainCircuit,
                         label: "AI Agent",
-                        desc: "Open the AI Agent builder to create an automated workflow for this list (see the AI Tools section for more).",
+                        desc: "Jump to the AI Agent page to set up a search that runs on its own schedule (see the AI Tools section for more).",
                       },
                       {
                         icon: Download,
@@ -1246,6 +1452,48 @@ export default function TutorialsPage() {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Working With Selected Leads</CardTitle>
+                  <CardDescription>
+                    Tick leads to act on many at once
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground">
+                    Tick the box next to any lead (or the box in the table header to select the
+                    whole page). A bar appears above the table showing how many leads are
+                    selected, with these actions:
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: Mail, label: "Email / Phone", desc: "Look up missing email addresses or phone numbers for the selected leads. You're only charged when something is found." },
+                      { icon: WandSparkles, label: "Score", desc: "Score just the selected leads against your Knowledge Base." },
+                      { icon: Tags, label: "Choose label → Apply", desc: "Pick one of your custom labels and apply it to every selected lead." },
+                      { icon: Copy, label: "Destination list → Copy or Move", desc: "Pick another of your lists, then Copy (the leads stay here too) or Move (they leave this list)." },
+                      { icon: X, label: "Remove", desc: "Take the selected leads out of this list." },
+                      { icon: Download, label: "ScaleMail CSV", desc: "Download the selected leads as a CSV laid out for ScaleMail import." },
+                      { icon: Webhook, label: "Webhook → Send", desc: "Shown once you connect a webhook under Resources → Integrations. Pick it and click Send to post the selected leads to that address." },
+                      { icon: Send, label: "PipeLeads / MailBaser", desc: "Shown when your account is connected. Sends the selected leads to your CRM or MailBaser (see Labels, Export & Send)." },
+                    ].map((item) => (
+                      <div key={item.label} className="flex gap-3 p-3 rounded-lg border">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <item.icon className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">{item.label}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Tip>
+                    Large bulk jobs run in the background. A progress banner shows while they
+                    work, and <strong>Clear</strong> at the right of the bar unselects everything.
+                  </Tip>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -1282,6 +1530,12 @@ export default function TutorialsPage() {
                         <li>How many results were returned</li>
                         <li>The status: Completed ✓, Running ⟳, or Failed ✗</li>
                       </ul>
+                    </Step>
+                    <Step number={3} title="Run it again, or every week">
+                      Completed searches have two buttons. <strong>Run again</strong> repeats the
+                      same search into this list in the background (it's charged like a new
+                      search). <strong>Weekly</strong> turns the search into an AI Agent that runs
+                      once a week; you can change or pause it under AI Tools → AI Agent.
                     </Step>
                   </div>
 
@@ -1771,7 +2025,7 @@ export default function TutorialsPage() {
                           In the text field, type your new label name — for example,
                           "Follow Up," "Not Interested," "Hot Lead," or "Proposal Sent."
                         </Step>
-                        <Step number={3} title='Click "+ Add Label"'>
+                        <Step number={3} title='Click "+ Add"'>
                           Your new label is saved and immediately available to use on any lead.
                         </Step>
                       </div>
@@ -1927,6 +2181,230 @@ export default function TutorialsPage() {
                   </Tip>
                 </CardContent>
               </Card>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+        {/* ── WHAT'S NEW ───────────────────────────────────────────────────── */}
+        <TabsContent value="whats-new" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-primary" />
+                What's New in Lead Finder
+              </CardTitle>
+              <CardDescription>The latest changes you'll notice, newest first</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {WHATS_NEW.map((entry) => (
+                <div key={entry.date + entry.title} className="flex gap-4">
+                  <div className="w-24 shrink-0 pt-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+                    {entry.date}
+                  </div>
+                  <div className="min-w-0 space-y-1 border-l pl-4">
+                    <p className="text-sm font-semibold">{entry.title}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{entry.body}</p>
+                    {entry.tab && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(entry.tab!)
+                          if (entry.sub) subTab(entry.tab!, entry.sub)
+                        }}
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        Read how it works →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── INTEGRATIONS, SETTINGS & FAQ ─────────────────────────────────── */}
+        <TabsContent value="account-help" className="space-y-4">
+          <Tabs
+            value={activeSubTab["account-help"]}
+            onValueChange={(v) => subTab("account-help", v)}
+          >
+            <TabsList className="mb-6 h-auto w-full justify-start group-data-[orientation=horizontal]/tabs:h-auto gap-1 overflow-x-auto rounded-none bg-transparent p-0 shadow-[inset_0_-1px_0_var(--border)]">
+              {[
+                { value: "account", label: "Account & Theme" },
+                { value: "integrations", label: "Webhooks" },
+                { value: "superpowers", label: "Superpowers & Automations" },
+                { value: "faq", label: "FAQ" },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.value}
+                  value={t.value}
+                  className="h-auto flex-none rounded-none border-0 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground shadow-none hover:border-muted-foreground/30 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:data-[state=active]:border-primary dark:data-[state=active]:bg-transparent"
+                >
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="account" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Moon className="h-5 w-5 text-primary" />
+                    Signing In, Your Account and Theme
+                  </CardTitle>
+                  <CardDescription>How you get in, and how to make Lead Finder look the way you like</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="space-y-3">
+                    <Step number={1} title="Signing in">
+                      Lead Finder uses your Scale Plus account. Open it from the ScalePlus Apps
+                      launcher (or the Client Services Suite section in another PipeLeads app) and
+                      you're signed in automatically. If you see <strong>Access Denied</strong>,
+                      your account doesn't include Lead Finder yet: click <strong>Sign out</strong>{" "}
+                      and contact support or your account administrator.
+                    </Step>
+                    <Step number={2} title="Your account menu">
+                      Click your name at the bottom-left of the sidebar. You'll see your credit
+                      usage, <strong>What things cost</strong>, <strong>Open Credit Wallet</strong>,
+                      Integrations, Theme, Help &amp; Tutorials, Support and{" "}
+                      <strong>Log out</strong>. The avatar at the top-right of the header has a
+                      shorter menu with Tutorials, Integrations, Support and Log out.
+                    </Step>
+                    <Step number={3} title="Light or dark">
+                      Click the moon (or sun) button in the header to switch, or choose{" "}
+                      <strong>Theme → Light, Dark or System</strong> in your account menu.
+                      System follows your device. Your choice is remembered in this browser.
+                    </Step>
+                    <Step number={4} title="Folding the sidebar">
+                      Collapse the sidebar to icons to get more room for your lead tables. With it
+                      collapsed, point at your avatar to see your credit balance. On a phone the
+                      sidebar opens as a drawer and your balance shows as a chip in the header.
+                    </Step>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="integrations" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Webhook className="h-5 w-5 text-primary" />
+                    Webhook Integrations
+                  </CardTitle>
+                  <CardDescription>Send selected leads to any tool that accepts a webhook</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    A webhook is a web address another tool gives you (Zapier, Make, your own
+                    server, and so on). Once you connect one, you can post selected leads to it
+                    straight from any list.
+                  </p>
+                  <div className="space-y-3">
+                    <Step number={1} title="Open Resources → Integrations">
+                      Or choose <strong>Integrations</strong> from your account menu.
+                    </Step>
+                    <Step number={2} title="Fill in Connect webhook">
+                      <strong>Name</strong> is what you'll see in the bulk actions bar.{" "}
+                      <strong>HTTPS URL</strong> is where the leads are posted (it must start with
+                      https://). <strong>Signing secret</strong> is at least 16 characters; every
+                      request is signed with it so the receiving tool can check it came from you.
+                    </Step>
+                    <Step number={3} title="Send leads">
+                      Open a saved list, tick the leads you want, choose your webhook in the bulk
+                      actions bar and click <strong>Send</strong>. Delivery is queued and runs in
+                      the background.
+                    </Step>
+                    <Step number={4} title="Remove a webhook">
+                      Under <strong>Connected webhooks</strong>, click the trash icon next to it.
+                    </Step>
+                  </div>
+                  <Note>
+                    AI Agents have their own <strong>Connections</strong> step where you can add
+                    webhook addresses that receive each run's results. See AI Tools → AI Agents.
+                  </Note>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="superpowers" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Use Lead Finder From Claude, Codex or Cursor
+                  </CardTitle>
+                  <CardDescription>ScalePlus Superpowers lets your AI assistant work in Lead Finder, with your approval</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div className="space-y-3">
+                    <Step number={1} title="Open the setup guide">
+                      Open the <strong>Agent</strong> panel from the header, expand{" "}
+                      <strong>Context</strong> and click <strong>Connect to Superpowers</strong>. It
+                      walks you through installing Superpowers and connecting your ClickCampaigns
+                      account. No API key is needed.
+                    </Step>
+                    <Step number={2} title="Ask in your own words">
+                      From Claude Code, Codex or Cursor you can find and read your lists, turn a
+                      description into a search, check credits and prices, see recent searches and
+                      labels, and get a CSV download link (it opens in your signed-in browser).
+                    </Step>
+                    <Step number={3} title="Approve before anything runs">
+                      Searches, re-runs, enrichment, scoring, label changes, sending leads to
+                      PipeLeads CRM or MailBaser, and scheduled AI Agents arrive as a preview with
+                      an approval link. Nothing runs or spends credits until you approve it.
+                    </Step>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved-Lead Automations</CardTitle>
+                  <CardDescription>Start Scale Plus workflows from your saved leads</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Where your Scale Plus automation connection is turned on, a workflow can start
+                    when an existing prospect is added to one of your active lists or gets a
+                    label. Conditions can check whether a contact is in a list or has a label, and
+                    the available action applies one of your existing labels to that contact's
+                    list entry.
+                  </p>
+                  <Note>
+                    The contact's email must match a lead you own in the chosen list. If several
+                    entries match you pick the right one; nothing is guessed. These automations
+                    never create leads, run searches, enrich, use AI, send messages or spend
+                    credits, and saved prospects are not subscribed to email.
+                  </Note>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="faq" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    Frequently Asked Questions
+                  </CardTitle>
+                  <CardDescription>Quick answers to what people ask most</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="divide-y">
+                    {FAQ.map((item) => (
+                      <li key={item.q} className="py-3 first:pt-0 last:pb-0">
+                        <p className="text-sm font-semibold">{item.q}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+              <Tip>
+                Still stuck? Open <Link href="/resources/support" className="font-medium text-primary hover:underline">Resources → Support</Link>{" "}
+                to reach the support team.
+              </Tip>
             </TabsContent>
           </Tabs>
         </TabsContent>
