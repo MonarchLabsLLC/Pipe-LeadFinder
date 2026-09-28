@@ -6,8 +6,8 @@ export const size = {
 }
 export const contentType = "image/png"
 
-// Same branded gradient and shape as PipeLeads Suite's favicon, so the tab
-// icon reads as part of the family; only the glyph differs.
+// Client Services Suite app icon: a solid #7946E0 square with the app's own
+// glyph in white. Full bleed, because iOS draws its own rounded corners.
 
 export default function AppleIcon() {
   return new ImageResponse(
@@ -19,18 +19,17 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          borderRadius: "40px",
-          background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+          background: "#7946E0",
         }}
       >
         {/* Radar icon (lucide), the Lead Finder mark */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="100"
-          height="100"
+          width="112"
+          height="112"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="#FFFFFF"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
