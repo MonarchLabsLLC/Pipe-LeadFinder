@@ -28,21 +28,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { cn } from "@/lib/utils"
 import {
   LEAD_FINDER_HOME,
   aiToolsMenu,
-  appItems,
   isActivePath,
   leadSearchItems,
   resourceItems,
   type NavItem,
 } from "@/components/layout/nav-config"
 import { SidebarAccount } from "@/components/layout/sidebar-account"
+import { SuiteAppsNav } from "@/components/layout/suite-apps-nav"
 
 /**
  * Lead Finder's sidebar. It mirrors PipeLeads Suite's app sidebar piece for
- * piece (header block, Apps group, separator, the app's own groups, rail) so
+ * piece (header block, the suite's Apps accordion, separator, the app's own groups, rail) so
  * moving between the apps never changes the frame around the work.
  */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -55,37 +54,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* The PipeLeads apps, identical to the Suite's Apps group */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Apps</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {appItems.map((app) => (
-                <SidebarMenuItem key={app.title}>
-                  <SidebarMenuButton
-                    asChild
-                    aria-current={app.current ? "true" : undefined}
-                    tooltip={app.title}
-                    className={cn(app.current && "font-semibold")}
-                  >
-                    {app.current ? (
-                      <Link href={app.url}>
-                        <app.icon className="size-4" />
-                        <span>{app.title}</span>
-                        <span aria-hidden className="ml-auto size-1.5 rounded-full bg-primary" />
-                      </Link>
-                    ) : (
-                      <a href={app.url}>
-                        <app.icon className="size-4" />
-                        <span>{app.title}</span>
-                      </a>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* The suite's six apps, the same accordion in every PipeLeads app */}
+        <SuiteAppsNav />
 
         <SidebarSeparator />
 

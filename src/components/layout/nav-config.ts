@@ -4,11 +4,14 @@ import {
   Bookmark,
   Bot,
   BrainCircuit,
+  CalendarDays,
+  FileSignature,
   FolderKanban,
   GraduationCap,
   HelpCircle,
   Lightbulb,
   ListPlus,
+  Receipt,
   Search,
   Tags,
   Webhook,
@@ -31,7 +34,15 @@ export type NavItem = { title: string; url: string; icon: LucideIcon }
 
 export type AppItem = NavItem & { current: boolean }
 
-/** Same three apps, same order and icons as the Suite's Apps group. */
+/** Where the other suite apps are launched from (their ScalePlus launch URLs). */
+const SCALEPLUS_LAUNCH = "https://app.scaleplus.gg/app"
+
+/**
+ * The suite's six apps, in the one order every PipeLeads-family app uses. CRM
+ * and ProjectBaser go straight to the Suite (the ScalePlus `pipeleads` and
+ * `projectbaser` launch slugs open the legacy 1.0 apps); the rest launch
+ * through ScalePlus. Lead Finder is this app, so it links to its own home.
+ */
 export const appItems: AppItem[] = [
   {
     title: "PipeLeads CRM",
@@ -44,6 +55,24 @@ export const appItems: AppItem[] = [
     title: "ProjectBaser",
     url: `${PIPELEADS_SUITE_URL}/pm/boards`,
     icon: FolderKanban,
+    current: false,
+  },
+  {
+    title: "CalendarBug",
+    url: `${SCALEPLUS_LAUNCH}/calendarbug/launch`,
+    icon: CalendarDays,
+    current: false,
+  },
+  {
+    title: "Invoicer",
+    url: `${SCALEPLUS_LAUNCH}/invoicer/launch`,
+    icon: Receipt,
+    current: false,
+  },
+  {
+    title: "DocSigner",
+    url: `${SCALEPLUS_LAUNCH}/docsigner/launch`,
+    icon: FileSignature,
     current: false,
   },
 ]
