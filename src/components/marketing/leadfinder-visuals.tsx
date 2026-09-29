@@ -1,108 +1,82 @@
-import {
-  ArrowDown,
-  Building2,
-  Check,
-  Database,
-  FileOutput,
-  FileText,
-  Globe,
-  MapPin,
-  MessageSquareText,
-  Search,
-  Sparkles,
-  Star,
-  Users,
-} from "lucide-react"
+import type { ReactNode } from "react"
 
-const modes = [
-  { label: "People", icon: Users, tone: "coral" },
-  { label: "Local", icon: MapPin, tone: "mint" },
-  { label: "Company", icon: Building2, tone: "lilac" },
-  { label: "Domain", icon: Globe, tone: "lime" },
-  { label: "Influencer", icon: Star, tone: "peach" },
-]
-
-export function SearchWorkspacePreview({ compact = false }: { compact?: boolean }) {
+/* Inline icons used by the public pipeleads.ai page (same shapes as production). */
+function Icon({ children }: { children: ReactNode }) {
   return (
-    <div className={`pl-product-window${compact ? " pl-product-window--compact" : ""}`} role="img" aria-label="Illustration of the PipeLeads five-mode search workspace">
-      <div className="pl-window-bar"><span><i /><i /><i /></span><strong>PipeLeads · New Search</strong><em>DEMO WORKSPACE</em></div>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  )
+}
+
+export const ArrowIcon = () => <Icon><path d="M5 12h14m-5-5 5 5-5 5" /></Icon>
+export const SparkIcon = () => <Icon><path d="m12 3 1.2 3.4L16.5 8l-3.3 1.5L12 13l-1.2-3.5L7.5 8l3.3-1.6L12 3ZM18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14ZM5 13l.7 1.8 1.8.7-1.8.7L5 18l-.7-1.8-1.8-.7 1.8-.7L5 13Z" /></Icon>
+export const PersonIcon = () => <Icon><circle cx="12" cy="8" r="3.2" /><path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" /></Icon>
+export const PinIcon = () => <Icon><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.3" /></Icon>
+export const BuildingIcon = () => <Icon><path d="M4 21V5l8-3v19M12 8h8v13M8 7v1M8 11v1M8 15v1M16 12v1M16 16v1M2 21h20" /></Icon>
+export const GlobeIcon = () => <Icon><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></Icon>
+export const StarIcon = () => <Icon><path d="m12 2.8 2.8 5.7 6.3.9-4.5 4.4 1 6.2-5.6-3-5.6 3 1-6.2-4.5-4.4 6.3-.9L12 2.8Z" /></Icon>
+export const DownloadIcon = () => <Icon><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 20h16" /></Icon>
+export const WebhookIcon = () => <Icon><path d="M7 9a4 4 0 1 1 7-2l-4 7M17 15a4 4 0 1 1-5 6l-5-7M8 19a4 4 0 1 1-2-7h8" /></Icon>
+
+export const modeIcons = { coral: PersonIcon, mint: PinIcon, lilac: BuildingIcon, lime: GlobeIcon, sky: StarIcon } as const
+
+const previewModes = [
+  { label: "People", tone: "coral" },
+  { label: "Local", tone: "mint" },
+  { label: "Company", tone: "lilac" },
+  { label: "Domain", tone: "lime" },
+  { label: "Influencer", tone: "sky" },
+] as const
+
+export function SearchWorkspacePreview() {
+  return (
+    <div className="pl-window" aria-label="Illustration of the LeadFinder search workspace">
+      <div className="pl-window__bar"><span><i /><i /><i /></span><strong>NEW PROSPECT SEARCH</strong><em>LIVE</em></div>
       <div className="pl-search-preview">
-        <aside><span><Search /></span><i /><i /><i /><i /></aside>
+        <aside><span><SparkIcon /></span><i /><i /><i /></aside>
         <div className="pl-search-preview__main">
-          <div className="pl-search-preview__head"><div><small>NEW SEARCH</small><b>What are you searching for?</b></div><span>LeadFinder</span></div>
-          <div className="pl-mode-row">
-            {modes.map(({ icon: Icon, ...mode }, index) => (
-              <article className={index === 0 ? "is-selected" : ""} key={mode.label} data-tone={mode.tone}>
-                <span><Icon /></span><b>{mode.label}</b><small>{index === 0 ? "Selected" : "Search mode"}</small>
-              </article>
-            ))}
+          <div className="pl-preview-title"><div><small>SELECT A SEARCH TYPE</small><b>Who are you looking for?</b></div><span>5 modes</span></div>
+          <div className="pl-preview-modes">
+            {previewModes.map((mode, index) => {
+              const ModeIcon = modeIcons[mode.tone]
+              return (
+                <div key={mode.label} className={index === 0 ? "is-selected" : ""}>
+                  <span data-tone={mode.tone}><ModeIcon /></span><b>{mode.label}</b><small>{index === 0 ? "Selected" : "Choose"}</small>
+                </div>
+              )
+            })}
           </div>
-          <div className="pl-search-form-demo">
-            <div><small>DESCRIPTION</small><strong>Revenue operations leaders</strong></div>
-            <div><small>LOCATION</small><strong>United States</strong></div>
-            <div><small>RESULTS</small><strong>10 records</strong></div>
-            <span className="pl-search-form-demo__action">Review search <Search /></span>
+          <div className="pl-preview-form">
+            <label><small>ROLE OR TITLE</small><strong>VP of Marketing</strong></label>
+            <label><small>LOCATION</small><strong>United States</strong></label>
+            <label><small>LIST</small><strong>Q3 prospects</strong></label>
+            <span>Search provider records <ArrowIcon /></span>
           </div>
-          <p><i /> Search coverage and returned fields vary by source and record.</p>
+          <p><i />Criteria and returned fields stay together for review.</p>
         </div>
       </div>
     </div>
   )
 }
 
-const records = [
-  { initials: "AC", name: "Avery Chen", role: "Growth lead · Example Studio", score: "86", label: "Hot", angle: "Expansion planning", status: "Email available" },
-  { initials: "ML", name: "Morgan Lee", role: "Founder · Sample Works", score: "72", label: "Warm", angle: "Manual reporting", status: "Review enrichment" },
-  { initials: "JR", name: "Jordan Rivera", role: "Operations · Demo Company", score: "61", label: "Warm", angle: "Workflow clarity", status: "Source record only" },
+const knowledgeSources = [
+  { tag: "WEB", title: "Company website", copy: "Approved pages and positioning" },
+  { tag: "TXT", title: "Ideal customer profile", copy: "Pasted audience and qualification notes" },
+  { tag: "Q+A", title: "Sales questions", copy: "Answers your team uses to assess fit" },
+  { tag: "PDF", title: "Offer brief", copy: "Uploaded product and market context" },
 ]
 
-export function SavedListPreview() {
+export function KnowledgeBoard() {
   return (
-    <div className="pl-list-preview" role="img" aria-label="Sanitized demonstration of a PipeLeads saved list with fit guidance">
-      <div className="pl-window-bar"><span><i /><i /><i /></span><strong>PipeLeads · Saved List</strong><em>SANITIZED DEMO</em></div>
-      <div className="pl-list-preview__body">
-        <div className="pl-list-preview__title"><div><small>SAVED LIST</small><strong>Revenue operations shortlist</strong></div><div><span>Score leads</span><span>Export CSV</span></div></div>
-        <div className="pl-list-table">
-          <div className="pl-list-table__head"><span>Prospect record</span><span>Fit guidance</span><span>Availability</span></div>
-          {records.map((record) => (
-            <article key={record.name}>
-              <div className="pl-record"><i>{record.initials}</i><span><b>{record.name}</b><small>{record.role}</small></span></div>
-              <div className="pl-score"><b>{record.score}</b><span><strong>{record.label}</strong><small>{record.angle}</small></span></div>
-              <div className="pl-availability"><i /><span>{record.status}</span></div>
-            </article>
-          ))}
-        </div>
-        <p><Sparkles /> Scores and next-action suggestions are guidance based on the record and configured business context.</p>
+    <div className="pl-context-board">
+      <div className="pl-context-board__head"><span>KNOWLEDGE SOURCES</span><em>4 connected</em></div>
+      <div className="pl-context-board__sources">
+        {knowledgeSources.map((source) => (
+          <article key={source.tag}><span>{source.tag}</span><div><strong>{source.title}</strong><small>{source.copy}</small></div><b>READY</b></article>
+        ))}
       </div>
-    </div>
-  )
-}
-
-export function KnowledgePreview() {
-  return (
-    <div className="pl-knowledge-preview" role="img" aria-label="Illustration of the PipeLeads business knowledge and draft review workflow">
-      <div className="pl-window-bar"><span><i /><i /><i /></span><strong>PipeLeads · Knowledge Base</strong><em>USER-SUPPLIED CONTEXT</em></div>
-      <div className="pl-knowledge-preview__body">
-        <div className="pl-source-tabs"><span className="is-active"><Globe />Website</span><span><FileText />Text</span><span><MessageSquareText />Q&amp;A</span><span><FileOutput />PDF</span></div>
-        <div className="pl-knowledge-grid">
-          <div className="pl-profile-card"><small>BUSINESS PROFILE</small><strong>What do you sell?</strong><span>Define the offer and audience</span><strong>Who does it help?</strong><span>Give scoring a comparison point</span><strong>What does it do?</strong><span>Ground the suggested angle</span></div>
-          <div className="pl-guidance-card"><div><Sparkles /><small>REVIEWABLE OUTPUT</small></div><strong>Fit guidance + outreach draft</strong><p>Record facts are combined with the business context for a score explanation, suggested opener, next action, or selected draft.</p><span><Check />Copy after review</span></div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function AgentPreview() {
-  const steps = [
-    { label: "Search", icon: Search },
-    { label: "Optional enrich", icon: Database },
-    { label: "AI draft", icon: Sparkles },
-    { label: "Webhook", icon: FileOutput },
-  ]
-  return (
-    <div className="pl-agent-preview" aria-label="Configured PipeLeads agent sequence">
-      {steps.map(({ label, icon: Icon }, index) => <div key={label}><article><span>{String(index + 1).padStart(2, "0")}</span><Icon /><strong>{label}</strong></article>{index < steps.length - 1 && <ArrowDown />}</div>)}
+      <div className="pl-score-card"><div><small>FIT GUIDANCE</small><strong>84</strong></div><p>Strong role and market match. Review the reasons before moving this record forward.</p></div>
     </div>
   )
 }
