@@ -167,7 +167,9 @@ export default function AgentBuilderPage() {
     )
   }
 
-  return <AgentBuilderForm key={agent.id + agent.updatedAt} agent={agent} />
+  // A save bumps updatedAt. Keying on that remounts this form after every
+  // autosave and throws away text that is still being entered.
+  return <AgentBuilderForm key={agent.id} agent={agent} />
 }
 
 // ---------------------------------------------------------------------------

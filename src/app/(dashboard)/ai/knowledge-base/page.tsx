@@ -130,7 +130,7 @@ export default function KnowledgeBasePage() {
 
 function BusinessProfileSection() {
   const queryClient = useQueryClient()
-  const { data: profile, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
+  const { data: profile, isLoading, isError, refetch } = useQuery({
     queryKey: ["knowledge-base-profile"],
     queryFn: fetchProfile,
   })
@@ -164,9 +164,10 @@ function BusinessProfileSection() {
     )
   }
 
+  // A refetch bumps dataUpdatedAt even when the profile is unchanged. Keying
+  // the form on that timestamp remounts it and clears whatever is being typed.
   return (
     <BusinessProfileForm
-      key={dataUpdatedAt}
       profile={profile ?? null}
       onSaved={() => queryClient.invalidateQueries({ queryKey: ["knowledge-base-profile"] })}
     />
