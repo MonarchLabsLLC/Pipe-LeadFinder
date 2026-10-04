@@ -6,6 +6,7 @@ import {
   normalizeWebsiteUrl,
 } from "@/lib/website-email-discovery"
 import { readLimitedText, safeFetch } from "@/lib/safe-url"
+import { resolveTikTokPlace } from "@/lib/tiktok-place"
 
 // Map search type to Apify actor ID from env vars
 function getActorId(type: SearchType): string {
@@ -484,7 +485,16 @@ export function buildInstagramInfluencerInput(params: Record<string, unknown>) {
 
 export function buildTikTokInfluencerInput(params: Record<string, unknown>) {
   const hashtags = cleanArray(params.hashtags)
-  const query = influencerQuery(params)
+  const niche = [asString(params.description), asString(params.category)]
+    .filter(Boolean)
+    .join(" ")
+  const location = asString(params.location)
+  const place = resolveTikTokPlace(location)
+  // Hashtags are their own input. Folding them, and a country name, into the
+  // keyword makes the phrase specific enough that the actor returns almost
+  // nothing — Singapore searches were "dentists Singapore" against region US.
+  const query = [niche, place.keywordHint].filter(Boolean).join(" ")
+    || (hashtags.length ? hashtags.join(" ") : "")
   if (!query) throw new Error("Influencer search requires a niche or description")
 
   const { min, max } = influencerFollowerBounds(params)
@@ -499,9 +509,17 @@ export function buildTikTokInfluencerInput(params: Record<string, unknown>) {
     maxFollowers: max,
     verifiedOnly: params.verified === true ? true : undefined,
     languages: language && language !== "any" ? [language] : undefined,
+    countryCodes: place.countryCode ? [place.countryCode] : undefined,
+    // Strict mode drops creators whose country is unknown, which is most of
+    // them. Best effort keeps those and only drops a confident mismatch.
+    countryMatchMode: place.countryCode ? "best_effort" : undefined,
+    region: place.region,
     enrichBio: true,
+    // Most published emails are on the link in the bio, not in the bio text.
+    // The actor leaves this off, so a search was coming back with no emails.
+    followBioLinks: true,
     includePerformance: minimumEngagement !== undefined,
-    campaignBrief: query,
+    campaignBrief: location ? `${niche || query} in ${location}` : query,
     sortBy: "qualificationScore",
   }
 }
