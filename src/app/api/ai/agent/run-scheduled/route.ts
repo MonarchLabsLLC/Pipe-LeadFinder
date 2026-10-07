@@ -7,6 +7,7 @@ import {
   type AgentConfig,
 } from "@/services/agent-runner"
 import { enqueueAgentJob } from "@/services/agent-job"
+import { forwardPluginEvents } from "@/server/plugins/forwarder"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -40,6 +41,11 @@ export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  // Scale Plugin Store: retry any plugin events that could not be sent, and
+  // expire plugin proposals past their 72 hours. A no-op with the channel off,
+  // and it never throws, so it cannot hold up the agents below.
+  const plugins = await forwardPluginEvents({ housekeeping: true })
 
   const now = new Date()
   const staleLockBefore = new Date(now.getTime() - 60 * 60 * 1000)
@@ -110,6 +116,7 @@ export async function POST(req: NextRequest) {
       checked: agents.length,
       queued: results.filter((result) => result.status === "queued").length,
       results,
+      plugins,
     },
     { status: 202, headers: { "Cache-Control": "no-store" } }
   )
