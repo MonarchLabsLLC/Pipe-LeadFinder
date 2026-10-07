@@ -11,6 +11,7 @@ import {
   type CreditAction,
 } from "@/services/credits-service"
 import { deductCredits } from "@/lib/credit-guard"
+import { reportAgentSearchCompleted } from "@/server/plugins/job-events"
 import {
   getBusinessContext,
   getLeadContext,
@@ -439,6 +440,15 @@ export async function runAgent(
     await prisma.searchHistory.update({
       where: { id: searchHistory.id },
       data: { status: "COMPLETED", resultCount: leads.length, listId },
+    })
+    // Scale Plugin Store: no-op when the channel is off; never throws.
+    await reportAgentSearchCompleted({
+      userId: user.id,
+      agentId: agent.id,
+      searchId: searchHistory.id,
+      listId,
+      searchType,
+      resultCount: leads.length,
     })
 
     const updatedLeadCount = (config.leadCount ?? 0) + leads.length
