@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { ScaleWorkspaceBridge } from "@/components/providers/scale-workspace-bridge"
+import { PluginFramePolicyGuard } from "@/components/plugins/policy-guard"
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,8 @@ export default function DashboardLayout({
     <SidebarProvider>
       {/* Inert unless NEXT_PUBLIC_SCALE_TEAM_WORKSPACES_ENABLED=true */}
       <ScaleWorkspaceBridge />
+      {/* Leaving a plugin's frame page is a full page load (its frame policy stays behind). */}
+      <PluginFramePolicyGuard />
       {/* The first tab stop on every page: past the sidebar and the header,
           straight to the screen's own content. */}
       <a

@@ -119,6 +119,7 @@ async function call(method: "GET" | "POST", route: string, options: Partial<Toke
   const authorization = options.authorization ?? `Bearer ${await token({ method, path, body, ...options })}`
   const request = new Request(`https://leadfinder.test${path}`, { method, headers: { authorization }, ...(method === "POST" ? { body } : {}) })
   const response = await handlePluginRequest({ request, rawBody: body, segments: route.split("?")[0].split("/"), requestId: "req-fallback" }, deps)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- response bodies of several shapes
   return { status: response.status, json: (await response.json()) as Record<string, any> }
 }
 
