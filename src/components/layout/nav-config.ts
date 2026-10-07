@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Lightbulb,
   ListPlus,
+  Puzzle,
   Receipt,
   Search,
   Tags,
@@ -93,8 +94,17 @@ export const aiToolsMenu = {
   ] satisfies NavItem[],
 }
 
+/**
+ * The Scale Plugin Store's page. Shown only when the build was made with
+ * NEXT_PUBLIC_SCALE_PLUGINS_ENABLED=true; the page and its API still check the
+ * server's own SCALE_PLUGINS_ENABLED, so the link alone opens nothing.
+ */
+export const PLUGINS_NAV_ENABLED = process.env.NEXT_PUBLIC_SCALE_PLUGINS_ENABLED === "true"
+const pluginsItem: NavItem = { title: "Plugins", url: "/plugins", icon: Puzzle }
+
 export const resourceItems: NavItem[] = [
   { title: "Integrations", url: "/resources/integrations", icon: Webhook },
+  ...(PLUGINS_NAV_ENABLED ? [pluginsItem] : []),
   { title: "Support", url: "/resources/support", icon: HelpCircle },
   { title: "Tutorials", url: "/resources/tutorials", icon: GraduationCap },
 ]
@@ -104,6 +114,7 @@ export const sectionLabels: Record<string, string> = {
   "lead-search": "Lead Search",
   ai: "AI Tools",
   resources: "Resources",
+  plugins: "Plugins",
 }
 
 /** Every page the header can name, for the breadcrumb and the search palette. */

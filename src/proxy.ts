@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { enforceScaleWorkspaceGate } from "@/lib/scale-workspace/gate"
+import { pluginFrameCsp } from "@/lib/plugin-frame"
 
 /**
  * Lightweight request proxy. Session checking is intentionally limited to the
@@ -8,6 +9,15 @@ import { enforceScaleWorkspaceGate } from "@/lib/scale-workspace/gate"
  * The Scale Plus team-workspace guest gate below is a no-op unless
  * SCALE_TEAM_WORKSPACES_ENABLED=true AND a sealed guest cookie is present.
  */
+
+/** The sign-in provider's origin: the app shell keeps a hidden session frame there. */
+function keycloakOrigin(): string[] {
+  try {
+    return [new URL(process.env.NEXT_PUBLIC_KEYCLOAK_URL || "https://auth.groovetech.io/auth").origin]
+  } catch {
+    return []
+  }
+}
 
 const isDevMode =
   process.env.NODE_ENV === "development" &&
@@ -43,7 +53,13 @@ export async function proxy(req: NextRequest) {
 
   // Production authentication is completed by KeycloakProvider, which bridges
   // the verified Keycloak token into an Auth.js session before rendering.
-  return NextResponse.next()
+  const response = NextResponse.next()
+  // The one page that frames third-party content (/plugins/<installId>,
+  // docs/Scale-Plugin-Channel.md) may frame that plugin's origin, this app and
+  // its sign-in provider, and nothing else. No other page gets a header here.
+  const framePolicy = pluginFrameCsp(req.nextUrl.pathname, req.nextUrl.searchParams, keycloakOrigin())
+  if (framePolicy) response.headers.set("Content-Security-Policy", framePolicy)
+  return response
 }
 
 export const config = {

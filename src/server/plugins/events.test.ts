@@ -45,6 +45,7 @@ import { eventsForJob } from "./job-events"
 import { PLUGIN_EVENTS } from "./registry"
 
 const SECRET = "test-only-plugin-service-secret-0123456789abcdef"
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies of two different shapes
 const calls: { url: string; body: any }[] = []
 let installs: unknown[] = []
 let eventsStatus = 200
