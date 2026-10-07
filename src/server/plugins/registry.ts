@@ -225,9 +225,6 @@ export const PLUGIN_EVENTS: PluginEventDefinition[] = [
   { type: "leadfinder.enrichment.completed", area: "enrichment", description: "An enrichment or scoring job finished." },
 ]
 
-/** Sent only to the install that asked, whatever it subscribes to (contract section 5). */
-export const PLUGIN_ACTION_EVENT_PREFIX = `${PLUGIN_APP}.action.`
-
 const byName = new Map(PLUGIN_ACTIONS.map((action) => [action.name, action]))
 
 export function pluginActionNamed(name: string): PluginAction | null {
