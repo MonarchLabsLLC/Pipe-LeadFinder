@@ -10,6 +10,9 @@ export const PLUGIN_APP_DISPLAY_NAME = "Lead Finder"
 export const GATEWAY_ISSUER = "scaleplus-plugin-gateway"
 export const APP_SERVICE_NAME = `${PLUGIN_APP}-plugin-service-v1`
 
+/** Proposal outcomes: sent only to the install that asked, whatever it subscribes to (section 5). */
+export const PLUGIN_ACTION_EVENT_PREFIX = `${PLUGIN_APP}.action.`
+
 /** A plugin's pending approval waits this long, then expires. */
 export const PLUGIN_PROPOSAL_TTL_MS = 72 * 60 * 60 * 1000
 

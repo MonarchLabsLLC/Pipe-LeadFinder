@@ -197,6 +197,14 @@ export async function decideProposal(
       409
     )
   if (p.status !== "pending") return proposalView(p)
+  if (p.origin === "plugin") {
+    // A Scale Plugin Store plugin asked for this. It is decided by the plugin
+    // channel (its own re-check, the product's normal jobs, and the outcome
+    // event to the plugin), not by the Agent's approved-job path below.
+    const { decidePluginProposal } = await import("@/server/plugins/changes")
+    await decidePluginProposal({ userId: actor.userId, id, decision })
+    return proposalView(await getProposal(actor, id))
+  }
   if (decision === "reject") {
     await prisma.focusedAgentApproval.updateMany({
       where: { id, status: "pending" },

@@ -606,3 +606,70 @@ model FileUpload {
 //
 //   @@index([workspaceId, createdAt])
 // }
+
+// =============================================================================
+// Scale Plugin Store channel (docs/Scale-Plugin-Channel.md). Off unless
+// SCALE_PLUGINS_ENABLED=true. Three new tables and nothing else: no existing
+// table gains a column. A plugin acts in the workspace owner's account, so
+// `userId` is always the owner's User.id; the plugin is named beside it.
+// Migration: prisma/migrations/20261007120000_scale_plugin_channel.
+// =============================================================================
+
+// Who asked for a consequential action. One row beside the
+// FocusedAgentApproval that holds the hashed preview (same id, origin "plugin").
+model PluginProposal {
+  approvalId   String    @id
+  userId       String
+  ownerSubject String
+  installId    String
+  pluginId     String
+  pluginName   String
+  actionName   String
+  area         String
+  unattended   Boolean   @default(false)
+  // approved | rejected | expired, once the outcome event has been queued.
+  outcome      String?
+  outcomeAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([installId, createdAt])
+  @@index([userId, createdAt])
+}
+
+// Every call a plugin makes, with the plugin as the actor.
+model PluginActionLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  installId  String
+  pluginId   String
+  pluginName String
+  actionName String
+  area       String
+  level      String
+  outcome    String
+  proposalId String?
+  requestId  String
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([installId, createdAt])
+}
+
+// Events waiting to be forwarded to the ScalePlus dashboard. Ids and counts
+// only; never lead names, emails or phone numbers.
+model PluginEventOutbox {
+  id            String    @id @default(uuid())
+  userId        String
+  type          String
+  occurredAt    DateTime  @default(now())
+  data          Json      @default("{}")
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+
+  @@index([status, nextAttemptAt])
+  @@index([userId])
+}
