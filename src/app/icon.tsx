@@ -6,7 +6,7 @@ export const size = {
 }
 export const contentType = "image/png"
 
-// Client Services Suite favicon: a solid #FF6F61 rounded square with the
+// Client Services Suite favicon: a solid #e331b6 rounded square with the
 // app's own glyph in white, so the tab icon reads as part of the family.
 
 export default function Icon() {
@@ -20,7 +20,7 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           borderRadius: "8px",
-          background: "#FF6F61",
+          background: "#e331b6",
         }}
       >
         {/* Radar icon (lucide), the Lead Finder mark */}
