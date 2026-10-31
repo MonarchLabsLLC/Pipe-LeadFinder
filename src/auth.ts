@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { verifyKeycloakToken } from "@/lib/keycloak-verify"
 import { prisma } from "@/lib/prisma"
+import { syncSsoEmail } from "@/lib/keycloak-email-sync"
 
 // Dev user for local development - bypasses all auth
 const DEV_USER = {
@@ -76,6 +77,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           let user = await prisma.user.findUnique({
             where: { keycloakSubId: claims.sub },
           })
+
+          if (user) {
+            // Keep the stored email in step with the member's Scale.gg account
+            // (matched by Keycloak sub, never by email).
+            const matchedUser = user
+            const emailSync = await syncSsoEmail(matchedUser, claims, {
+              getUserByEmail: (address) =>
+                prisma.user.findFirst({
+                  where: { email: { equals: address, mode: "insensitive" } },
+                  select: { id: true },
+                }),
+              updateUserEmail: async (id, address) => {
+                await prisma.user.update({ where: { id }, data: { email: address } })
+              },
+            })
+            if (emailSync.status === "updated") {
+              console.log(`[Auth] Updated stored email from Keycloak for user ${matchedUser.id}`)
+              user = { ...matchedUser, email: emailSync.email }
+            } else if (emailSync.status === "conflict") {
+              console.warn("[Auth] Email sync skipped: new address already belongs to another user", {
+                userId: matchedUser.id,
+                conflictingUserId: emailSync.conflictingUserId,
+              })
+            } else if (emailSync.status === "failed") {
+              console.error("[Auth] Email sync failed; keeping stored email", {
+                userId: matchedUser.id,
+                error: emailSync.error,
+              })
+            }
+          }
 
           if (!user) {
             // Fallback: find by email for users migrated from dev-login
