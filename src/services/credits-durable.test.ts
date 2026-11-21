@@ -8,7 +8,6 @@ vi.mock("@/lib/prisma", () => ({
 const {
   classifyConsumeFailure,
   consumeCredits,
-  consumeHitCredits,
   consumeTokenCredits,
 } = await import("./credits-service")
 
@@ -88,19 +87,9 @@ describe("durable Micro charges", () => {
     }
   })
 
-  it("bills Firecrawl per page with Micro's existing SKU", async () => {
-    const fetchMock = vi.fn(async () => json({ debited: 1, availableCredits: 9 }))
-    vi.stubGlobal("fetch", fetchMock)
-    await consumeHitCredits(USER_UUID, { provider: "firecrawl", model: "scrape", hitCount: 7, description: "crawl" })
-    const body = JSON.parse(String((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body))
-    expect(body).toMatchObject({ provider: "firecrawl", model: "scrape", hitCount: 7, appName: "PipeLeads" })
-    expect(body.idempotencyKey).toMatch(/^PipeLeads:/)
-  })
-
   it("skips empty usage", async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal("fetch", fetchMock)
-    expect(await consumeHitCredits(USER_UUID, { provider: "firecrawl", model: "scrape", hitCount: 0, description: "x" })).toBeNull()
     expect(await consumeTokenCredits(USER_UUID, { ...tokens, inputTokens: 0, outputTokens: 0 })).toBeNull()
     expect(fetchMock).not.toHaveBeenCalled()
   })
