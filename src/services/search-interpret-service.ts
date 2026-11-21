@@ -6,6 +6,7 @@
  * before a search runs, so this never spends search credits itself.
  */
 
+import { randomUUID } from "node:crypto"
 import { generateText, NoObjectGeneratedError, Output } from "ai"
 import { z } from "zod"
 import {
@@ -194,6 +195,8 @@ export interface InterpretDeps {
   bill: typeof consumeTokenCredits
 }
 
+const APP_IDEMPOTENCY_PREFIX = "PipeLeads"
+
 const UNCLEAR_OUTPUT: InterpretModelOutput = { searchType: "UNCLEAR", explanation: "", fields: [] }
 
 /**
@@ -255,8 +258,13 @@ export async function interpretSearch(
         inputTokens: usage.inputTokens ?? 0,
         outputTokens: usage.outputTokens ?? 0,
         description: "Lead Finder AI search interpretation",
-        metadata: { feature: "search-interpret" },
-        idempotencyKey: input.idempotencyKey,
+        metadata: {
+          feature: "search-interpret",
+          ...(input.idempotencyKey ? { clientRequestKey: input.idempotencyKey } : {}),
+        },
+        // Every provider call is billed: a client-supplied key must not let a
+        // repeated request (or another user's key) dedupe a new call's charge.
+        idempotencyKey: `${APP_IDEMPOTENCY_PREFIX}:interpret:${randomUUID()}`,
       },
       input.email
     )

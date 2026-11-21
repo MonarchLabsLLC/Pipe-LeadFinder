@@ -181,7 +181,8 @@ describe("interpretSearch — unusable input and billing", () => {
         model: "deepseek/deepseek-v4.1-flash",
         inputTokens: 120,
         outputTokens: 40,
-        idempotencyKey: "idem-1",
+        idempotencyKey: expect.stringMatching(/^PipeLeads:interpret:/),
+        metadata: expect.objectContaining({ clientRequestKey: "idem-1" }),
       }),
       "me@x.co"
     )

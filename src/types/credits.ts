@@ -63,6 +63,10 @@ export interface ConsumeCreditsResponse {
   consumedCredits?: number
   ledgerEntryId?: string
   error?: string
+  /** Not settled yet: durably recorded and retried in the background. */
+  queued?: boolean
+  /** Micro answered 409 (balance already negative): recorded as owed. */
+  owed?: boolean
 }
 
 /** Context value exposed by CreditsProvider */

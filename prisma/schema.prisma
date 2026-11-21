@@ -606,3 +606,26 @@ model FileUpload {
 //
 //   @@index([workspaceId, createdAt])
 // }
+
+// Micro credit charges that did not settle on the first attempt (network,
+// timeout, 5xx, auth hiccup) or that Micro answered with 409 (balance already
+// negative: recorded as owed). Retried in the background with the same
+// idempotency key until settled. See src/services/pending-credit-charges.ts.
+// Migration: prisma/migrations/add-pending-credit-charges.sql
+model PendingCreditCharge {
+  id             String    @id @default(uuid())
+  idempotencyKey String    @unique
+  creditUserId   String
+  email          String?
+  payload        Json
+  status         String    @default("pending") // pending | owed | settled | failed
+  attempts       Int       @default(0)
+  lastStatusCode Int?
+  lastError      String?
+  nextAttemptAt  DateTime  @default(now())
+  settledAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+}
