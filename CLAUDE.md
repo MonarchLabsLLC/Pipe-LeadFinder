@@ -217,7 +217,13 @@ The app uses an external **ScaleCredits** microservice for metered billing. All 
 
 **Flow for enrichment routes:** pre-check via `guardCredits()` before enrichment, then charge only on success (data found).
 
-**Flow for AI assistant:** token-based consumption via `consumeTokenCredits()` called in the Vercel AI SDK `onFinish` callback.
+**Flow for AI assistant:** token-based consumption via `consumeTokenCredits()` called in the Vercel AI SDK `onFinish` callback. The route calls `result.consumeStream()` so a client disconnect still reaches `onFinish`; a stream that breaks after producing output is charged an estimate (`metadata.estimatedUsage`).
+
+**Billing rules (all paid calls):**
+- Pre-check refuses only a negative balance (402) and fails closed (503) when the balance cannot be read (`ensureCreditsAvailable` / `guardCredits`).
+- Charge provider usage before validating the output (lead scoring, interpret, agent runs). Each provider call gets its own idempotency key, so retries are billed and HTTP retries never double-charge.
+- Knowledge Base website sources bill Firecrawl per fetched page (`consumeHitCredits`, provider `firecrawl`, model `scrape`).
+- Charges are durable: `settleCharge` in `credits-service.ts` always sends an `idempotencyKey`. Network errors, timeouts, 5xx and 401/403/429 go to the `PendingCreditCharge` table and `src/services/pending-credit-charges.ts` (started in `instrumentation.ts`, disable with `PIPELEADS_PENDING_CHARGES_WORKER=false`) retries them every minute with the same key. A 409 is stored as `owed` and retried hourly. Other 4xx are stored as `failed`. Migration: `npx prisma db execute --file prisma/migrations/add-pending-credit-charges.sql`.
 
 **Frontend:** `CreditsProvider` (`src/contexts/credits-context.tsx`) polls `/api/credits` every 30 seconds (accelerates to every 5 seconds during active operations). The `useCredits` hook exposes balance; `useCreditsCheck` validates availability before starting an operation.
 

@@ -158,16 +158,8 @@ async function saveAiResult(
   })
 
   const billedModel = resolveBilledModel(AGENT_AI_CONFIG, response?.modelId)
-  await prisma.aiResult.create({
-    data: {
-      leadId,
-      actionType,
-      prompt: userPrompt,
-      result: text,
-      model: billedModel,
-    },
-  })
-
+  // Charge first (durably queued if Micro is unavailable) so a failure saving
+  // the result never skips billing for tokens already spent.
   if (usage?.inputTokens || usage?.outputTokens) {
     await consumeTokenCredits(
       user.id,
@@ -182,6 +174,16 @@ async function saveAiResult(
       user.email
     )
   }
+
+  await prisma.aiResult.create({
+    data: {
+      leadId,
+      actionType,
+      prompt: userPrompt,
+      result: text,
+      model: billedModel,
+    },
+  })
 }
 
 export async function runAgent(

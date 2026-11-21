@@ -122,6 +122,181 @@ function isCreditAction(value: unknown): value is PipeLeadsCreditAction {
 }
 
 // ---------------------------------------------------------------------------
+// Durable charging
+// ---------------------------------------------------------------------------
+
+export type ConsumeBody = Record<string, unknown> & { idempotencyKey: string }
+
+export type ConsumeOutcome =
+  | { kind: "charged"; data: Record<string, unknown> }
+  | { kind: "owed" | "retryable" | "rejected"; statusCode: number | null; message: string }
+
+export function newCreditIdempotencyKey() {
+  return `${APP_NAME}:${crypto.randomUUID()}`
+}
+
+/** Network errors, timeouts, 5xx, 429 and auth hiccups are retried; a 409 is owed; other 4xx are permanent. */
+export function classifyConsumeFailure(
+  statusCode: number | null
+): "owed" | "retryable" | "rejected" {
+  if (statusCode === 409) return "owed"
+  if (
+    statusCode === null ||
+    statusCode >= 500 ||
+    statusCode === 401 ||
+    statusCode === 403 ||
+    statusCode === 408 ||
+    statusCode === 429
+  )
+    return "retryable"
+  return "rejected"
+}
+
+/** One consume attempt (with network retries). Never throws. */
+export async function postConsume(
+  creditUserId: string,
+  email: string | null | undefined,
+  body: ConsumeBody
+): Promise<ConsumeOutcome> {
+  try {
+    const res = await fetchWithRetry(
+      `${MICRO_SERVICE_BASE}/credits/consume`,
+      {
+        method: "POST",
+        headers: internalHeaders(creditUserId, email),
+        body: JSON.stringify(body),
+      },
+      MAX_RETRIES,
+      15_000
+    )
+    if (res.ok) {
+      return {
+        kind: "charged",
+        data: ((await res.json().catch(() => ({}))) ?? {}) as Record<string, unknown>,
+      }
+    }
+    const message = (await res.text().catch(() => "")).slice(0, 1000)
+    return { kind: classifyConsumeFailure(res.status), statusCode: res.status, message }
+  } catch (error) {
+    return {
+      kind: "retryable",
+      statusCode: null,
+      message: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+export function retryDelayMinutes(attempts: number, status: "pending" | "owed") {
+  if (status === "owed") return 60
+  return Math.min(30, 2 ** Math.max(0, Math.min(attempts, 10)))
+}
+
+/**
+ * Persist a charge that did not settle so the background worker
+ * (pending-credit-charges.ts) retries it with the same idempotency key.
+ */
+export async function recordPendingCharge(input: {
+  creditUserId: string
+  email?: string | null
+  body: ConsumeBody
+  status: "pending" | "owed" | "failed"
+  statusCode: number | null
+  error: string
+}) {
+  const nextAttemptAt = new Date(
+    Date.now() +
+      (input.status === "failed" ? 0 : retryDelayMinutes(1, input.status)) * 60_000
+  )
+  await prisma.pendingCreditCharge.upsert({
+    where: { idempotencyKey: input.body.idempotencyKey },
+    create: {
+      idempotencyKey: input.body.idempotencyKey,
+      creditUserId: input.creditUserId,
+      email: input.email ?? null,
+      payload: input.body as object,
+      status: input.status,
+      attempts: 1,
+      lastStatusCode: input.statusCode,
+      lastError: input.error.slice(0, 2000),
+      nextAttemptAt,
+    },
+    update: {
+      attempts: { increment: 1 },
+      status: input.status,
+      lastStatusCode: input.statusCode,
+      lastError: input.error.slice(0, 2000),
+      nextAttemptAt,
+    },
+  })
+}
+
+/**
+ * Send a charge to Micro. When it does not settle, persist it for background
+ * retry. Returns success when Micro debited the charge or when it is durably
+ * recorded (queued / owed); returns success: false only when Micro rejected
+ * it permanently (e.g. a model without a price) or it could not be recorded.
+ */
+async function settleCharge(
+  creditUserId: string,
+  email: string | null | undefined,
+  body: ConsumeBody,
+  label: "usage" | "tokens"
+): Promise<ConsumeCreditsResponse> {
+  const outcome = await postConsume(creditUserId, email, body)
+  if (outcome.kind === "charged") {
+    const data = outcome.data as Partial<ConsumeCreditsResponse>
+    const debited = typeof data.debited === "number" ? data.debited : 0
+    console.log(`[Credits] Consumed (${label}):`, {
+      model: body.model,
+      debited,
+      remaining: data.availableCredits,
+    })
+    return {
+      ...data,
+      success: true,
+      debited,
+      availableCredits: Number(data.availableCredits ?? 0),
+      consumedCredits: data.consumedCredits,
+    }
+  }
+
+  const status =
+    outcome.kind === "owed" ? "owed" : outcome.kind === "retryable" ? "pending" : "failed"
+  console.error(`[Credits] Consume (${label}) did not settle; recording it:`, {
+    model: body.model,
+    status,
+    statusCode: outcome.statusCode,
+    message: outcome.message,
+  })
+  try {
+    await recordPendingCharge({
+      creditUserId,
+      email,
+      body,
+      status,
+      statusCode: outcome.statusCode,
+      error: outcome.message,
+    })
+  } catch (error) {
+    console.error("[Credits] CRITICAL: could not persist an unsettled charge:", {
+      creditUserId,
+      body,
+      error: (error as Error).message,
+    })
+    return { success: false, debited: 0, availableCredits: 0, error: outcome.message }
+  }
+
+  return {
+    success: status !== "failed",
+    queued: status !== "failed",
+    owed: status === "owed",
+    debited: 0,
+    availableCredits: 0,
+    ...(status === "failed" ? { error: outcome.message } : {}),
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -293,7 +468,7 @@ export async function consumeCredits(
       ? [APP_NAME, usage.metadata.jobRunId, action, usage.metadata.leadId]
           .filter(Boolean)
           .join(":")
-      : undefined
+      : newCreditIdempotencyKey()
   const usageBody = action
     ? {
         provider: "pipeleads",
@@ -318,48 +493,7 @@ export async function consumeCredits(
         idempotencyKey: metadataKey,
       }
 
-  try {
-    const res = await fetchWithRetry(
-      `${MICRO_SERVICE_BASE}/credits/consume`,
-      {
-        method: "POST",
-        headers: internalHeaders(creditUserId, email),
-        body: JSON.stringify(usageBody),
-      },
-      MAX_RETRIES,
-      15_000
-    )
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      console.error("[Credits] Failed to consume:", errData)
-      return {
-        success: false,
-        debited: 0,
-        availableCredits: 0,
-        error: String(errData.error),
-      }
-    }
-
-    const result = (await res.json()) as CreditBalance & {
-      debited?: number
-      consumedCredits?: number
-    }
-    const debited = typeof result.debited === "number" ? result.debited : displayAmount
-    console.log("[Credits] Consumed:", {
-      debited,
-      remaining: result.availableCredits,
-    })
-    return {
-      success: true,
-      debited,
-      availableCredits: result.availableCredits,
-      consumedCredits: result.consumedCredits,
-    }
-  } catch (error) {
-    console.error("[Credits] Consume error:", (error as Error).message)
-    return null
-  }
+  return settleCharge(creditUserId, email, usageBody, "usage")
 }
 
 /**
@@ -396,37 +530,49 @@ export async function consumeTokenCredits(
   const creditUserId = await resolveCreditUserId(userId)
   if (!creditUserId) return null
 
-  try {
-    const res = await fetchWithRetry(
-      `${MICRO_SERVICE_BASE}/credits/consume`,
-      {
-        method: "POST",
-        headers: internalHeaders(creditUserId, email),
-        body: JSON.stringify(buildTokenConsumeBody(usage)),
-      },
-      MAX_RETRIES,
-      15_000
-    )
+  const body = buildTokenConsumeBody({
+    ...usage,
+    idempotencyKey: usage.idempotencyKey || newCreditIdempotencyKey(),
+  })
+  if (body.inputTokens <= 0 && body.outputTokens <= 0) return null
+  return settleCharge(creditUserId, email, body as ConsumeBody, "tokens")
+}
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      console.error("[Credits] Token consume failed:", errData)
-      return null
-    }
-
-    const result = (await res.json()) as ConsumeCreditsResponse
-    console.log("[Credits] AI tokens consumed:", {
+/**
+ * Consume credits for a per-hit paid API (e.g. Firecrawl: provider
+ * "firecrawl", model "scrape", one hit per page). Micro prices the SKU.
+ */
+export async function consumeHitCredits(
+  userId: string,
+  usage: {
+    provider: string
+    model: string
+    hitCount: number
+    description: string
+    metadata?: Record<string, unknown>
+    idempotencyKey?: string
+  },
+  email?: string | null
+): Promise<ConsumeCreditsResponse | null> {
+  if (!MICRO_SERVICE_BASE) return null
+  const hitCount = Math.max(0, Math.floor(usage.hitCount))
+  if (hitCount <= 0) return null
+  const creditUserId = await resolveCreditUserId(userId)
+  if (!creditUserId) return null
+  return settleCharge(
+    creditUserId,
+    email,
+    {
       provider: usage.provider,
       model: usage.model,
-      input: usage.inputTokens,
-      output: usage.outputTokens,
-      debited: result.debited,
-    })
-    return { ...result, success: true }
-  } catch (error) {
-    console.error("[Credits] Token consume error:", (error as Error).message)
-    return null
-  }
+      hitCount,
+      description: usage.description,
+      metadata: { ...usage.metadata, appName: APP_NAME },
+      appName: APP_NAME,
+      idempotencyKey: usage.idempotencyKey || newCreditIdempotencyKey(),
+    },
+    "usage"
+  )
 }
 
 // ---------------------------------------------------------------------------

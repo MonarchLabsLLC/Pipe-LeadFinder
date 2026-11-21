@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
 import { z } from "zod"
@@ -118,17 +119,66 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // One key per provider call: onFinish and onError share it, so a call is
+  // charged at most once.
+  const userId = session.user.id
+  const email = session.user.email
+  const chargeKey = `PipeLeads:assistant:${randomUUID()}`
+  let charged = false
+  let streamedChars = 0
+
+  const charge = async (
+    billedModel: string,
+    inputTokens: number,
+    outputTokens: number,
+    extra: Record<string, unknown> = {}
+  ) => {
+    if (charged || (inputTokens <= 0 && outputTokens <= 0)) return
+    charged = true
+    await consumeTokenCredits(
+      userId,
+      {
+        provider: ASSISTANT_AI_CONFIG.provider,
+        model: billedModel,
+        inputTokens,
+        outputTokens,
+        description: `Lead Finder AI assistant (${actionType})`,
+        metadata: { feature: "assistant", actionType, leadId, ...extra },
+        idempotencyKey: chargeKey,
+      },
+      email
+    )
+  }
+
   const result = streamText({
     model,
     system: systemPrompt,
     prompt: userPrompt,
     maxOutputTokens: 1_500,
-    onError: ({ error }) => {
+    onChunk: ({ chunk }) => {
+      if (chunk.type === "text-delta") streamedChars += chunk.text.length
+    },
+    onError: async ({ error }) => {
       console.error("[AiAssistant] Generation failed:", describeAiError(error))
+      // The provider reports usage only when the stream completes. If it broke
+      // after producing output, the call still cost us: charge an estimate.
+      if (streamedChars > 0) {
+        try {
+          await charge(
+            ASSISTANT_AI_CONFIG.model,
+            Math.ceil((systemPrompt.length + userPrompt.length) / 4),
+            Math.ceil(streamedChars / 4),
+            { estimatedUsage: true, reason: "stream_error" }
+          )
+        } catch (billingError) {
+          console.error("[AiAssistant] Failed to charge a broken stream", billingError)
+        }
+      }
     },
     onFinish: async ({ text, usage, response }) => {
       const billedModel = resolveBilledModel(ASSISTANT_AI_CONFIG, response?.modelId)
-      const operations: Promise<unknown>[] = [
+      const settled = await Promise.allSettled([
+        charge(billedModel, usage?.inputTokens ?? 0, usage?.outputTokens ?? 0),
         prisma.aiResult.create({
           data: {
             leadId,
@@ -138,31 +188,20 @@ export async function POST(request: NextRequest) {
             model: billedModel,
           },
         }),
-      ]
-
-      if (usage?.inputTokens || usage?.outputTokens) {
-        operations.push(
-          consumeTokenCredits(
-            session.user.id,
-            {
-              provider: ASSISTANT_AI_CONFIG.provider,
-              model: billedModel,
-              inputTokens: usage.inputTokens ?? 0,
-              outputTokens: usage.outputTokens ?? 0,
-              description: `Lead Finder AI assistant (${actionType})`,
-              metadata: { feature: "assistant", actionType, leadId },
-            },
-            session.user.email
-          )
-        )
-      }
-
-      const settled = await Promise.allSettled(operations)
+      ])
       for (const operation of settled) {
         if (operation.status === "rejected") {
           console.error("Failed to finalize AI assistant operation", operation.reason)
         }
       }
+    },
+  })
+
+  // Keep reading the provider stream server-side even if the browser
+  // disconnects, so onFinish always runs and the usage is charged.
+  void result.consumeStream({
+    onError: (error) => {
+      console.error("[AiAssistant] Background stream read failed:", describeAiError(error))
     },
   })
 

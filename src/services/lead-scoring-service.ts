@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { generateText } from "ai"
 import { prisma } from "@/lib/prisma"
 import {
@@ -214,12 +215,43 @@ Return one JSON object for every lead using this exact shape:
   })
 
   const billedModel = resolveBilledModel(LEAD_SCORING_AI_CONFIG, response?.modelId)
-  await onGenerated?.({
-    text,
-    model: billedModel,
-    inputTokens: usage.inputTokens,
-    outputTokens: usage.outputTokens,
-  })
+  if (onGenerated) {
+    // The focused Agent persists the provider result and charges before parsing.
+    await onGenerated({
+      text,
+      model: billedModel,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    })
+  } else if (usage?.inputTokens || usage?.outputTokens) {
+    // Charge before validating the output: an unparseable or incomplete answer
+    // still cost us the tokens, and a retried job makes a new provider call
+    // that must be billed again (hence a fresh key per call).
+    const billed = await consumeTokenCredits(
+      userId,
+      {
+        provider: LEAD_SCORING_AI_CONFIG.provider,
+        model: billedModel,
+        inputTokens: usage.inputTokens ?? 0,
+        outputTokens: usage.outputTokens ?? 0,
+        description: `Lead Finder AI lead scoring (${leads.length} leads)`,
+        metadata: {
+          feature: "scoring",
+          listId,
+          leadCount: leads.length,
+          ...(idempotencyKey ? { batchKey: idempotencyKey } : {}),
+        },
+        idempotencyKey: `${idempotencyKey ?? "pipeleads:score"}:${randomUUID()}`,
+      },
+      email
+    )
+    if (requireBillingSuccess && !billed?.success)
+      throw new Error(
+        "Scoring usage could not be charged reliably; this job needs review"
+      )
+  } else if (requireBillingSuccess) {
+    throw new Error("Scoring returned no token usage; this job needs review")
+  }
   const parsedValue: unknown = JSON.parse(extractJsonArray(text))
   if (!Array.isArray(parsedValue)) {
     throw new Error("AI scoring response was not an array")
@@ -262,30 +294,6 @@ Return one JSON object for every lead using this exact shape:
         })),
       }),
     ])
-  }
-
-  if (onGenerated) {
-    // The focused Agent persisted the provider result and charged before parsing.
-  } else if (usage?.inputTokens || usage?.outputTokens) {
-    const billed = await consumeTokenCredits(
-      userId,
-      {
-        provider: LEAD_SCORING_AI_CONFIG.provider,
-        model: billedModel,
-        inputTokens: usage.inputTokens ?? 0,
-        outputTokens: usage.outputTokens ?? 0,
-        description: `Lead Finder AI lead scoring (${leads.length} leads)`,
-        metadata: { feature: "scoring", listId, leadCount: leads.length },
-        idempotencyKey,
-      },
-      email
-    )
-    if (requireBillingSuccess && !billed?.success)
-      throw new Error(
-        "Scoring usage could not be charged reliably; this job needs review"
-      )
-  } else if (requireBillingSuccess) {
-    throw new Error("Scoring returned no token usage; this job needs review")
   }
 
   return {

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { createAndEnqueueJob, updateJobProgress } from "@/lib/jobs/service"
@@ -168,7 +169,9 @@ export async function processBulkJob(jobRunId: string) {
                     metadata: { feature: "scoring", jobRunId, batch: index },
                     inputTokens: r.inputTokens,
                     outputTokens: r.outputTokens,
-                    idempotencyKey: `${jobRunId}:score:${index}`,
+                    // A fresh key per provider call: a retried job calls the
+                    // model again and that call must be billed too.
+                    idempotencyKey: `${jobRunId}:score:${index}:${randomUUID()}`,
                   },
                   payload.userEmail
                 )
