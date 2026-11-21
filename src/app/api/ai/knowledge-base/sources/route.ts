@@ -9,8 +9,6 @@ import {
 } from "@/services/knowledge-base-service"
 import { DataSourceType } from "@/generated/prisma/enums"
 import { dataSourceSchema } from "@/lib/validators/knowledge-base"
-import { guardCredits } from "@/lib/credit-guard"
-import { consumeHitCredits } from "@/services/credits-service"
 
 // GET /api/ai/knowledge-base/sources — list data sources
 export async function GET() {
@@ -48,31 +46,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "sourceUrl is required for WEBSITE type" }, { status: 400 })
       }
 
-      // Firecrawl is a paid API: refuse only a negative balance, fail closed
-      // when the balance cannot be read, then bill every fetched page.
-      const blocked = await guardCredits(session.user.id, session.user.email)
-      if (blocked) return blocked
-
-      const userId = session.user.id
-      const email = session.user.email
-      const billPages = async (pages: number) => {
-        await consumeHitCredits(
-          userId,
-          {
-            provider: "firecrawl",
-            model: "scrape",
-            hitCount: pages,
-            description: `Lead Finder Knowledge Base ${crawlMode === "link" ? "page scrape" : "website crawl"} (${pages} page${pages === 1 ? "" : "s"})`,
-            metadata: { feature: "knowledge-base", crawlMode: crawlMode ?? "website", sourceUrl },
-          },
-          email
-        )
-      }
-
       const extractedContent =
-        crawlMode === "link"
-          ? await crawlLink(sourceUrl, billPages)
-          : await crawlWebsite(sourceUrl, billPages)
+        crawlMode === "link" ? await crawlLink(sourceUrl) : await crawlWebsite(sourceUrl)
 
       const source = await addDataSource(
         profile.id,

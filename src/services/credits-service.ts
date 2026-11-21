@@ -538,43 +538,6 @@ export async function consumeTokenCredits(
   return settleCharge(creditUserId, email, body as ConsumeBody, "tokens")
 }
 
-/**
- * Consume credits for a per-hit paid API (e.g. Firecrawl: provider
- * "firecrawl", model "scrape", one hit per page). Micro prices the SKU.
- */
-export async function consumeHitCredits(
-  userId: string,
-  usage: {
-    provider: string
-    model: string
-    hitCount: number
-    description: string
-    metadata?: Record<string, unknown>
-    idempotencyKey?: string
-  },
-  email?: string | null
-): Promise<ConsumeCreditsResponse | null> {
-  if (!MICRO_SERVICE_BASE) return null
-  const hitCount = Math.max(0, Math.floor(usage.hitCount))
-  if (hitCount <= 0) return null
-  const creditUserId = await resolveCreditUserId(userId)
-  if (!creditUserId) return null
-  return settleCharge(
-    creditUserId,
-    email,
-    {
-      provider: usage.provider,
-      model: usage.model,
-      hitCount,
-      description: usage.description,
-      metadata: { ...usage.metadata, appName: APP_NAME },
-      appName: APP_NAME,
-      idempotencyKey: usage.idempotencyKey || newCreditIdempotencyKey(),
-    },
-    "usage"
-  )
-}
-
 // ---------------------------------------------------------------------------
 // Credit cost constants for PipeLeads actions
 // ---------------------------------------------------------------------------

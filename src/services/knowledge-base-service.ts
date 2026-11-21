@@ -91,26 +91,14 @@ function getFirecrawl() {
   return new Firecrawl({ apiKey })
 }
 
-/** Called with the number of pages Firecrawl fetched, before the content is judged. */
-export type FirecrawlPageBiller = (pages: number) => Promise<void>
-
-/** Pages Firecrawl billed us for in a finished crawl job. */
-export function crawledPageCount(result: { completed?: number; data?: unknown[] }) {
-  const completed = typeof result.completed === "number" ? result.completed : 0
-  return Math.max(completed, result.data?.length ?? 0)
-}
-
 /** Crawl an entire website (may return multiple pages). */
-export async function crawlWebsite(url: string, billPages?: FirecrawlPageBiller): Promise<string> {
+export async function crawlWebsite(url: string): Promise<string> {
   await assertSafePublicUrl(url)
   const app = getFirecrawl()
   const result = await app.crawl(url, {
     limit: 10,
     scrapeOptions: { formats: ["markdown"] },
   })
-
-  // Every fetched page costs us, even when it has no readable content.
-  await billPages?.(crawledPageCount(result))
 
   const pages = result.data ?? []
   const combined = pages
@@ -125,12 +113,10 @@ export async function crawlWebsite(url: string, billPages?: FirecrawlPageBiller)
 }
 
 /** Crawl / scrape a single link. */
-export async function crawlLink(url: string, billPages?: FirecrawlPageBiller): Promise<string> {
+export async function crawlLink(url: string): Promise<string> {
   await assertSafePublicUrl(url)
   const app = getFirecrawl()
   const result = await app.scrape(url, { formats: ["markdown"] })
-
-  await billPages?.(1)
 
   if (!result.markdown?.trim()) {
     throw new Error("No readable content was extracted from this page")
