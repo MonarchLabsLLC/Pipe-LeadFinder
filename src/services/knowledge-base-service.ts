@@ -4,6 +4,7 @@ import Firecrawl from "@mendable/firecrawl-js"
 import { assertSafePublicUrl } from "@/lib/safe-url"
 import {
   FirecrawlCapError,
+  isPreWorkFirecrawlFailure,
   releaseFirecrawlPages,
   reserveFirecrawlPages,
 } from "@/services/firecrawl-cap"
@@ -114,7 +115,7 @@ async function withFirecrawlCap<T>(
   run: (limit: number) => Promise<{ value: T; pages: number }>
 ): Promise<T> {
   if (!userId) return (await run(wanted)).value
-  const reserved = await reserveFirecrawlPages(userId, wanted)
+  const { reserved, day } = await reserveFirecrawlPages(userId, wanted)
   if (reserved <= 0) throw new FirecrawlCapError()
   let used = reserved
   try {
@@ -122,11 +123,13 @@ async function withFirecrawlCap<T>(
     used = Math.min(reserved, Math.max(0, pages))
     return value
   } catch (error) {
-    // A crawl that failed before returning a page count is not counted.
-    used = 0
+    // Refund only when Firecrawl clearly did no work (request rejected with a
+    // 4xx or the connection never opened). Timeouts, 5xx and failed jobs may
+    // have fetched pages, so the whole reservation stays counted.
+    used = isPreWorkFirecrawlFailure(error) ? 0 : reserved
     throw error
   } finally {
-    await releaseFirecrawlPages(userId, reserved - used).catch((error) => {
+    await releaseFirecrawlPages(userId, reserved - used, day).catch((error) => {
       console.error("[Firecrawl] Failed to release unused cap pages:", (error as Error).message)
     })
   }
