@@ -55,9 +55,10 @@ export async function POST(req: NextRequest) {
     const updated = await enrichEmail(leadId)
 
     // Only charge if we actually found something
+    // Charge when this lookup produced an email the lead did not already have
+    // (a stale address with NOT_FOUND/UNKNOWN status counts as missing).
     if (
       updated.email &&
-      !lead.email &&
       (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL")
     ) {
       await deductCredits(

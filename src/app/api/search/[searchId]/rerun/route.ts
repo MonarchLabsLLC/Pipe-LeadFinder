@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { enqueueSearchJob } from "@/services/search-job"
+import { guardCredits } from "@/lib/credit-guard"
 import {
   companySearchSchema,
   domainSearchSchema,
@@ -26,6 +27,10 @@ export async function POST(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  // Re-running a search pays the provider again: same pre-check as a new search.
+  const blocked = await guardCredits(session.user.id, session.user.email)
+  if (blocked) return blocked
 
   const { searchId } = await params
   const prior = await prisma.searchHistory.findFirst({

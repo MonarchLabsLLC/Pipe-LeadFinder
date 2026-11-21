@@ -79,10 +79,13 @@ export async function requireCredits(a: AgentActor, minimum = 0) {
       503,
       true
     )
-  if (balance.availableCredits <= 0 || balance.availableCredits < minimum)
+  // Billing rule: refuse only a negative balance. A balance >= 0 may start
+  // even when the operation's maximum cost is higher (it may go negative).
+  void minimum
+  if (balance.availableCredits < 0)
     throw new FocusedAgentError(
       "INSUFFICIENT_CREDITS",
-      `This operation requires up to ${minimum || "available"} Scale Credits. Add credits first.`,
+      "Your Scale Credits balance is negative. Add credits to continue.",
       402
     )
   return balance.availableCredits

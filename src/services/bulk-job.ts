@@ -9,7 +9,10 @@ import {
   requireApprovedJob,
   chargeApprovedJob,
 } from "@/server/focused-agent/job-guard"
-import { consumeTokenCredits } from "@/services/credits-service"
+import {
+  consumeTokenCredits,
+  ensureCreditsAvailable,
+} from "@/services/credits-service"
 import { getAiRuntimeConfig } from "@/services/ai-runtime"
 
 const payloadSchema = z.object({
@@ -190,6 +193,14 @@ export async function processBulkJob(jobRunId: string) {
     return { attempted: entries.length, scoredCount }
   }
 
+  if (!approval) {
+    // Pre-check before paying for lookups: refuse only a negative balance,
+    // fail closed when it cannot be read. (Approved Agent jobs are checked in
+    // requireApprovedJob.)
+    const check = await ensureCreditsAvailable(payload.userId, payload.userEmail)
+    if (!check.ok) throw new Error(check.message || "Credit check failed")
+  }
+
   let enriched = 0
   let failed = 0
   for (let index = 0; index < entries.length; index += 3) {
@@ -200,9 +211,23 @@ export async function processBulkJob(jobRunId: string) {
           where: { jobRunId, subjectId: entry.leadId, action: payload.action },
         })
         if (item?.status === "COMPLETED") return false
+        // Remember, on the first attempt, whether the lead already had the
+        // data: those leads get no lookup and must not be charged, while a
+        // retry of a lookup that already saved its result still is.
+        const priorResult = (item?.result ?? null) as { hadDataBefore?: boolean } | null
+        const hadDataBefore =
+          typeof priorResult?.hadDataBefore === "boolean"
+            ? priorResult.hadDataBefore
+            : payload.action === "ENRICH_EMAIL"
+              ? Boolean(
+                  entry.lead.email &&
+                    (entry.lead.emailStatus === "FOUND" ||
+                      entry.lead.emailStatus === "POTENTIAL")
+                )
+              : Boolean(entry.lead.phone && entry.lead.phoneStatus === "FOUND")
         await prisma.jobItem.updateMany({
           where: { jobRunId, subjectId: entry.leadId, action: payload.action },
-          data: { status: "RUNNING", errorMessage: null },
+          data: { status: "RUNNING", errorMessage: null, result: { hadDataBefore } },
         })
         try {
           if (approval) await requireApprovedJob(jobRunId, false)
@@ -233,7 +258,7 @@ export async function processBulkJob(jobRunId: string) {
               ? updated.emailStatus === "FOUND" ||
                 updated.emailStatus === "POTENTIAL"
               : updated.phoneStatus === "FOUND"
-          if (found && !item?.billedAt) {
+          if (found && !hadDataBefore && !item?.billedAt) {
             if (approval)
               await chargeApprovedJob(
                 approval,
@@ -259,8 +284,8 @@ export async function processBulkJob(jobRunId: string) {
             },
             data: {
               status: "COMPLETED",
-              billedAt: found ? new Date() : undefined,
-              result: { found },
+              billedAt: found && !hadDataBefore ? new Date() : undefined,
+              result: { found, hadDataBefore },
             },
           })
           return found

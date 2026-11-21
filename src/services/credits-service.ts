@@ -376,18 +376,28 @@ export async function ensureCreditsAvailable(
       headers: internalHeaders(creditUserId, email),
     })
 
+    // Fail closed: if the balance cannot be read (including a rejected
+    // service credential), paid work must not start.
     if (!res.ok) {
-      if (res.status === 401)
-        return { ok: false, status: 401, message: "Unauthorized" }
+      console.error("[Credits] Balance check failed:", res.status)
       return {
         ok: false,
-        status: 500,
-        message: "Failed to verify credit balance",
+        status: 503,
+        message: "Billing is temporarily unavailable. Please try again in a few minutes.",
       }
     }
 
     const balance = (await res.json()) as CreditBalance
-    if (balance.availableCredits < 0) {
+    if (!Number.isFinite(Number(balance?.availableCredits))) {
+      return {
+        ok: false,
+        status: 503,
+        message: "Billing is temporarily unavailable. Please try again in a few minutes.",
+      }
+    }
+    // Refuse only a negative balance; any balance >= 0 may start, even if the
+    // operation ends up costing more.
+    if (Number(balance.availableCredits) < 0) {
       return {
         ok: false,
         status: 402,
@@ -401,7 +411,7 @@ export async function ensureCreditsAvailable(
     return {
       ok: false,
       status: 503,
-      message: "Credit service temporarily unavailable",
+      message: "Billing is temporarily unavailable. Please try again in a few minutes.",
     }
   }
 }

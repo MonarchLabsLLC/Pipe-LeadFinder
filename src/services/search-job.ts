@@ -13,6 +13,7 @@ import {
   type DuplicatePolicy,
 } from "@/services/search-persistence"
 import { deductCredits } from "@/lib/credit-guard"
+import { ensureCreditsAvailable } from "@/services/credits-service"
 import {
   requireApprovedJob,
   chargeApprovedJob,
@@ -44,7 +45,7 @@ function creditAction(type: SearchType): CreditAction {
 
 function billableCount(
   type: SearchType,
-  leads: Array<{ email: string | null }>
+  leads: Array<{ email?: string | null }>
 ) {
   if (type === "LOCAL" || type === "DOMAIN") {
     return leads.filter((lead) => Boolean(lead.email)).length
@@ -138,71 +139,100 @@ export async function processSearchJob(jobRunId: string) {
     : null
   const searchRecord = await prisma.searchHistory.findUnique({
     where: { id: payload.searchId },
-    select: { apifyRunId: true },
+    select: { apifyRunId: true, status: true, billableCount: true, resultCount: true },
   })
 
-  await Promise.all([
-    prisma.searchHistory.update({
-      where: { id: payload.searchId },
-      data: { status: "RUNNING" },
-    }),
-    updateJobProgress(jobRunId, {
-      stage: "Running provider search",
-      current: 0,
-      total: 3,
-      status: "RUNNING",
-    }),
-  ])
+  // A retry after the results were saved (and the billable count recorded in
+  // the same transaction) only finishes the charge. The charge key is stable
+  // per job, so it is never applied twice; and the saved leads are not seen as
+  // duplicates that would make the retry charge nothing.
+  const resumeCharge =
+    searchRecord?.status === "COMPLETED" && typeof searchRecord.billableCount === "number"
 
+  if (!resumeCharge && !approval) {
+    // Pre-check before paying the provider: refuse only a negative balance,
+    // fail closed when it cannot be read. (Approved Agent jobs are checked in
+    // requireApprovedJob.)
+    const check = await ensureCreditsAvailable(payload.userId, payload.userEmail)
+    if (!check.ok) {
+      await markSearchFailed(payload.searchId)
+      throw new Error(check.message || "Credit check failed")
+    }
+  }
+
+  if (!resumeCharge)
+    await Promise.all([
+      prisma.searchHistory.update({
+        where: { id: payload.searchId },
+        data: { status: "RUNNING" },
+      }),
+      updateJobProgress(jobRunId, {
+        stage: "Running provider search",
+        current: 0,
+        total: 3,
+        status: "RUNNING",
+      }),
+    ])
+
+  const persistedRef = { value: resumeCharge }
   try {
-    const results = await executeSearch(
-      payload.searchType,
-      payload.searchParams,
-      {
-        existingRunId: searchRecord?.apifyRunId,
-        onRunStarted: async (apifyRunId) => {
-          await prisma.searchHistory.update({
-            where: { id: payload.searchId },
-            data: { apifyRunId },
-          })
-        },
-      }
-    )
-    await updateJobProgress(jobRunId, {
-      stage: "Saving unique leads",
-      current: 1,
-      total: 3,
-    })
-
-    if (approval) await requireApprovedJob(jobRunId)
-    if (approval && results.length > approval.cost.maximumUnits)
-      throw new Error(
-        "The provider exceeded the approved result limit; nothing was saved or charged"
+    let providerResultCount = searchRecord?.resultCount ?? 0
+    let resultCount = searchRecord?.resultCount ?? 0
+    let charged = searchRecord?.billableCount ?? 0
+    if (!resumeCharge) {
+      const results = await executeSearch(
+        payload.searchType,
+        payload.searchParams,
+        {
+          existingRunId: searchRecord?.apifyRunId,
+          onRunStarted: async (apifyRunId) => {
+            await prisma.searchHistory.update({
+              where: { id: payload.searchId },
+              data: { apifyRunId },
+            })
+          },
+        }
       )
-    const leads = await persistSearchResults({
-      searchId: payload.searchId,
-      userId: payload.userId,
-      listId: payload.listId,
-      searchType: payload.searchType,
-      results,
-      duplicatePolicy: payload.duplicatePolicy,
-      ...(approval
-        ? {
-            // A list created by this approval (versions.newList) has no
-            // earlier version to compare with.
-            expectedListVersion: (
-              approval.versions.list as { updatedAt: string } | undefined
-            )?.updatedAt,
-          }
-        : {}),
-    })
+      await updateJobProgress(jobRunId, {
+        stage: "Saving unique leads",
+        current: 1,
+        total: 3,
+      })
+
+      if (approval) await requireApprovedJob(jobRunId)
+      if (approval && results.length > approval.cost.maximumUnits)
+        throw new Error(
+          "The provider exceeded the approved result limit; nothing was saved or charged"
+        )
+      const leads = await persistSearchResults({
+        searchId: payload.searchId,
+        userId: payload.userId,
+        listId: payload.listId,
+        searchType: payload.searchType,
+        results,
+        duplicatePolicy: payload.duplicatePolicy,
+        billable: (saved) => billableCount(payload.searchType, saved),
+        ...(approval
+          ? {
+              // A list created by this approval (versions.newList) has no
+              // earlier version to compare with.
+              expectedListVersion: (
+                approval.versions.list as { updatedAt: string } | undefined
+              )?.updatedAt,
+            }
+          : {}),
+      })
+      persistedRef.value = true
+      providerResultCount = results.length
+      resultCount = leads.length
+      charged = billableCount(payload.searchType, leads)
+    }
 
     await updateJobProgress(jobRunId, {
       stage: "Recording credit usage",
       current: 2,
       total: 3,
     })
-    const charged = billableCount(payload.searchType, leads)
     if (approval)
       await chargeApprovedJob(
         approval,
@@ -231,13 +261,14 @@ export async function processSearchJob(jobRunId: string) {
     return {
       searchId: payload.searchId,
       listId: payload.listId,
-      providerResultCount: results.length,
-      resultCount: leads.length,
-      duplicateCount: Math.max(0, results.length - leads.length),
+      providerResultCount,
+      resultCount,
+      duplicateCount: Math.max(0, providerResultCount - resultCount),
       billableCount: charged,
     }
   } catch (error) {
-    await markSearchFailed(payload.searchId)
+    // Keep a saved (COMPLETED) search as is so the retry charges its results.
+    if (!persistedRef.value) await markSearchFailed(payload.searchId)
     throw error
   }
 }

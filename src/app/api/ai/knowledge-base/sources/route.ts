@@ -9,6 +9,7 @@ import {
 } from "@/services/knowledge-base-service"
 import { DataSourceType } from "@/generated/prisma/enums"
 import { dataSourceSchema } from "@/lib/validators/knowledge-base"
+import { FirecrawlCapError } from "@/services/firecrawl-cap"
 
 // GET /api/ai/knowledge-base/sources — list data sources
 export async function GET() {
@@ -46,8 +47,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "sourceUrl is required for WEBSITE type" }, { status: 400 })
       }
 
+      // Firecrawl is free for customers but capped per user per day (429 over the cap).
       const extractedContent =
-        crawlMode === "link" ? await crawlLink(sourceUrl) : await crawlWebsite(sourceUrl)
+        crawlMode === "link"
+          ? await crawlLink(sourceUrl, session.user.id)
+          : await crawlWebsite(sourceUrl, session.user.id)
 
       const source = await addDataSource(
         profile.id,
@@ -68,6 +72,9 @@ export async function POST(req: NextRequest) {
     const source = await addDataSource(profile.id, type, content, sourceUrl, name)
     return NextResponse.json(source, { status: 201 })
   } catch (err) {
+    if (err instanceof FirecrawlCapError) {
+      return NextResponse.json({ error: err.message, code: "FIRECRAWL_DAILY_LIMIT" }, { status: 429 })
+    }
     const message = err instanceof Error ? err.message : "Failed to add data source"
     return NextResponse.json({ error: message }, { status: 500 })
   }
