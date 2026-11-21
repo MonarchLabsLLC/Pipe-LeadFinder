@@ -59,17 +59,20 @@ export async function releaseFirecrawlPages(userId: string, pages: number, day: 
 }
 
 const PRE_SEND_NETWORK_CODES = new Set(["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN"])
+// Request or auth rejected before any fetch. Other 4xx (403, 408, 429, ...)
+// can follow real fetching of the target site and stay counted.
+const PRE_WORK_STATUSES = new Set([400, 401, 402, 422])
 
 /**
  * True only when a Firecrawl call clearly failed before Firecrawl did any
- * work: a 4xx rejection of the request itself (no job was created), or a
- * connection that could not be opened. Timeouts, 5xx, failed jobs and
+ * work: the request or its auth was rejected (400, 401, 402 or 422, no job
+ * created), or a connection that could not be opened. Timeouts, 5xx, failed jobs and
  * anything unknown may have fetched pages and are counted.
  */
 export function isPreWorkFirecrawlFailure(error: unknown) {
   if (!error || typeof error !== "object") return false
   const e = error as { status?: unknown; code?: unknown; jobId?: unknown; name?: unknown }
   if (e.name === "JobTimeoutError" || e.jobId) return false
-  if (typeof e.status === "number") return e.status >= 400 && e.status < 500
+  if (typeof e.status === "number") return PRE_WORK_STATUSES.has(e.status)
   return typeof e.code === "string" && PRE_SEND_NETWORK_CODES.has(e.code)
 }
