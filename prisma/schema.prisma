@@ -386,6 +386,8 @@ model SearchHistory {
   resultCount Int          @default(0)
   status      SearchStatus @default(PENDING)
   apifyRunId  String?
+  /// Billable units recorded with the saved results; a retried job charges these.
+  billableCount Int?
   createdAt   DateTime     @default(now())
   job         JobRun?
 
@@ -628,4 +630,15 @@ model PendingCreditCharge {
   updatedAt      DateTime  @updatedAt
 
   @@index([status, nextAttemptAt])
+}
+
+// Firecrawl pages crawled per user per UTC day, for the Knowledge Base cap
+// (src/services/firecrawl-cap.ts). Migration: prisma/migrations/add-lookup-billing-and-firecrawl-cap.sql
+model FirecrawlUsage {
+  userId    String
+  day       String   // UTC date, YYYY-MM-DD
+  pages     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, day])
 }

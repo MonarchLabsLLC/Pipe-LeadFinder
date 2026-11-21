@@ -425,7 +425,7 @@ describe.skipIf(!enabled)(
         dispatch(a, "delete_list", { listId }, { key: randomUUID() })
       ).rejects.toMatchObject({ code: "UNSUPPORTED_ACTION" })
     })
-    it("requires complete interviews, current configured pricing and enough credits", async () => {
+    it("requires complete interviews, current configured pricing and a non-negative balance", async () => {
       await expect(
         prep("prepare_search", { type: "PEOPLE", parameters: { listId } })
       ).rejects.toBeDefined()
@@ -433,7 +433,10 @@ describe.skipIf(!enabled)(
       expect(
         (p.preview as { cost: { maximumCredits: number } }).cost.maximumCredits
       ).toBe(14)
+      // A balance below the maximum cost may still start; only a negative balance is refused.
       state.balance = 13
+      await expect(prep("prepare_search", search())).resolves.toBeDefined()
+      state.balance = -1
       await expect(prep("prepare_search", search())).rejects.toMatchObject({
         code: "INSUFFICIENT_CREDITS",
       })

@@ -37,6 +37,7 @@ export async function persistSearchResults({
   markCompleted = true,
   duplicatePolicy = "ONLY_NEW",
   expectedListVersion,
+  billable,
 }: {
   searchId: string
   userId: string
@@ -46,6 +47,12 @@ export async function persistSearchResults({
   markCompleted?: boolean
   duplicatePolicy?: DuplicatePolicy
   expectedListVersion?: string
+  /**
+   * Billable units for the saved leads. Stored in the same transaction so a
+   * retried job charges the results it already saved instead of seeing them
+   * as duplicates and charging nothing.
+   */
+  billable?: (leads: Array<{ email?: string | null }>) => number
 }) {
   const persist = () =>
     prisma.$transaction(
@@ -178,7 +185,11 @@ export async function persistSearchResults({
         if (markCompleted) {
           await tx.searchHistory.update({
             where: { id: searchId },
-            data: { status: "COMPLETED", resultCount: leads.length },
+            data: {
+              status: "COMPLETED",
+              resultCount: leads.length,
+              ...(billable ? { billableCount: billable(leads) } : {}),
+            },
           })
         }
 

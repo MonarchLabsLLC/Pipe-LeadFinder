@@ -54,7 +54,9 @@ export async function POST(req: NextRequest) {
   try {
     const updated = await enrichPhone(leadId)
 
-    if (updated.phone && !lead.phone && updated.phoneStatus === "FOUND") {
+    // Charge when this lookup produced a phone the lead did not already have
+    // (a stale number without FOUND status counts as missing).
+    if (updated.phone && updated.phoneStatus === "FOUND") {
       await deductCredits(
         scope.tenantUserId,
         "enrich:phone",

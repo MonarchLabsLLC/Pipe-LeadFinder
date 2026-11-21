@@ -2,6 +2,11 @@ import { prisma } from "@/lib/prisma"
 import { DataSourceType } from "@/generated/prisma/enums"
 import Firecrawl from "@mendable/firecrawl-js"
 import { assertSafePublicUrl } from "@/lib/safe-url"
+import {
+  FirecrawlCapError,
+  releaseFirecrawlPages,
+  reserveFirecrawlPages,
+} from "@/services/firecrawl-cap"
 
 const MAX_STORED_SOURCE_CHARS = 500_000
 
@@ -91,13 +96,52 @@ function getFirecrawl() {
   return new Firecrawl({ apiKey })
 }
 
-/** Crawl an entire website (may return multiple pages). */
-export async function crawlWebsite(url: string): Promise<string> {
+const MAX_CRAWL_PAGES = 10
+
+/** Pages a finished Firecrawl crawl job fetched (what counts toward the daily cap). */
+export function crawledPageCount(result: { completed?: number; data?: unknown[] }) {
+  const completed = typeof result.completed === "number" ? result.completed : 0
+  return Math.max(completed, result.data?.length ?? 0)
+}
+
+/**
+ * Reserve pages under the per-user daily cap, run the crawl, and give back
+ * what it did not use. Throws FirecrawlCapError (429) when the cap is reached.
+ */
+async function withFirecrawlCap<T>(
+  userId: string | undefined,
+  wanted: number,
+  run: (limit: number) => Promise<{ value: T; pages: number }>
+): Promise<T> {
+  if (!userId) return (await run(wanted)).value
+  const reserved = await reserveFirecrawlPages(userId, wanted)
+  if (reserved <= 0) throw new FirecrawlCapError()
+  let used = reserved
+  try {
+    const { value, pages } = await run(reserved)
+    used = Math.min(reserved, Math.max(0, pages))
+    return value
+  } catch (error) {
+    // A crawl that failed before returning a page count is not counted.
+    used = 0
+    throw error
+  } finally {
+    await releaseFirecrawlPages(userId, reserved - used).catch((error) => {
+      console.error("[Firecrawl] Failed to release unused cap pages:", (error as Error).message)
+    })
+  }
+}
+
+/** Crawl an entire website (may return multiple pages). Pass userId to apply the daily cap. */
+export async function crawlWebsite(url: string, userId?: string): Promise<string> {
   await assertSafePublicUrl(url)
   const app = getFirecrawl()
-  const result = await app.crawl(url, {
-    limit: 10,
-    scrapeOptions: { formats: ["markdown"] },
+  const result = await withFirecrawlCap(userId, MAX_CRAWL_PAGES, async (limit) => {
+    const crawl = await app.crawl(url, {
+      limit,
+      scrapeOptions: { formats: ["markdown"] },
+    })
+    return { value: crawl, pages: crawledPageCount(crawl) }
   })
 
   const pages = result.data ?? []
@@ -112,11 +156,14 @@ export async function crawlWebsite(url: string): Promise<string> {
   return combined
 }
 
-/** Crawl / scrape a single link. */
-export async function crawlLink(url: string): Promise<string> {
+/** Crawl / scrape a single link. Pass userId to apply the daily cap. */
+export async function crawlLink(url: string, userId?: string): Promise<string> {
   await assertSafePublicUrl(url)
   const app = getFirecrawl()
-  const result = await app.scrape(url, { formats: ["markdown"] })
+  const result = await withFirecrawlCap(userId, 1, async () => ({
+    value: await app.scrape(url, { formats: ["markdown"] }),
+    pages: 1,
+  }))
 
   if (!result.markdown?.trim()) {
     throw new Error("No readable content was extracted from this page")
