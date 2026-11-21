@@ -92,6 +92,15 @@ describe("Firecrawl daily cap", () => {
     expect(state.pages).toBe(0)
   })
 
+  it("counts a 403 or 408 from Firecrawl against the cap", async () => {
+    crawl.mockRejectedValue(Object.assign(new Error("Forbidden by site"), { status: 403 }))
+    await expect(crawlWebsite("https://example.com", "u1")).rejects.toThrow("Forbidden")
+    expect(state.pages).toBe(10)
+    scrape.mockRejectedValue(Object.assign(new Error("Request timeout"), { status: 408 }))
+    await expect(crawlLink("https://example.com/a", "u1")).rejects.toThrow("timeout")
+    expect(state.pages).toBe(11)
+  })
+
   it("keeps the reservation counted when Firecrawl may have fetched pages", async () => {
     crawl.mockRejectedValue(Object.assign(new Error("Job timed out"), { name: "JobTimeoutError", jobId: "j1" }))
     await expect(crawlWebsite("https://example.com", "u1")).rejects.toThrow("timed out")
@@ -105,7 +114,10 @@ describe("Firecrawl daily cap", () => {
   })
 
   it("classifies failures conservatively", () => {
-    expect(isPreWorkFirecrawlFailure({ status: 402 })).toBe(true)
+    for (const status of [400, 401, 402, 422])
+      expect(isPreWorkFirecrawlFailure({ status })).toBe(true)
+    for (const status of [403, 404, 408, 409, 429])
+      expect(isPreWorkFirecrawlFailure({ status })).toBe(false)
     expect(isPreWorkFirecrawlFailure({ status: 404, jobId: "j1" })).toBe(false)
     expect(isPreWorkFirecrawlFailure({ status: 500 })).toBe(false)
     expect(isPreWorkFirecrawlFailure({ code: "ENOTFOUND" })).toBe(true)
