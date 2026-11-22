@@ -5,7 +5,6 @@ import type { FocusedAgentApproval, PluginProposal } from "@/generated/prisma/cl
 import type { AgentActor } from "@/server/focused-agent/access"
 import { buildPlan, type Plan, type PlanAction } from "@/server/focused-agent/plans"
 import { EXTRA_PLAN_ACTIONS, executeExtraPlan, type ExtraPlanAction } from "@/server/focused-agent/plans-extra"
-import { requireCredits } from "@/server/focused-agent/pricing"
 import { proposalHash } from "@/server/focused-agent/proposals"
 import { json } from "@/server/focused-agent/resources"
 import { FocusedAgentError, exactHash, hashCanonical } from "@/server/focused-agent/security"
@@ -14,6 +13,7 @@ import { enqueueBulkJob } from "@/services/bulk-job"
 import { enqueueSearchJob } from "@/services/search-job"
 
 import { PLUGIN_PROPOSAL_TTL_MS, PluginError, pluginProposalStatus, type PluginActor, type PluginOwnerAccount } from "./contract"
+import { requirePluginCredits, reserveUnattended } from "./credits"
 import { pluginsEnabled } from "./env"
 import { queuePluginActionOutcome, queuePluginEvent } from "./events"
 import { pluginActionNamed, type PluginAction } from "./registry"
@@ -29,7 +29,12 @@ import type { ChangeMode, ChangeOutcome, PluginCall, ProposalStatusRow } from ".
 //
 // What it does NOT reuse is the Agent's gate: a plugin needs neither Pro Max
 // nor the LEADFINDER_AGENT_* switches. Its gate is SCALE_PLUGINS_ENABLED, the
-// install's scopes and the owner's own approval (or their act_unattended grant).
+// install's scopes and the owner's own approval (or their act_unattended grant,
+// used only inside the monthly credit cap the owner set for the install).
+//
+// Credits (credits.ts): a plugin job needs its whole maximum cost in the
+// owner's balance, when it asks and again when the owner approves. A plugin
+// never takes the balance below zero.
 
 const isExtra = (action: string): action is ExtraPlanAction => (EXTRA_PLAN_ACTIONS as readonly string[]).includes(action)
 
@@ -57,7 +62,9 @@ const maximumCredits = (plan: Pick<Plan, "preview">) => (plan.preview.cost as { 
 async function execute(a: AgentActor, id: string, plan: Plan): Promise<Record<string, unknown>> {
   const key = `plugin:${id}`
   if (isExtra(plan.action)) {
-    return executeExtraPlan(a, plan as Parameters<typeof executeExtraPlan>[1], id)
+    const result = await executeExtraPlan(a, plan as Parameters<typeof executeExtraPlan>[1], id)
+    if (plan.action === "agent" && typeof result.agentId === "string") await guardPluginAgent(result.agentId, id, maximumCredits(plan))
+    return result
   }
   if (plan.action === "search") {
     const v = plan.input as {
@@ -90,6 +97,22 @@ async function execute(a: AgentActor, id: string, plan: Plan): Promise<Record<st
     idempotencyKey: key,
   })
   return { runId: queued.id, listId: v.listId, leads: entries.length }
+}
+
+/**
+ * An AI Agent a plugin scheduled keeps the plugin rule on every run: each run
+ * needs the search's whole maximum cost in the balance before it starts
+ * (agent-runner.ts reads config.pluginGuard). When the owner saves new
+ * settings for the agent on the AI Agents page, the new config replaces this
+ * one and the agent becomes the owner's own.
+ */
+async function guardPluginAgent(agentId: string, proposalId: string, minimumCredits: number): Promise<void> {
+  const agent = await prisma.aiAgent.findUnique({ where: { id: agentId }, select: { config: true } })
+  const config = (agent?.config ?? {}) as Record<string, unknown>
+  await prisma.aiAgent.update({
+    where: { id: agentId },
+    data: { config: json({ ...config, pluginGuard: { proposalId, minimumCredits: Math.max(0, Math.ceil(minimumCredits)) } }) },
+  })
 }
 
 type Started = { started: true; status: "queued" | "completed"; result: Record<string, unknown> } | { started: false }
@@ -141,7 +164,11 @@ export async function runPluginChange(
   }
 
   // Credits are checked before anything is stored or started, attended or not.
-  await requireCredits(a, maximumCredits(plan))
+  await requirePluginCredits(a, maximumCredits(plan))
+
+  // An AI Agent spends on every future run, outside any monthly cap: the owner
+  // always approves scheduling one, whatever the plugin was granted.
+  const mode: ChangeMode = options.mode === "unattended" && plan.action === "agent" ? "approval" : options.mode
 
   const key = `plugin:${call.actor.installId}:${options.idempotencyKey}`.slice(0, 600)
   const where = { userId_workspaceId_idempotencyKey: { userId: a.userId, workspaceId: a.workspaceId, idempotencyKey: key } }
@@ -176,14 +203,18 @@ export async function runPluginChange(
           pluginName: call.actor.pluginName,
           actionName: action.name,
           area: action.area,
-          unattended: options.mode === "unattended",
+          // Set to true only when the work is counted against the install's cap.
+          unattended: false,
         },
       }),
     ])
     row = created[0]
   }
 
-  if (row.status === "pending" && options.mode === "unattended") {
+  if (row.status === "pending" && mode === "unattended") {
+    // Inside the owner's monthly cap for this install, or it waits for approval.
+    const reserved = await reserveUnattended({ userId: a.userId, installId: call.actor.installId, approvalId: row.id, cost: maximumCredits(plan), now: call.now })
+    if (!reserved.ok) return { kind: "pending", proposalId: row.id, expiresAt: row.expiresAt.toISOString() }
     const started = await startApproved(a, row.id, plan, "plugin-unattended", call.now)
     if (started.started) return { kind: "done", proposalId: row.id, data: { proposalId: row.id, status: started.status, ...started.result } }
     row = await prisma.focusedAgentApproval.findUniqueOrThrow({ where: { id: row.id } })
@@ -336,7 +367,7 @@ export async function decidePluginProposal(input: { userId: string; id: string; 
   if (hashCanonical(fresh.versions) !== hashCanonical(row.versions) || hashCanonical(labelPreview(fresh.preview, actor)) !== hashCanonical(row.preview)) {
     return stale("Records or prices changed after the plugin asked.")
   }
-  await requireCredits(a, maximumCredits(fresh))
+  await requirePluginCredits(a, maximumCredits(fresh))
 
   try {
     const started = await startApproved(a, row.id, fresh, "plugin-owner", now)

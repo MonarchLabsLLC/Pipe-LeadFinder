@@ -18,12 +18,14 @@ import { PLUGIN_ACTION_EVENT_PREFIX } from "./contract"
 //   leadfinder.list.updated          the same two places when leads were saved, and
 //                                    src/server/plugins/changes.ts (a plugin changed labels)
 //   leadfinder.enrichment.completed  src/services/bulk-job.ts (enrichment or scoring finished)
+//   leadfinder.agent.run_completed   src/services/job-workers.ts (an AGENT_RUN job completed)
 //   leadfinder.action.*              src/server/plugins/changes.ts (a proposal's outcome)
 
 export type PluginDomainEvent =
   | { type: "leadfinder.search.completed"; data: { searchId: string; listId: string; searchType: string; resultCount: number; jobId?: string; agentId?: string } }
   | { type: "leadfinder.list.updated"; data: { listId: string; reason: "leads_added" | "labels_changed"; count: number } }
   | { type: "leadfinder.enrichment.completed"; data: { jobId: string; listId: string; kind: "email" | "phone" | "score"; attempted: number; succeeded: number; failed: number } }
+  | { type: "leadfinder.agent.run_completed"; data: { agentId: string; jobId: string; listId: string | null; searchId: string | null; leadCount: number; totalLeadCount: number } }
 
 export type PluginActionOutcome = "approved" | "rejected" | "expired"
 

@@ -41,7 +41,7 @@ vi.mock("@/lib/prisma", () => ({
 import { resetInstallsCache } from "./dashboard-client"
 import { onPluginEventQueued, queuePluginActionOutcome, queuePluginEvent } from "./events"
 import { PLUGIN_MAX_ATTEMPTS, forwardPluginEvents, nextPluginAttempt } from "./forwarder"
-import { eventsForJob } from "./job-events"
+import { eventForAgentRun, eventsForJob } from "./job-events"
 import { PLUGIN_EVENTS } from "./registry"
 
 const SECRET = "test-only-plugin-service-secret-0123456789abcdef"
@@ -184,5 +184,27 @@ describe("forwarding", () => {
     const now = new Date(0)
     expect([1, 2, 3, 4, 5].map((attempts) => nextPluginAttempt(attempts, now)!.getTime() / 1000)).toEqual([60, 300, 900, 3600, 21_600])
     expect(nextPluginAttempt(PLUGIN_MAX_ATTEMPTS, now)).toBeNull()
+  })
+})
+
+describe("leadfinder.agent.run_completed", () => {
+  const job = { id: "job-9", kind: "AGENT_RUN", status: "COMPLETED", agentId: "agent-1", listId: "list-1", searchId: "search-1", result: { leadCount: 7, totalLeadCount: 40, leads: [{ email: "a@b.invalid" }] } }
+
+  it("carries ids and counts only", () => {
+    expect(eventForAgentRun(job)).toEqual({
+      type: "leadfinder.agent.run_completed",
+      data: { agentId: "agent-1", jobId: "job-9", listId: "list-1", searchId: "search-1", leadCount: 7, totalLeadCount: 40 },
+    })
+    expect(JSON.stringify(eventForAgentRun(job))).not.toContain("@")
+  })
+
+  it("is sent only for a completed agent run", () => {
+    expect(eventForAgentRun({ ...job, status: "FAILED" })).toBeNull()
+    expect(eventForAgentRun({ ...job, kind: "SEARCH" })).toBeNull()
+    expect(eventForAgentRun({ ...job, agentId: null })).toBeNull()
+  })
+
+  it("is in the contract", () => {
+    expect(PLUGIN_EVENTS.map((event) => event.type)).toContain("leadfinder.agent.run_completed")
   })
 })

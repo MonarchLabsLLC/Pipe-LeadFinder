@@ -56,6 +56,38 @@ export async function reportJobCompleted(jobRunId: string): Promise<void> {
   }
 }
 
+/** An AI Agent run (an AGENT_RUN job) completed. Never throws; nothing with the channel off. */
+export async function reportAgentRunCompleted(jobRunId: string): Promise<void> {
+  if (!pluginsEnabled()) return
+  try {
+    const job = await prisma.jobRun.findUnique({
+      where: { id: jobRunId },
+      select: { id: true, kind: true, status: true, userId: true, agentId: true, listId: true, searchId: true, result: true },
+    })
+    const event = job ? eventForAgentRun(job) : null
+    if (job && event) await queuePluginEvent(job.userId, event)
+  } catch (error) {
+    console.error("[plugins] could not report an agent run", error instanceof Error ? error.message : error)
+  }
+}
+
+/** Pure: the event one finished AGENT_RUN job stands for, or null. */
+export function eventForAgentRun(job: { id: string; kind: string; status: string; agentId: string | null; listId: string | null; searchId: string | null; result: unknown }): PluginDomainEvent | null {
+  if (job.kind !== "AGENT_RUN" || job.status !== "COMPLETED" || !job.agentId) return null
+  const result = (job.result ?? {}) as Record<string, unknown>
+  return {
+    type: "leadfinder.agent.run_completed",
+    data: {
+      agentId: job.agentId,
+      jobId: job.id,
+      listId: job.listId,
+      searchId: job.searchId,
+      leadCount: count(result.leadCount),
+      totalLeadCount: count(result.totalLeadCount),
+    },
+  }
+}
+
 /** An AI Agent's own search finished (it is not a SEARCH job). Never throws. */
 export async function reportAgentSearchCompleted(input: { userId: string; agentId: string; searchId: string; listId: string | null; searchType: string; resultCount: number }): Promise<void> {
   if (!pluginsEnabled() || !input.listId) return

@@ -16,6 +16,9 @@ const db = vi.hoisted(() => ({
   extra: [] as string[],
   plan: null as Record<string, any> | null, // eslint-disable-line @typescript-eslint/no-explicit-any
   creditsError: null as Error | null,
+  balance: 1000,
+  caps: [] as Record<string, any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  agents: [] as Record<string, any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
   jobStatus: "RUNNING",
 }))
 
@@ -27,6 +30,7 @@ vi.mock("@/lib/prisma", () => {
         if ("in" in value) return (value.in as unknown[]).includes(row[key])
         if ("gt" in value) return row[key] > value.gt
         if ("lte" in value) return row[key] <= value.lte
+        if ("gte" in value) return row[key] >= value.gte
         return true
       }
       return row[key] === value
@@ -50,9 +54,14 @@ vi.mock("@/lib/prisma", () => {
       for (const row of hit) Object.assign(row, data)
       return { count: hit.length }
     },
+    aggregate: async ({ where }: { where: Row }) => ({
+      _sum: { reservedCredits: rows().filter((row) => matches(row, where)).reduce((sum, row) => sum + (row.reservedCredits ?? 0), 0) },
+    }),
   })
-  return {
-    prisma: {
+  const prisma: Row = {
+      pluginInstallCreditCap: table(() => db.caps, "installId"),
+      aiAgent: table(() => db.agents, "id"),
+      $executeRaw: async () => 0,
       focusedAgentApproval: table(() => db.approvals, "id"),
       pluginProposal: table(() => db.proposals, "approvalId"),
       pluginEventOutbox: table(() => db.outbox, "id"),
@@ -60,9 +69,9 @@ vi.mock("@/lib/prisma", () => {
       jobRun: { findFirst: async () => ({ status: db.jobStatus, stage: "Running", errorMessage: null }) },
       leadList: { create: async ({ data }: { data: Row }) => ({ id: "new-list-1", ...data }) },
       leadListEntry: { findMany: async () => [{ id: "entry-1" }, { id: "entry-2" }] },
-      $transaction: async (work: Promise<unknown>[]) => Promise.all(work),
-    },
+      $transaction: async (work: Promise<unknown>[] | ((tx: Row) => Promise<unknown>)) => (typeof work === "function" ? work(prisma) : Promise.all(work)),
   }
+  return { prisma }
 })
 vi.mock("@/server/focused-agent/plans", () => ({
   buildPlan: async () => JSON.parse(JSON.stringify(db.plan)),
@@ -81,7 +90,7 @@ vi.mock("@/server/focused-agent/plans-extra", () => ({
 vi.mock("@/server/focused-agent/pricing", () => ({
   requireCredits: async () => {
     if (db.creditsError) throw db.creditsError
-    return 1000
+    return db.balance
   },
 }))
 vi.mock("@/server/focused-agent/tools", () => ({
@@ -148,6 +157,10 @@ beforeEach(() => {
   db.extra = []
   db.plan = searchPlan()
   db.creditsError = null
+  db.balance = 1000
+  // The owner set a monthly cap for this install, so act_unattended is used.
+  db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 100 }]
+  db.agents = []
   db.jobStatus = "RUNNING"
   onPluginEventQueued(() => {})
 })
@@ -236,6 +249,62 @@ describe("a plugin asks for a credit-spending action", () => {
   it("never runs a credit-spending plan in direct mode", async () => {
     await expect(run("run-search", "direct")).rejects.toBeInstanceOf(PluginError)
     expect(db.searchJobs).toEqual([])
+  })
+
+  it("never takes the balance below zero: the balance must cover the whole maximum cost", async () => {
+    db.balance = 9
+    for (const mode of ["approval", "unattended"] as const) {
+      const error = await run("run-search", mode).catch((caught: unknown) => caught)
+      expect(toPluginError(error)).toMatchObject({ code: "invalid_input", status: 422 })
+      expect(toPluginError(error).message).toMatch(/never takes the balance below zero/)
+    }
+    // A zero balance may not start a paid plugin job either (the app's own screens may).
+    db.balance = 0
+    await expect(run("run-search", "approval")).rejects.toMatchObject({ code: "INSUFFICIENT_CREDITS" })
+    expect(db.approvals).toEqual([])
+    expect(db.searchJobs).toEqual([])
+    db.balance = 10
+    expect((await run("run-search", "approval")).kind).toBe("pending")
+  })
+
+  it("act_unattended without a monthly cap: it waits for the owner's approval", async () => {
+    db.caps = []
+    const outcome = await run("run-search", "unattended")
+    expect(outcome.kind).toBe("pending")
+    expect(db.searchJobs).toEqual([])
+    expect(db.proposals[0].unattended).toBe(false)
+    expect(await pendingPluginProposals("user-1", NOW)).toHaveLength(1)
+  })
+
+  it("act_unattended inside the cap runs; past the cap it waits for approval", async () => {
+    db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 25 }]
+    expect((await run("run-search", "unattended", "a")).kind).toBe("done")
+    expect((await run("run-search", "unattended", "b")).kind).toBe("done")
+    expect(db.proposals.map((row) => row.reservedCredits)).toEqual([10, 10])
+    // 20 of 25 used: the next 10 would pass the cap.
+    expect((await run("run-search", "unattended", "c")).kind).toBe("pending")
+    expect(db.searchJobs).toHaveLength(2)
+    // A replay of a counted run is not counted twice.
+    expect((await run("run-search", "unattended", "a")).kind).toBe("done")
+    expect(db.proposals.filter((row) => row.unattended)).toHaveLength(2)
+  })
+
+  it("a cap last month does not count this month", async () => {
+    db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 10 }]
+    db.proposals.push({ approvalId: "old", installId: "install-1", userId: "user-1", unattended: true, reservedCredits: 10, createdAt: new Date("2026-09-30T23:00:00.000Z") })
+    expect((await run("run-search", "unattended")).kind).toBe("done")
+  })
+
+  it("scheduling an AI Agent always waits for approval, and the agent keeps the plugin credit rule", async () => {
+    db.plan = { action: "agent", input: { name: "Weekly dentists" }, versions: {}, preview: { title: "Save an agent", cost: { maximumCredits: 40 }, effects: [] } }
+    db.agents = [{ id: "agent-1", config: { schedule: "weekly" } }]
+    const outcome = await run("create-agent", "unattended")
+    expect(outcome.kind).toBe("pending")
+    expect(db.extra).toEqual([])
+    if (outcome.kind !== "pending") return
+    await decidePluginProposal({ userId: "user-1", id: outcome.proposalId, decision: "approve", now: NOW })
+    expect(db.extra).toEqual(["agent"])
+    expect(db.agents[0].config).toEqual({ schedule: "weekly", pluginGuard: { proposalId: outcome.proposalId, minimumCredits: 40 } })
   })
 })
 

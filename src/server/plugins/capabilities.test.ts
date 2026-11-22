@@ -69,6 +69,17 @@ describe("plugin capabilities contract", () => {
     expect(plans).not.toContain("handoff")
   })
 
+  it("interpret-request is a free read and get-agent-run a read; create-agent always asks", () => {
+    const named = (name: string) => PLUGIN_ACTIONS.find((action) => action.name === name)
+    expect(named("interpret-request")).toMatchObject({ area: "searches", level: "read", run: { kind: "interpret" } })
+    expect(named("interpret-request")?.description).toMatch(/Free for plugins/)
+    expect(named("get-agent-run")).toMatchObject({ area: "agents", level: "read", run: { kind: "agent-run" } })
+    expect(named("create-agent")?.description).toMatch(/Always waits for the owner's approval/)
+    for (const name of ["run-search", "rerun-search", "enrich-leads", "enrich-list", "score-leads"]) {
+      expect(named(name)?.description).toMatch(/never takes it below zero/)
+    }
+  })
+
   it("prefixes every event with the app and files it under a known area", () => {
     const areas = new Set(PLUGIN_AREAS.map((area) => area.key))
     for (const event of PLUGIN_EVENTS) {

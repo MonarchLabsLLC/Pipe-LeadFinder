@@ -645,10 +645,10 @@ model FirecrawlUsage {
 
 // =============================================================================
 // Scale Plugin Store channel (docs/Scale-Plugin-Channel.md). Off unless
-// SCALE_PLUGINS_ENABLED=true. Three new tables and nothing else: no existing
+// SCALE_PLUGINS_ENABLED=true. Four new tables and nothing else: no existing
 // table gains a column. A plugin acts in the workspace owner's account, so
 // `userId` is always the owner's User.id; the plugin is named beside it.
-// Migration: prisma/migrations/20261007120000_scale_plugin_channel.
+// Migration: prisma/migrations/20261121000100_scale_plugin_channel.
 // =============================================================================
 
 // Who asked for a consequential action. One row beside the
@@ -662,7 +662,11 @@ model PluginProposal {
   pluginName   String
   actionName   String
   area         String
-  unattended   Boolean   @default(false)
+  // True once the work ran without the owner's approval (act_unattended,
+  // inside the install's monthly credit cap).
+  unattended      Boolean   @default(false)
+  // The maximum cost counted against the install's monthly cap (unattended only).
+  reservedCredits Int       @default(0)
   // approved | rejected | expired, once the outcome event has been queued.
   outcome      String?
   outcomeAt    DateTime?
@@ -670,6 +674,20 @@ model PluginProposal {
 
   @@index([installId, createdAt])
   @@index([userId, createdAt])
+}
+
+// The owner's monthly Scale Credits cap for one install's unattended work.
+// No row: the plugin's act_unattended grant is not used; every paid action
+// waits for the owner's approval.
+model PluginInstallCreditCap {
+  installId      String   @id
+  userId         String
+  pluginName     String
+  monthlyCredits Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // Every call a plugin makes, with the plugin as the actor.

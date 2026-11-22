@@ -37,6 +37,12 @@ export const agentConfigSchema = z.object({
   lastScheduledStatus: z.enum(["running", "completed", "failed"]).nullable().optional(),
   lastScheduledError: z.string().max(2_000).nullable().optional(),
   schedulerLockAt: z.string().datetime().nullable().optional(),
+  // Set when a Scale Plugin Store plugin scheduled this agent: each run needs
+  // the search's whole maximum cost in the balance first (never below zero).
+  pluginGuard: z
+    .object({ proposalId: z.string().max(200), minimumCredits: z.number().int().nonnegative() })
+    .strict()
+    .optional(),
 })
 
 export const createAgentSchema = z.object({

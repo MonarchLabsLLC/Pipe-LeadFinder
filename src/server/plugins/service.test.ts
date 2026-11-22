@@ -231,7 +231,7 @@ describe("scope enforcement", () => {
   })
 
   it("answers 404 unknown_action for an action that is not in the contract", async () => {
-    for (const name of ["interpret-request", "prepare-handoff", "interpret_request", "send-to-crm"]) {
+    for (const name of ["prepare-handoff", "interpret_request", "send-to-crm", "get-handoff-options"]) {
       const result = await call("POST", `actions/${name}`, { scopes: ["leadfinder.searches:act_unattended", "leadfinder.leads:act_unattended"] })
       expect(result.status).toBe(404)
       expect(result.json.error.code).toBe("unknown_action")

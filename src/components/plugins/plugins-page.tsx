@@ -11,6 +11,8 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PLUGIN_ORIGIN_PARAM } from "@/lib/plugin-frame"
 
+import { CreditCapForm } from "./credit-cap-form"
+
 // /plugins: the plugins the account owner installed from the Scale Plugin
 // Store, and what those plugins are waiting for the owner to approve.
 
@@ -20,6 +22,8 @@ interface Install {
   description: string | null
   iconUrl: string | null
   origin: string | null
+  monthlyCredits: number | null
+  usedThisMonth: number
 }
 
 interface Proposal {
@@ -172,7 +176,7 @@ export function PluginsPage() {
                 </CardTitle>
                 {install.description ? <CardDescription>{install.description}</CardDescription> : null}
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {install.origin ? (
                   <Button asChild size="sm" variant="outline">
                     {/* A plain link: the plugin page needs a full page load at the
@@ -182,6 +186,7 @@ export function PluginsPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">This plugin works in the background and has no page to open.</p>
                 )}
+                <CreditCapForm installId={install.installId} name={install.name} monthlyCredits={install.monthlyCredits} usedThisMonth={install.usedThisMonth} />
               </CardContent>
             </Card>
           ))}

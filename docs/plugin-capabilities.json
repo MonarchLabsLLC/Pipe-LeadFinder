@@ -161,6 +161,27 @@
       }
     },
     {
+      "name": "interpret-request",
+      "title": "Turn a plain request into search settings",
+      "description": "Turn a plain request (\"dentists in Austin with an email\") into a search type and validated fields, and list which required details are still missing. Never runs a search. Free for plugins: it uses no Scale Credits of the owner's. Each install may call it 200 times per UTC day.",
+      "area": "searches",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "list-recent-searches",
       "title": "List recent searches",
       "description": "List the owner's most recent searches: type, criteria, list and result count.",
@@ -202,7 +223,7 @@
     {
       "name": "run-search",
       "title": "Run a lead search",
-      "description": "Run one paid search (people, local, company, domain or influencer) and save the results to an existing list of the same type (parameters.listId) or to a new list (newList.name). Charges the owner's Scale Credits per result, up to parameters.resultsLimit.",
+      "description": "Run one paid search (people, local, company, domain or influencer) and save the results to an existing list of the same type (parameters.listId) or to a new list (newList.name). Charges the owner's Scale Credits per result, up to parameters.resultsLimit. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
       "area": "searches",
       "level": "act",
       "inputSchema": {
@@ -250,7 +271,7 @@
     {
       "name": "rerun-search",
       "title": "Run a recent search again",
-      "description": "Run one of the owner's recent searches again into the same list. Charges the owner's Scale Credits per result.",
+      "description": "Run one of the owner's recent searches again into the same list. Charges the owner's Scale Credits per result. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
       "area": "searches",
       "level": "act",
       "inputSchema": {
@@ -297,7 +318,7 @@
     {
       "name": "enrich-leads",
       "title": "Enrich selected leads",
-      "description": "Find the missing email or phone for up to 50 chosen leads in a list. Charges the owner's Scale Credits for each one found.",
+      "description": "Find the missing email or phone for up to 50 chosen leads in a list. Charges the owner's Scale Credits for each one found. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
       "area": "enrichment",
       "level": "act",
       "inputSchema": {
@@ -337,7 +358,7 @@
     {
       "name": "enrich-list",
       "title": "Enrich a whole list",
-      "description": "Find the missing email or phone for every lead in a list that lacks it, up to a limit of 500. Charges the owner's Scale Credits for each one found.",
+      "description": "Find the missing email or phone for every lead in a list that lacks it, up to a limit of 500. Charges the owner's Scale Credits for each one found. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
       "area": "enrichment",
       "level": "act",
       "inputSchema": {
@@ -372,7 +393,7 @@
     {
       "name": "score-leads",
       "title": "Score selected leads",
-      "description": "Score up to 50 chosen leads against the owner's business profile. Uses metered AI, charged to the owner's Scale Credits.",
+      "description": "Score up to 50 chosen leads against the owner's business profile. Uses metered AI, charged to the owner's Scale Credits. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
       "area": "enrichment",
       "level": "act",
       "inputSchema": {
@@ -404,7 +425,7 @@
     {
       "name": "get-credits",
       "title": "Read the credit balance",
-      "description": "Read the owner's Scale Credits balance and the current price per result.",
+      "description": "Read the owner's Scale Credits balance and the current price per result. The balance can be negative: the app's own screens may start work at a zero balance. A plugin can start paid work only when the balance covers its whole maximum cost.",
       "area": "credits",
       "level": "read",
       "inputSchema": {
@@ -426,9 +447,30 @@
       }
     },
     {
+      "name": "get-agent-run",
+      "title": "Read an agent's latest run",
+      "description": "Read the status, counts and list of one AI Agent's most recent run. Null when it has not run yet.",
+      "area": "agents",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "agentId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "create-agent",
       "title": "Schedule a lead agent",
-      "description": "Save a search as an AI Agent that runs daily, weekly or monthly. Every run charges the owner's Scale Credits without asking again, until the owner pauses or deletes it.",
+      "description": "Save a search as an AI Agent that runs daily, weekly or monthly. Every run charges the owner's Scale Credits without asking again, until the owner pauses or deletes it. Always waits for the owner's approval, even with act_unattended. Each run starts only when the balance covers the search's whole maximum cost: an agent a plugin scheduled never takes the balance below zero.",
       "area": "agents",
       "level": "act",
       "inputSchema": {
@@ -509,6 +551,11 @@
       "type": "leadfinder.enrichment.completed",
       "area": "enrichment",
       "description": "An enrichment or scoring job finished."
+    },
+    {
+      "type": "leadfinder.agent.run_completed",
+      "area": "agents",
+      "description": "An AI Agent finished a run (scheduled or started by hand) and saved its results to a list."
     }
   ]
 }

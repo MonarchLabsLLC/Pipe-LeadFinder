@@ -5,7 +5,7 @@ import { processSearchJob } from "@/services/search-job"
 import { processAgentJob } from "@/services/agent-job"
 import { processBulkJob } from "@/services/bulk-job"
 import { processIntegrationDelivery } from "@/services/integration-job"
-import { reportJobCompleted } from "@/server/plugins/job-events"
+import { reportAgentRunCompleted, reportJobCompleted } from "@/server/plugins/job-events"
 
 export async function registerJobWorkers(boss: PgBoss) {
   await boss.work<{ jobRunId: string }>(
@@ -40,6 +40,8 @@ export async function registerJobWorkers(boss: PgBoss) {
       await runTrackedJob(job.data.jobRunId, () =>
         processAgentJob(job.data.jobRunId)
       )
+      // Scale Plugin Store: no-op when the channel is off; never throws.
+      await reportAgentRunCompleted(job.data.jobRunId)
     }
   )
 
