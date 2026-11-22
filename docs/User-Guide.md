@@ -134,6 +134,8 @@ Search across **Instagram**, **TikTok**, or **YouTube** (select platform tab).
 
 Filter by: Hashtags, Followers, Age, Engagement Rate, Language, Gender, Category, Account Type, Verified status, Sponsored Posts, and Audience demographics.
 
+**Getting more creators:** creators rarely list where they live, so the location is searched as a keyword next to your niche. Pick the country or city itself from the suggestions (each suggestion names its country), or leave Location empty for a wider search. **Verified accounts only** and a narrow follower range shrink results a lot, because few smaller creators are verified. Emails come from what creators publish in their bio; **Add Email** and **Get Phone** look people up from a LinkedIn profile, so they rarely find anything for creator-only leads.
+
 You can also **Search by Username** directly.
 
 ---
@@ -162,9 +164,9 @@ Click a list to open its results. The table shows all leads with these columns:
 
 **Name Column:**
 - Avatar, full name, job title
-- Location with map pin
-- Social media links (LinkedIn, Facebook)
-- Edit button to modify lead data
+- Location with map pin, and followers for creators
+- Profile links (TikTok, Instagram, YouTube, LinkedIn, Facebook, X)
+- Click the name (or avatar) to open the lead's details panel: bio, followers and engagement, every profile link, contact info, company, labels and the AI tools
 
 **AI Assistant Column:**
 - One **AI** menu per lead (see "The AI menu and email badges" below)
@@ -187,7 +189,7 @@ Click a list to open its results. The table shows all leads with these columns:
 
 **Custom Labels Column:**
 - Applied label tags
-- "Add" button to apply labels
+- "Add" button to apply a label, or type a new label name and click **Create** to make it and apply it in one step
 
 **Created At Column:**
 - Relative timestamp
@@ -261,8 +263,8 @@ Labels let you tag leads for tracking outreach status:
 - Your labels are listed under **Your labels**; click the × on one to delete it
 - Default labels: Called, Messaged, Emailed, Exported to CSV
 - Labels appear as tags on leads in the results table
-- Apply labels from the "Add" button in the Custom Labels column
-- Remove labels by clicking the × on an applied tag
+- Apply labels from the "Add" button in the Custom Labels column, or create a new one there
+- Remove labels by clicking the × on an applied tag in the lead's details panel
 
 Labels are applied per lead entry (a lead can have different labels in different lists).
 

@@ -255,6 +255,9 @@ export function InfluencerSearchForm({
                   />
                 )}
               />
+              <p className="text-xs text-muted-foreground">
+                Creators rarely list where they live, so the location is searched as a keyword. Use a country or city name (for example Singapore), and leave it empty for a wider search.
+              </p>
               {errors.location && (
                 <p className="text-xs text-destructive">{errors.location.message}</p>
               )}
@@ -321,7 +324,7 @@ export function InfluencerSearchForm({
                 )}
               />
             </div>
-            <div className="flex items-center gap-2 pt-7">
+            <div className="flex items-start gap-2 pt-7">
               <Controller
                 name="verified"
                 control={control}
@@ -329,7 +332,10 @@ export function InfluencerSearchForm({
                   <Checkbox id="verified" checked={field.value ?? false} onCheckedChange={field.onChange} />
                 )}
               />
-              <Label htmlFor="verified">Verified accounts only</Label>
+              <div className="space-y-0.5">
+                <Label htmlFor="verified">Verified accounts only</Label>
+                <p className="text-xs text-muted-foreground">Few smaller creators are verified, so this can shrink results a lot.</p>
+              </div>
             </div>
           </div>
         </section>

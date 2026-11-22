@@ -1263,10 +1263,19 @@ export default function TutorialsPage() {
                       If you already know a specific influencer, click{" "}
                       <strong>Search by Username</strong> to look up their profile directly.
                     </Step>
-                    <Step number={4} title="Add Email Enrichment (optional)">
+                    <Step number={4} title="Location and verified accounts">
+                      Creators rarely list where they live, so the location is searched as a
+                      keyword next to your niche. Pick the country or city itself from the
+                      suggestions, or leave it empty for a wider search. Ticking{" "}
+                      <strong>Verified accounts only</strong> or using a narrow follower range
+                      shrinks results a lot.
+                    </Step>
+                    <Step number={5} title="Add Email Enrichment (optional)">
                       Run the search first, then use <strong>Data Enrichment</strong> from the
                       saved list if you want to look for missing email addresses. This costs{" "}
-                      {ENRICH_EMAIL_CREDIT_TEXT} when contact information is found.
+                      {ENRICH_EMAIL_CREDIT_TEXT} when contact information is found. Creator emails
+                      come from what they publish in their bio; lookups work from LinkedIn
+                      profiles, so they rarely find more for creator-only leads.
                     </Step>
                   </div>
 
@@ -1341,7 +1350,7 @@ export default function TutorialsPage() {
                   </p>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {[
-                      ["Name", "Photo, full name, job title, location, and social links"],
+                      ["Name", "Photo, full name, job title, location, followers and profile links. Click the name to open the lead's details: bio, every profile link, contact info, labels and AI tools"],
                       ["AI Assistant", "One AI menu to generate messages, summaries, and more for this specific person"],
                       ["Lead Score", "A fit score and recommended next step after you run Score Leads"],
                       ["Contact Info", "Email status, phone number, and buttons to add missing contact details"],
@@ -2044,15 +2053,17 @@ export default function TutorialsPage() {
                         </Step>
                         <Step number={3} title="Select a label">
                           Click the label you want to apply. It instantly appears as a tag
-                          on that lead. You can apply multiple labels to the same lead.
+                          on that lead. You can apply multiple labels to the same lead. To
+                          make a new one on the spot, type its name at the bottom of the menu
+                          and click <strong>Create</strong>.
                         </Step>
                       </div>
                     </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground">
-                    To <strong>remove</strong> a label, click the <strong>×</strong> on the
-                    tag next to the lead's name. Labels are per-entry — the same lead can have
+                    To <strong>remove</strong> a label, click the lead's name to open its
+                    details and click the <strong>×</strong> on the label. Labels are per-entry — the same lead can have
                     different labels in different lists.
                   </p>
 

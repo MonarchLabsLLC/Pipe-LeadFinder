@@ -3,20 +3,11 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { MapPin, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { formatLocationResult, type LocationSearchResult } from "@/lib/location-label"
 
-export interface NominatimResult {
-  display_name: string
+export interface NominatimResult extends LocationSearchResult {
   lat: string
   lon: string
-  address?: {
-    city?: string
-    town?: string
-    village?: string
-    state?: string
-    postcode?: string
-    county?: string
-    country?: string
-  }
 }
 
 interface LocationAutocompleteProps {
@@ -95,15 +86,7 @@ export function LocationAutocomplete({
     debounceRef.current = setTimeout(() => searchLocation(val), 1_100)
   }
 
-  const formatDisplayName = (result: NominatimResult): string => {
-    const addr = result.address
-    if (!addr) return result.display_name
-    const city = addr.city || addr.town || addr.village || ""
-    const state = addr.state || ""
-    const zip = addr.postcode || ""
-    if (city && state) return `${city}, ${state}${zip ? ` ${zip}` : ""}`
-    return result.display_name.split(",").slice(0, 3).join(",")
-  }
+  const formatDisplayName = (result: NominatimResult): string => formatLocationResult(result)
 
   return (
     <div ref={wrapperRef} className={`relative ${className || ""}`}>
