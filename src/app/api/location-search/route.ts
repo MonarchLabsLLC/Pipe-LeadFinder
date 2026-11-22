@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&addressdetails=1&limit=5&countrycodes=us`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&addressdetails=1&limit=6`,
       {
         signal: AbortSignal.timeout(8_000),
         headers: {

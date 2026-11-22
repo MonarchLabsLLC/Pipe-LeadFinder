@@ -9,6 +9,7 @@ type AppErrorToast =
   | "bulkAction"
   | "savePhone"
   | "applyLabel"
+  | "removeLabel"
   | "agentSave"
   | "agentRun"
   | "agentAutoSave"
@@ -73,6 +74,10 @@ const ERROR_COPY: Record<AppErrorToast, ToastCopy> = {
     title: "Label was not applied",
     description:
       "The lead was not updated. Try applying the label again from the row menu.",
+  },
+  removeLabel: {
+    title: "Label was not removed",
+    description: "The lead still has this label. Try removing it again.",
   },
   agentSave: {
     title: "Agent was not saved",

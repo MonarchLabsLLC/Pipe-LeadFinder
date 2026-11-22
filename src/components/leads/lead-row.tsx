@@ -20,7 +20,6 @@ import {
 import { formatRelativeTime, getInitials } from "@/lib/format"
 import {
   ExternalLink,
-  Facebook,
   Flame,
   Linkedin,
   Loader2,
@@ -29,16 +28,18 @@ import {
   MapPin,
   Phone,
   PhoneCall,
-  Plus,
   Radar,
   Sparkles,
   Target,
+  Users,
 } from "lucide-react"
 import { LeadAIActions } from "@/components/leads/lead-ai-actions"
+import { LeadDetailSheet, PROFILE_ICONS } from "@/components/leads/lead-detail-sheet"
+import { LeadLabelPicker } from "@/components/leads/lead-label-picker"
 import { HandoffButtons } from "@/components/handoff/handoff-buttons"
 import { useEnrichEmail, useEnrichPhone } from "@/hooks/useEnrich"
-import { useLabels, useApplyLabel } from "@/hooks/useLabels"
 import { appToast } from "@/lib/app-toast"
+import { formatFollowerCount, leadProfileLinks } from "@/lib/lead-profile"
 import { cn } from "@/lib/utils"
 import { describeEmailStatus, type EmailStatusKind } from "@/lib/email-status"
 import type { LeadScoreSummary } from "@/lib/lead-score"
@@ -64,6 +65,13 @@ export interface LeadData {
   facebookUrl: string | null
   twitterUrl: string | null
   instagramUrl: string | null
+  tiktokUrl?: string | null
+  youtubeUrl?: string | null
+  platform?: string | null
+  username?: string | null
+  followerCount?: number | null
+  engagementRate?: number | null
+  bio?: string | null
   companyName: string | null
   companyWebsite: string | null
   companyLinkedin: string | null
@@ -249,18 +257,15 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
   const enrichEmail = useEnrichEmail()
   const enrichPhone = useEnrichPhone()
 
-  // Label hooks
-  const { data: availableLabels = [] } = useLabels()
-  const applyLabel = useApplyLabel()
+  const [detailOpen, setDetailOpen] = useState(false)
+  const profileLinks = leadProfileLinks(lead).filter((link) => link.kind !== "website")
+  const followers = formatFollowerCount(lead.followerCount)
 
   // Manual phone input state
   const [showPhoneInput, setShowPhoneInput] = useState(false)
   const [phoneValue, setPhoneValue] = useState("")
   const [manualPhone, setManualPhone] = useState<string | null>(lead.phone)
   const phoneInputRef = useRef<HTMLInputElement>(null)
-
-  // Label popover state
-  const [labelPopoverOpen, setLabelPopoverOpen] = useState(false)
 
   const handleEnrichEmail = () => {
     enrichEmail.mutate(
@@ -325,27 +330,6 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
     }
   }
 
-  const handleApplyLabel = (labelId: string) => {
-    applyLabel.mutate(
-      { entryId: lead.entryId, labelId },
-      {
-        onSuccess: () => {
-          appToast.success("Label applied", "This lead was updated.")
-          setLabelPopoverOpen(false)
-        },
-        onError: (error) => {
-          appToast.error("applyLabel", error)
-        },
-      }
-    )
-  }
-
-  // Filter out labels already applied to this lead
-  const appliedLabelIds = new Set(lead.labels.map((l) => l.id))
-  const unappliedLabels = availableLabels.filter(
-    (l) => !appliedLabelIds.has(l.id)
-  )
-
   return (
     <TableRow data-state={selected ? "selected" : undefined}>
       {/* Checkbox */}
@@ -360,12 +344,25 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
       {/* Name */}
       <TableCell>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            {lead.avatarUrl && <AvatarImage src={lead.avatarUrl} alt={name} />}
-            <AvatarFallback className="bg-primary/10 font-medium text-primary">{getInitials(name)}</AvatarFallback>
-          </Avatar>
+          <button
+            type="button"
+            onClick={() => setDetailOpen(true)}
+            className="shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            aria-label={`Open details for ${name}`}
+            tabIndex={-1}
+          >
+            <Avatar size="lg">
+              {lead.avatarUrl && <AvatarImage src={lead.avatarUrl} alt={name} />}
+              <AvatarFallback className="bg-primary/10 font-medium text-primary">{getInitials(name)}</AvatarFallback>
+            </Avatar>
+          </button>
           <div className="min-w-0">
-            <button type="button" className="block truncate text-left text-sm font-medium text-foreground hover:underline">
+            <button
+              type="button"
+              onClick={() => setDetailOpen(true)}
+              className="block max-w-[220px] truncate text-left text-sm font-medium text-foreground hover:text-primary hover:underline focus-visible:underline focus-visible:outline-none"
+              title="Open lead details"
+            >
               {name}
             </button>
             {lead.title && (
@@ -379,32 +376,38 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
                 <span className="truncate max-w-[180px]">{loc}</span>
               </p>
             )}
-            <div className="flex items-center gap-1 mt-0.5">
-              {lead.linkedinUrl && (
-                <a
-                  href={lead.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
-                    <Linkedin className="size-3.5" />
-                  </Button>
-                </a>
-              )}
-              {lead.facebookUrl && (
-                <a
-                  href={lead.facebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
-                    <Facebook className="size-3.5" />
-                  </Button>
-                </a>
-              )}
-            </div>
+            {followers && (
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Users className="size-3 shrink-0" />
+                {followers} followers
+              </p>
+            )}
+            {profileLinks.length > 0 && (
+              <div className="flex items-center gap-1 mt-0.5">
+                {profileLinks.map((link) => {
+                  const Icon = PROFILE_ICONS[link.kind]
+                  return (
+                    <Button
+                      key={link.url}
+                      asChild
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${link.label} profile`}
+                        title={`Open ${link.label} profile`}
+                      >
+                        <Icon className="size-3.5" />
+                      </a>
+                    </Button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </TableCell>
@@ -554,54 +557,7 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
 
       {/* Custom Labels */}
       <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {lead.labels.map((label) => (
-            <Badge key={label.id} variant="secondary">
-              {label.name}
-            </Badge>
-          ))}
-          <Popover open={labelPopoverOpen} onOpenChange={setLabelPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="xs"
-                disabled={applyLabel.isPending}
-              >
-                {applyLabel.isPending ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Plus className="size-3" />
-                )}
-                Add
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="start">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground px-2 py-1">
-                  Apply label
-                </p>
-                {unappliedLabels.length === 0 ? (
-                  <p className="text-xs text-muted-foreground px-2 py-1">
-                    {availableLabels.length === 0
-                      ? "No labels created yet"
-                      : "All labels applied"}
-                  </p>
-                ) : (
-                  unappliedLabels.map((label) => (
-                    <button
-                      key={label.id}
-                      className="w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
-                      disabled={applyLabel.isPending}
-                      onClick={() => handleApplyLabel(label.id)}
-                    >
-                      {label.name}
-                    </button>
-                  ))
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+        <LeadLabelPicker entryId={lead.entryId} labels={lead.labels} />
       </TableCell>
 
       {/* Created At */}
@@ -610,6 +566,14 @@ export function LeadRow({ lead, selected, onSelectChange, showHandoff = false }:
           {formatRelativeTime(lead.createdAt)}
         </span>
       </TableCell>
+      <LeadDetailSheet
+        lead={lead}
+        name={name}
+        location={loc}
+        phone={manualPhone}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </TableRow>
   )
 }
