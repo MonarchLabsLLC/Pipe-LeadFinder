@@ -7,7 +7,6 @@ import { listUrl } from "@/server/focused-agent/resources"
 
 import { decidePluginProposal, pendingPluginProposals, type PluginProposalView } from "./changes"
 import { PLUGIN_APP } from "./contract"
-import { MAX_MONTHLY_CAP, capsForOwner, setInstallCap } from "./credits"
 import { DashboardError, installsForOwner, requestFramePass, type PluginInstall } from "./dashboard-client"
 import { pluginsEnabled } from "./env"
 
@@ -56,16 +55,10 @@ export interface PluginInstallDto {
   iconUrl: string | null
   /** The plugin's origin, when it has a page this app will frame. */
   origin: string | null
-  /** The owner's monthly Scale Credits cap for this plugin's unattended work; null: none (it always asks). */
-  monthlyCredits: number | null
-  /** Credits counted against that cap this calendar month (UTC). */
-  usedThisMonth: number
 }
 
-function toDto(install: PluginInstall, cap?: { monthlyCredits: number | null; usedThisMonth: number }): PluginInstallDto {
+function toDto(install: PluginInstall): PluginInstallDto {
   return {
-    monthlyCredits: cap?.monthlyCredits ?? null,
-    usedThisMonth: cap?.usedThisMonth ?? 0,
     installId: install.installId,
     pluginId: install.pluginId,
     name: install.name,
@@ -95,26 +88,7 @@ export async function listPlugins(): Promise<PluginsPageDto> {
   const owner = await requirePluginOwner()
   const proposals = await pendingPluginProposals(owner.userId)
   if (!owner.subject) return { installs: [], proposals, unavailable: "This account is not linked to ScalePlus yet, so it has no plugins." }
-  const list = await installs(owner.subject, true)
-  const caps = new Map((await capsForOwner(owner.userId, list.map((install) => install.installId))).map((cap) => [cap.installId, cap]))
-  return { installs: list.map((install) => toDto(install, caps.get(install.installId))), proposals, unavailable: null }
-}
-
-/**
- * The owner sets (or, with null, removes) the monthly Scale Credits cap that
- * lets one install run paid work without asking. Only for an install the
- * dashboard says is in the owner's workspace.
- */
-export async function setCapForOwner(installId: string, monthlyCredits: number | null): Promise<{ installId: string; monthlyCredits: number | null }> {
-  const owner = await requirePluginOwner()
-  if (!owner.subject) throw new PluginPageError("This plugin is not available.", 404)
-  const install = (await installs(owner.subject, true)).find((entry) => entry.installId === installId)
-  if (!install) throw new PluginPageError("This plugin is not available.", 404)
-  if (monthlyCredits !== null && (!Number.isInteger(monthlyCredits) || monthlyCredits < 1 || monthlyCredits > MAX_MONTHLY_CAP)) {
-    throw new PluginPageError(`Enter a whole number of credits from 1 to ${MAX_MONTHLY_CAP.toLocaleString("en-US")}.`, 400)
-  }
-  await setInstallCap({ userId: owner.userId, installId, pluginName: install.name, monthlyCredits })
-  return { installId, monthlyCredits }
+  return { installs: (await installs(owner.subject, true)).map(toDto), proposals, unavailable: null }
 }
 
 export interface PluginFrameDto {

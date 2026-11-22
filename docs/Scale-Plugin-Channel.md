@@ -65,19 +65,19 @@ Not exposed, on purpose: every handoff that pushes leads into PipeLeads CRM or M
 
 - **A plugin never takes the balance below zero.** The app's own screens may start work at a zero balance and go negative (`requireCredits()` refuses only a negative balance). A plugin job needs the action's whole maximum cost in the balance first: when it asks, and again when the owner approves (`requirePluginCredits()` in `src/server/plugins/credits.ts`). Too few is `422 invalid_input`, and nothing is stored or started.
 - **The workspace owner pays.** A plugin acts in the owner's Lead Finder account, so every charge goes to the owner's Scale Credits the usual way.
-- **Unattended only inside a monthly cap.** `act_unattended` is used only when the owner set a monthly credit cap for that install on the Plugins page (`PluginInstallCreditCap`). Each unattended run counts its maximum cost against the cap for the calendar month (UTC), under a per-install lock so two calls cannot both fit into the last of the cap. No cap, or a run that would pass it: the request becomes a normal proposal and the plugin gets `202 pending_approval`. This is stricter than the wire contract, which runs every `act_unattended` call at once.
+- **Unattended only inside a monthly cap.** The owner sets each install's monthly credit cap in the ScalePlus dashboard. It arrives in the verified service token's install claims as `creditCapMonthly`: a number is the most credits this install may spend in Lead Finder per UTC calendar month on runs without approval; `null`, a missing field or anything that is not a non-negative number means no spending without approval. `act_unattended` is used only when the claim is a number and the run fits: each unattended run counts its maximum cost against this month's ledger (`PluginProposal.reservedCredits`, summed per install), under a per-install lock so two calls cannot both fit into the last of the cap. No cap, or a run that would pass it: the request becomes a normal proposal and the plugin gets `202 pending_approval`. This is stricter than the wire contract's original rule, which ran every `act_unattended` call at once.
 - **Scheduling an AI Agent always asks.** An agent spends on every future run, outside any monthly cap, so `create-agent` waits for the owner's approval even with `act_unattended`. An agent a plugin scheduled keeps the plugin rule: `config.pluginGuard` makes each run need the search's maximum cost before it starts, and the price of one lookup (or 1 credit for metered AI) before each later step. If the owner saves new settings for the agent on the AI Agents page, it becomes the owner's own agent and the guard goes.
 
 - **read** runs and returns `200 { data }`.
 - **write** runs at once.
-- **act** with `act_unattended` for the area and room in the install's monthly cap: priced, credit-checked and started in one call, `200 { data }` with a `runId` to poll (`get-search-run`, `get-enrichment-run`).
+- **act** with `act_unattended` for the area and room in the install's monthly cap (`creditCapMonthly`): priced, credit-checked and started in one call, `200 { data }` with a `runId` to poll (`get-search-run`, `get-enrichment-run`).
 - **act** otherwise: `202 { status: "pending_approval", proposalId, expiresAt }`. The proposal's title starts with the plugin's name, its preview states the credit cost exactly as the Agent's preview does, and it waits 72 hours. `GET /proposals/:id` answers only the install that filed it.
 
 Credits are checked before anything is stored or started, attended or not: the balance must cover the whole maximum cost. Too few is `422 invalid_input` with a message that says so. They are checked again when the owner approves.
 
 ### Where the owner approves
 
-- The top of `/plugins` ("Waiting for your approval"), which needs neither the Agent nor Pro Max. Each installed plugin's card there also has its monthly credit cap (`PUT /api/plugins/installs/:installId/credit-cap`, owner only, only for an install the dashboard lists for that owner).
+- The top of `/plugins` ("Waiting for your approval"), which needs neither the Agent nor Pro Max.
 - The Agent panel's approval card, for owners who have the Agent: plugin proposals are `FocusedAgentApproval` rows, so they appear there too, and a decision made there goes through the same plugin path.
 
 Approving re-prices and re-checks the plan. If records or prices changed since the plugin asked, nothing runs and the proposal is reported as failed. An approved search, enrichment or scoring becomes the product's normal background job (the same one the app's own screens start), charged the usual way.
@@ -122,7 +122,7 @@ Owner only. A Scale Plus teammate working in the owner's account (a guest worksp
 
 ## Switching it on
 
-1. Apply the migration `prisma/migrations/20261121000100_scale_plugin_channel/migration.sql` on purpose, for example `npx prisma db execute --file prisma/migrations/20261121000100_scale_plugin_channel/migration.sql`. **Nothing applies it for you**: the build only runs `prisma generate`, and the deploy is pull, install, build, restart. It adds four tables (`PluginProposal`, `PluginInstallCreditCap`, `PluginActionLog`, `PluginEventOutbox`) and alters no existing table.
+1. Apply the migration `prisma/migrations/20261121000100_scale_plugin_channel/migration.sql` on purpose, for example `npx prisma db execute --file prisma/migrations/20261121000100_scale_plugin_channel/migration.sql`. **Nothing applies it for you**: the build only runs `prisma generate`, and the deploy is pull, install, build, restart. It adds three tables (`PluginProposal`, `PluginActionLog`, `PluginEventOutbox`) and alters no existing table.
 2. On the dashboard: vendor `docs/plugin-capabilities.json`, set `PLUGIN_GATEWAY_SECRET_LEADFINDER` and `PLUGIN_GATEWAY_URL_LEADFINDER` (this app's base URL).
 3. Here: set `SCALE_PLUGIN_SERVICE_SECRET` to the same secret, `SCALE_PLUGIN_GATEWAY_URL` if the dashboard is not at the default, then `SCALE_PLUGINS_ENABLED=true`. Set `NEXT_PUBLIC_SCALE_PLUGINS_ENABLED=true` before the build to show the link.
 4. Make sure the scheduled tick is running (`PIPELEADS_AGENT_CRON_SECRET`, `npm run agents:scheduled`). Without it a failed event is never retried and no expiry is reported.

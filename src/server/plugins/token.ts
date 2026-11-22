@@ -37,6 +37,10 @@ const claimsSchema = z.object({
   workspaceId: bounded.optional(),
   ownerSubject: bounded.optional(),
   scopes: z.array(z.string().max(200)).max(500).optional(),
+  // The owner's monthly Scale Credits cap for this install's work without
+  // approval, set in the ScalePlus dashboard. Read through creditCapFromClaims:
+  // anything but a non-negative number means "no cap".
+  creditCapMonthly: z.unknown().optional(),
 })
 
 export type PluginServiceClaims = z.infer<typeof claimsSchema>
@@ -47,6 +51,17 @@ export type PluginInstallClaims = PluginServiceClaims & {
   pluginName: string
   ownerSubject: string
   scopes: string[]
+}
+
+/**
+ * The install's monthly cap from the verified token: a non-negative whole
+ * number of credits, or null (missing, null or malformed) for "no spending
+ * without approval".
+ */
+export function creditCapFromClaims(claims: Pick<PluginServiceClaims, "creditCapMonthly">): number | null {
+  const value = claims.creditCapMonthly
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null
+  return Math.floor(value)
 }
 
 /** The claims of a call made for one plugin install, or null when any is missing. */

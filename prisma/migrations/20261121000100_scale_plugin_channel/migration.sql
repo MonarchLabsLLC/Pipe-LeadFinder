@@ -1,5 +1,5 @@
 -- Scale Plugin Store channel (docs/Scale-Plugin-Channel.md).
--- Additive only: four new tables. No existing table is altered.
+-- Additive only: three new tables. No existing table is altered.
 -- NOT applied by a merge, a build or a deploy. Apply it on purpose
 -- (npx prisma migrate deploy, or run this file) before setting
 -- SCALE_PLUGINS_ENABLED=true.
@@ -57,21 +57,6 @@ CREATE TABLE "PluginEventOutbox" (
 
     CONSTRAINT "PluginEventOutbox_pkey" PRIMARY KEY ("id")
 );
-
--- CreateTable
-CREATE TABLE "PluginInstallCreditCap" (
-    "installId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "pluginName" TEXT NOT NULL,
-    "monthlyCredits" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "PluginInstallCreditCap_pkey" PRIMARY KEY ("installId")
-);
-
--- CreateIndex
-CREATE INDEX "PluginInstallCreditCap_userId_idx" ON "PluginInstallCreditCap"("userId");
 
 -- CreateIndex
 CREATE INDEX "PluginProposal_installId_createdAt_idx" ON "PluginProposal"("installId", "createdAt");

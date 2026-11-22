@@ -39,6 +39,8 @@ interface TokenOptions {
   jti?: string
   bodyHash?: string
   install?: boolean
+  /** Sent as the creditCapMonthly claim when present (undefined: left out). */
+  creditCapMonthly?: unknown
 }
 
 async function token(options: TokenOptions) {
@@ -57,6 +59,7 @@ async function token(options: TokenOptions) {
           workspaceId: "ws-1",
           ownerSubject: options.ownerSubject ?? OWNER,
           scopes: options.scopes ?? [],
+          ...(options.creditCapMonthly !== undefined ? { creditCapMonthly: options.creditCapMonthly } : {}),
         }),
   })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
@@ -72,7 +75,7 @@ const state = {
   nonces: new Set<string>(),
   tenants: [] as PluginTenant[],
   reads: [] as { action: string; userId: string; tenant: string }[],
-  changes: [] as { action: string; mode: ChangeMode; key: string; plugin: string }[],
+  changes: [] as { action: string; mode: ChangeMode; key: string; plugin: string; cap: number | null }[],
   records: [] as { action: string; outcome: string; installId: string; pluginName: string; userId: string | null }[],
   proposals: new Map<string, { installId: string; userId: string }>(),
   changeError: null as unknown,
@@ -95,7 +98,7 @@ const deps: PluginServiceDeps = {
   },
   runChange: async (call, action, _input, options) => {
     if (state.changeError) throw state.changeError
-    state.changes.push({ action: action.name, mode: options.mode, key: options.idempotencyKey, plugin: call.actor.pluginName })
+    state.changes.push({ action: action.name, mode: options.mode, key: options.idempotencyKey, plugin: call.actor.pluginName, cap: call.creditCapMonthly })
     if (options.mode === "approval") {
       const proposalId = randomUUID()
       state.proposals.set(proposalId, { installId: call.actor.installId, userId: call.owner.userId })
@@ -199,6 +202,28 @@ describe("service token", () => {
   })
 })
 
+describe("the monthly credit cap comes from the token", () => {
+  const scopes = ["leadfinder.searches:act_unattended"]
+  const capOf = async (creditCapMonthly: unknown) => {
+    state.changes = []
+    await call("POST", "actions/run-search", { input: SEARCH, scopes, creditCapMonthly })
+    return state.changes[0]?.cap
+  }
+
+  it("passes a number through as the cap", async () => {
+    expect(await capOf(500)).toBe(500)
+    expect(await capOf(0)).toBe(0)
+    expect(await capOf(12.9)).toBe(12)
+  })
+
+  it("treats a missing, null or malformed claim as no cap", async () => {
+    expect(await capOf(undefined)).toBeNull()
+    expect(await capOf(null)).toBeNull()
+    expect(await capOf(-1)).toBeNull()
+    expect(await capOf("500")).toBeNull()
+  })
+})
+
 describe("scope enforcement", () => {
   it("refuses an action whose area the install holds nothing for", async () => {
     const result = await call("POST", "actions/get-list", { input: { listId: "list-1" }, scopes: ["leadfinder.credits:read"] })
@@ -295,7 +320,7 @@ describe("unattended versus approval", () => {
     expect(result.json.status).toBe("pending_approval")
     expect(result.json.proposalId).toBeTruthy()
     expect(new Date(result.json.expiresAt).getTime() - NOW.getTime()).toBe(72 * 3600 * 1000)
-    expect(state.changes).toEqual([{ action: "run-search", mode: "approval", key: "key-1", plugin: "Lead Radar" }])
+    expect(state.changes).toEqual([{ action: "run-search", mode: "approval", key: "key-1", plugin: "Lead Radar", cap: null }])
     expect(state.records.at(-1)).toMatchObject({ outcome: "pending_approval", pluginName: "Lead Radar" })
   })
 

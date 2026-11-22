@@ -17,7 +17,7 @@ import {
 } from "./contract"
 import { toPluginError } from "./errors"
 import type { PluginAction } from "./registry"
-import { requireInstallClaims, verifyPluginToken, type PluginInstallClaims } from "./token"
+import { creditCapFromClaims, requireInstallClaims, verifyPluginToken, type PluginInstallClaims } from "./token"
 
 // The plugin service (contract section 4): the ScalePlus dashboard calls in on
 // behalf of one plugin install. The sibling of the Superpowers service at
@@ -49,6 +49,12 @@ export interface PluginCall {
   tenant: PluginTenant
   requestId: string
   now: Date
+  /**
+   * The owner's monthly cap for this install's work without approval, from the
+   * verified token (`creditCapMonthly`). Null: every credit-spending act waits
+   * for approval, act_unattended or not.
+   */
+  creditCapMonthly: number | null
 }
 
 /**
@@ -178,7 +184,7 @@ async function action(deps: PluginServiceDeps, claims: PluginInstallClaims, name
   const input = definition.schema.safeParse(body.data.input ?? {})
   if (!input.success) throw toPluginError(input.error)
 
-  const call: PluginCall = { actor, owner: account.owner, tenant, requestId, now }
+  const call: PluginCall = { actor, owner: account.owner, tenant, requestId, now, creditCapMonthly: creditCapFromClaims(claims) }
   const base = { actor, userId: account.owner.userId, action: definition, requestId }
 
   try {

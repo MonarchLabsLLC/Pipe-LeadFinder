@@ -30,7 +30,8 @@ import type { ChangeMode, ChangeOutcome, PluginCall, ProposalStatusRow } from ".
 // What it does NOT reuse is the Agent's gate: a plugin needs neither Pro Max
 // nor the LEADFINDER_AGENT_* switches. Its gate is SCALE_PLUGINS_ENABLED, the
 // install's scopes and the owner's own approval (or their act_unattended grant,
-// used only inside the monthly credit cap the owner set for the install).
+// used only inside the monthly credit cap the owner set for the install in the
+// ScalePlus dashboard, which arrives in the token as creditCapMonthly).
 //
 // Credits (credits.ts): a plugin job needs its whole maximum cost in the
 // owner's balance, when it asks and again when the owner approves. A plugin
@@ -213,7 +214,14 @@ export async function runPluginChange(
 
   if (row.status === "pending" && mode === "unattended") {
     // Inside the owner's monthly cap for this install, or it waits for approval.
-    const reserved = await reserveUnattended({ userId: a.userId, installId: call.actor.installId, approvalId: row.id, cost: maximumCredits(plan), now: call.now })
+    const reserved = await reserveUnattended({
+      userId: a.userId,
+      installId: call.actor.installId,
+      approvalId: row.id,
+      cost: maximumCredits(plan),
+      cap: call.creditCapMonthly,
+      now: call.now,
+    })
     if (!reserved.ok) return { kind: "pending", proposalId: row.id, expiresAt: row.expiresAt.toISOString() }
     const started = await startApproved(a, row.id, plan, "plugin-unattended", call.now)
     if (started.started) return { kind: "done", proposalId: row.id, data: { proposalId: row.id, status: started.status, ...started.result } }

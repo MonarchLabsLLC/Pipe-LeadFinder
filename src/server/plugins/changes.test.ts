@@ -17,7 +17,7 @@ const db = vi.hoisted(() => ({
   plan: null as Record<string, any> | null, // eslint-disable-line @typescript-eslint/no-explicit-any
   creditsError: null as Error | null,
   balance: 1000,
-  caps: [] as Record<string, any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
+  cap: 100 as number | null,
   agents: [] as Record<string, any>[], // eslint-disable-line @typescript-eslint/no-explicit-any
   jobStatus: "RUNNING",
 }))
@@ -59,7 +59,6 @@ vi.mock("@/lib/prisma", () => {
     }),
   })
   const prisma: Row = {
-      pluginInstallCreditCap: table(() => db.caps, "installId"),
       aiAgent: table(() => db.agents, "id"),
       $executeRaw: async () => 0,
       focusedAgentApproval: table(() => db.approvals, "id"),
@@ -127,6 +126,7 @@ const call: PluginCall = {
   tenant: { id: "user-1", name: "Lead Finder" },
   requestId: "req-1",
   now: NOW,
+  creditCapMonthly: 100,
 }
 const action = (name: string) => pluginActionNamed(name)!
 
@@ -143,7 +143,8 @@ const searchPlan = (maximumCredits = 10) => ({
   },
 })
 
-const run = (name: string, mode: "direct" | "unattended" | "approval", idempotencyKey = "key-1", input: Row = {}) => runPluginChange(call, action(name), input, { mode, idempotencyKey })
+const run = (name: string, mode: "direct" | "unattended" | "approval", idempotencyKey = "key-1", input: Row = {}) =>
+  runPluginChange({ ...call, creditCapMonthly: db.cap }, action(name), input, { mode, idempotencyKey })
 const events = () => db.outbox.map((row) => ({ type: row.type, data: row.data }))
 
 beforeEach(() => {
@@ -158,8 +159,9 @@ beforeEach(() => {
   db.plan = searchPlan()
   db.creditsError = null
   db.balance = 1000
-  // The owner set a monthly cap for this install, so act_unattended is used.
-  db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 100 }]
+  // The owner set a monthly cap for this install in the dashboard (the token's
+  // creditCapMonthly), so act_unattended is used.
+  db.cap = 100
   db.agents = []
   db.jobStatus = "RUNNING"
   onPluginEventQueued(() => {})
@@ -267,8 +269,8 @@ describe("a plugin asks for a credit-spending action", () => {
     expect((await run("run-search", "approval")).kind).toBe("pending")
   })
 
-  it("act_unattended without a monthly cap: it waits for the owner's approval", async () => {
-    db.caps = []
+  it("act_unattended without a monthly cap (creditCapMonthly null): it waits for the owner's approval", async () => {
+    db.cap = null
     const outcome = await run("run-search", "unattended")
     expect(outcome.kind).toBe("pending")
     expect(db.searchJobs).toEqual([])
@@ -277,7 +279,7 @@ describe("a plugin asks for a credit-spending action", () => {
   })
 
   it("act_unattended inside the cap runs; past the cap it waits for approval", async () => {
-    db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 25 }]
+    db.cap = 25
     expect((await run("run-search", "unattended", "a")).kind).toBe("done")
     expect((await run("run-search", "unattended", "b")).kind).toBe("done")
     expect(db.proposals.map((row) => row.reservedCredits)).toEqual([10, 10])
@@ -289,8 +291,14 @@ describe("a plugin asks for a credit-spending action", () => {
     expect(db.proposals.filter((row) => row.unattended)).toHaveLength(2)
   })
 
+  it("a cap of 0 allows nothing without approval", async () => {
+    db.cap = 0
+    expect((await run("run-search", "unattended")).kind).toBe("pending")
+    expect(db.searchJobs).toEqual([])
+  })
+
   it("a cap last month does not count this month", async () => {
-    db.caps = [{ installId: "install-1", userId: "user-1", pluginName: "Lead Radar", monthlyCredits: 10 }]
+    db.cap = 10
     db.proposals.push({ approvalId: "old", installId: "install-1", userId: "user-1", unattended: true, reservedCredits: 10, createdAt: new Date("2026-09-30T23:00:00.000Z") })
     expect((await run("run-search", "unattended")).kind).toBe("done")
   })

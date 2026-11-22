@@ -412,7 +412,7 @@ Navigate to **Resources → Integrations** (or **Integrations** in your account 
 The **Plugins** page lists the apps you installed from the Scale Plugin Store and connected to Lead Finder. It appears in the sidebar only after plugins are switched on for Lead Finder.
 
 - **Waiting for your approval.** When a plugin asks to run a search, enrich or score leads, or schedule an AI Agent, the request waits at the top of the page with its cost. Approve it to start the work, or reject it. Requests expire after 72 hours.
-- **Monthly credit cap.** Each plugin card has a monthly credit cap. Leave it empty and every paid action the plugin asks for waits for your approval. Set a number, and a plugin you allowed to "run without asking" can start paid work until it has used that many credits this month (the month resets on the 1st, UTC). Past the cap, it asks first. Scheduling an AI Agent always asks.
+- **Monthly credit cap.** You set each plugin's monthly credit cap in the ScalePlus dashboard, where you manage the plugin. With no cap, every paid action the plugin asks for waits for your approval here. With a cap, a plugin you allowed to "run without asking" can start paid work in Lead Finder until it has used that many credits this month (the month resets on the 1st, UTC). Past the cap, it asks first. Scheduling an AI Agent always asks.
 - **Your balance stays at zero or above.** A plugin can start paid work only when your balance covers the whole maximum cost. Plugin work is charged to your Scale Credits like work you start yourself.
 - **Free for plugins:** turning a plain request into search settings does not use your credits.
 
