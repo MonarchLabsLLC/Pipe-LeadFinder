@@ -11,6 +11,8 @@ import {
   type CreditAction,
 } from "@/services/credits-service"
 import { deductCredits } from "@/lib/credit-guard"
+import { CREDIT_COSTS } from "@/lib/pipeleads-credit-pricing"
+import { reportAgentSearchCompleted } from "@/server/plugins/job-events"
 import {
   getBusinessContext,
   getLeadContext,
@@ -58,6 +60,8 @@ export interface AgentConfig {
   lastScheduledStatus?: "running" | "completed" | "failed" | null
   lastScheduledError?: string | null
   schedulerLockAt?: string | null
+  /** A plugin scheduled this agent: see ensureAgentCredits. */
+  pluginGuard?: { proposalId: string; minimumCredits: number }
 }
 
 export interface AgentRunUser {
@@ -127,7 +131,12 @@ function countBillableSearchResults(searchType: SearchType, leads: Lead[]) {
   return leads.length
 }
 
-async function ensureAgentCredits(user: AgentRunUser) {
+/**
+ * `minimum` > 0 only for an agent a Scale Plugin Store plugin scheduled
+ * (config.pluginGuard): such a run must never take the balance below zero, so
+ * the balance must already cover the step's maximum cost.
+ */
+async function ensureAgentCredits(user: AgentRunUser, minimum = 0) {
   const check = await ensureCreditsAvailable(user.id, user.email)
   if (!check.ok) {
     throw new AgentRunError(check.message || "Insufficient credits", {
@@ -135,6 +144,17 @@ async function ensureAgentCredits(user: AgentRunUser) {
       code: "INSUFFICIENT_CREDITS",
       purchaseUrl: process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg",
     })
+  }
+  const available = check.balance?.availableCredits
+  if (minimum > 0 && typeof available === "number" && available < minimum) {
+    throw new AgentRunError(
+      `This agent was scheduled by a plugin and needs up to ${minimum} Scale Credits before it runs. Add credits to continue.`,
+      {
+        status: 402,
+        code: "INSUFFICIENT_CREDITS",
+        purchaseUrl: process.env.SCALECREDITS_URL || "https://credits.scaleplus.gg",
+      }
+    )
   }
 }
 
@@ -203,7 +223,10 @@ export async function runAgent(
     throw new AgentRunError("Agent has no searchType configured", { status: 400 })
   }
 
-  await ensureAgentCredits(user)
+  // A plugin-scheduled agent: the search's maximum, then one lookup's price
+  // (or 1 credit for metered AI) before each later paid step.
+  const guard = config.pluginGuard
+  await ensureAgentCredits(user, guard?.minimumCredits ?? 0)
 
   const searchType = config.searchType
   const rawSearchParams: Record<string, unknown> = {
@@ -326,7 +349,7 @@ export async function runAgent(
       if (actions.includes("enrich_email")) {
         if (!lead.email) {
           try {
-            await ensureAgentCredits(user)
+            await ensureAgentCredits(user, guard ? CREDIT_COSTS["enrich:email"] : 0)
             const updated = await enrichEmail(lead.id)
             if (updated.emailStatus === "FOUND" || updated.emailStatus === "POTENTIAL") {
               await deductCredits(
@@ -350,7 +373,7 @@ export async function runAgent(
       if (actions.includes("enrich_phone")) {
         if (!lead.phone) {
           try {
-            await ensureAgentCredits(user)
+            await ensureAgentCredits(user, guard ? CREDIT_COSTS["enrich:phone"] : 0)
             const updated = await enrichPhone(lead.id)
             if (updated.phoneStatus === "FOUND") {
               await deductCredits(
@@ -373,7 +396,7 @@ export async function runAgent(
 
       if (actions.includes("ai_summary")) {
         try {
-          await ensureAgentCredits(user)
+          await ensureAgentCredits(user, guard ? 1 : 0)
           await saveAiResult(user, lead.id, "SUMMARY")
         } catch (err) {
           actionErrors.push({
@@ -386,7 +409,7 @@ export async function runAgent(
 
       if (actions.includes("ai_direct_message")) {
         try {
-          await ensureAgentCredits(user)
+          await ensureAgentCredits(user, guard ? 1 : 0)
           await saveAiResult(user, lead.id, "DIRECT_MESSAGE")
         } catch (err) {
           actionErrors.push({
@@ -441,6 +464,15 @@ export async function runAgent(
     await prisma.searchHistory.update({
       where: { id: searchHistory.id },
       data: { status: "COMPLETED", resultCount: leads.length, listId },
+    })
+    // Scale Plugin Store: no-op when the channel is off; never throws.
+    await reportAgentSearchCompleted({
+      userId: user.id,
+      agentId: agent.id,
+      searchId: searchHistory.id,
+      listId,
+      searchType,
+      resultCount: leads.length,
     })
 
     const updatedLeadCount = (config.leadCount ?? 0) + leads.length

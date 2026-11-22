@@ -5,6 +5,7 @@ import { processSearchJob } from "@/services/search-job"
 import { processAgentJob } from "@/services/agent-job"
 import { processBulkJob } from "@/services/bulk-job"
 import { processIntegrationDelivery } from "@/services/integration-job"
+import { reportAgentRunCompleted, reportJobCompleted } from "@/server/plugins/job-events"
 
 export async function registerJobWorkers(boss: PgBoss) {
   await boss.work<{ jobRunId: string }>(
@@ -20,6 +21,9 @@ export async function registerJobWorkers(boss: PgBoss) {
       await runTrackedJob(job.data.jobRunId, () =>
         processSearchJob(job.data.jobRunId)
       )
+      // Scale Plugin Store: tell installed plugins (no-op when the channel is
+      // off; never throws, so it cannot fail or retry a finished job).
+      await reportJobCompleted(job.data.jobRunId)
     }
   )
 
@@ -36,6 +40,8 @@ export async function registerJobWorkers(boss: PgBoss) {
       await runTrackedJob(job.data.jobRunId, () =>
         processAgentJob(job.data.jobRunId)
       )
+      // Scale Plugin Store: no-op when the channel is off; never throws.
+      await reportAgentRunCompleted(job.data.jobRunId)
     }
   )
 
@@ -57,6 +63,7 @@ export async function registerJobWorkers(boss: PgBoss) {
         await runTrackedJob(job.data.jobRunId, () =>
           processBulkJob(job.data.jobRunId)
         )
+        await reportJobCompleted(job.data.jobRunId)
       }
     )
   }

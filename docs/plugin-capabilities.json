@@ -1,0 +1,561 @@
+{
+  "protocolVersion": "1",
+  "app": "leadfinder",
+  "displayName": "Lead Finder",
+  "areas": [
+    {
+      "key": "leads",
+      "label": "saved lists, leads and labels"
+    },
+    {
+      "key": "searches",
+      "label": "lead searches",
+      "actLabel": "Run lead searches that use your credits"
+    },
+    {
+      "key": "enrichment",
+      "label": "enrichment and scoring jobs",
+      "actLabel": "Enrich and score leads using your credits"
+    },
+    {
+      "key": "credits",
+      "label": "credit balance and prices"
+    },
+    {
+      "key": "agents",
+      "label": "scheduled lead agents",
+      "actLabel": "Schedule lead agents that use your credits"
+    }
+  ],
+  "actions": [
+    {
+      "name": "list-lists",
+      "title": "List saved lists",
+      "description": "Find the owner's saved lead lists by name. Starts no search and uses no credits.",
+      "area": "leads",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-list",
+      "title": "Read a saved list",
+      "description": "Read the leads saved in one list, 50 at a time. Pass nextCursor back as cursor for the next page.",
+      "area": "leads",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list-labels",
+      "title": "List labels",
+      "description": "List the owner's custom labels.",
+      "area": "leads",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-export-link",
+      "title": "Get a list's CSV link",
+      "description": "Get the CSV download link for a saved list. The link works in a browser signed in to Lead Finder. Uses no credits.",
+      "area": "leads",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "change-labels",
+      "title": "Apply or remove a label",
+      "description": "Apply or remove one custom label on up to 50 saved leads in a list. Free, and nothing leaves Lead Finder.",
+      "area": "leads",
+      "level": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "leadIds": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          "labelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "apply",
+              "remove"
+            ]
+          }
+        },
+        "required": [
+          "listId",
+          "leadIds",
+          "labelId",
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "interpret-request",
+      "title": "Turn a plain request into search settings",
+      "description": "Turn a plain request (\"dentists in Austin with an email\") into a search type and validated fields, and list which required details are still missing. Never runs a search. Free for plugins: it uses no Scale Credits of the owner's. Each install may call it 200 times per UTC day.",
+      "area": "searches",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list-recent-searches",
+      "title": "List recent searches",
+      "description": "List the owner's most recent searches: type, criteria, list and result count.",
+      "area": "searches",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-search-run",
+      "title": "Read a search run",
+      "description": "Read the progress and result counts of a search this app is running or has finished.",
+      "area": "searches",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "run-search",
+      "title": "Run a lead search",
+      "description": "Run one paid search (people, local, company, domain or influencer) and save the results to an existing list of the same type (parameters.listId) or to a new list (newList.name). Charges the owner's Scale Credits per result, up to parameters.resultsLimit. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
+      "area": "searches",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "PEOPLE",
+              "LOCAL",
+              "COMPANY",
+              "DOMAIN",
+              "INFLUENCER"
+            ]
+          },
+          "parameters": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "newList": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "parameters"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "rerun-search",
+      "title": "Run a recent search again",
+      "description": "Run one of the owner's recent searches again into the same list. Charges the owner's Scale Credits per result. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
+      "area": "searches",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "resultsLimit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "searchId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-enrichment-run",
+      "title": "Read an enrichment or scoring run",
+      "description": "Read the progress and counts of an enrichment or scoring job this app is running or has finished.",
+      "area": "enrichment",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "enrich-leads",
+      "title": "Enrich selected leads",
+      "description": "Find the missing email or phone for up to 50 chosen leads in a list. Charges the owner's Scale Credits for each one found. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
+      "area": "enrichment",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "leadIds": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          "field": {
+            "default": "email",
+            "type": "string",
+            "enum": [
+              "email",
+              "phone"
+            ]
+          }
+        },
+        "required": [
+          "listId",
+          "leadIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "enrich-list",
+      "title": "Enrich a whole list",
+      "description": "Find the missing email or phone for every lead in a list that lacks it, up to a limit of 500. Charges the owner's Scale Credits for each one found. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
+      "area": "enrichment",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "field": {
+            "default": "email",
+            "type": "string",
+            "enum": [
+              "email",
+              "phone"
+            ]
+          },
+          "limit": {
+            "default": 100,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "score-leads",
+      "title": "Score selected leads",
+      "description": "Score up to 50 chosen leads against the owner's business profile. Uses metered AI, charged to the owner's Scale Credits. The owner's balance must cover the whole maximum cost first: a plugin never takes it below zero. Waits for the owner's approval unless the install holds act_unattended for this area and is inside the monthly credit cap the owner set for it.",
+      "area": "enrichment",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "leadIds": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "listId",
+          "leadIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-credits",
+      "title": "Read the credit balance",
+      "description": "Read the owner's Scale Credits balance and the current price per result. The balance can be negative: the app's own screens may start work at a zero balance. A plugin can start paid work only when the balance covers its whole maximum cost.",
+      "area": "credits",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list-agents",
+      "title": "List lead agents",
+      "description": "List the owner's AI Agents: name, status, schedule, search type and target list.",
+      "area": "agents",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get-agent-run",
+      "title": "Read an agent's latest run",
+      "description": "Read the status, counts and list of one AI Agent's most recent run. Null when it has not run yet.",
+      "area": "agents",
+      "level": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "agentId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create-agent",
+      "title": "Schedule a lead agent",
+      "description": "Save a search as an AI Agent that runs daily, weekly or monthly. Every run charges the owner's Scale Credits without asking again, until the owner pauses or deletes it. Always waits for the owner's approval, even with act_unattended. Each run starts only when the balance covers the search's whole maximum cost: an agent a plugin scheduled never takes the balance below zero.",
+      "area": "agents",
+      "level": "act",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "schedule": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PEOPLE",
+              "LOCAL",
+              "COMPANY",
+              "DOMAIN",
+              "INFLUENCER"
+            ]
+          },
+          "parameters": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "listId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "actions": {
+            "default": [],
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "enrich_email",
+                "enrich_phone",
+                "ai_summary",
+                "ai_direct_message"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "schedule",
+          "type",
+          "parameters"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "leadfinder.search.completed",
+      "area": "searches",
+      "description": "A lead search finished and its results were saved to a list."
+    },
+    {
+      "type": "leadfinder.list.updated",
+      "area": "leads",
+      "description": "A saved list changed: leads were added, or labels were applied or removed."
+    },
+    {
+      "type": "leadfinder.enrichment.completed",
+      "area": "enrichment",
+      "description": "An enrichment or scoring job finished."
+    },
+    {
+      "type": "leadfinder.agent.run_completed",
+      "area": "agents",
+      "description": "An AI Agent finished a run (scheduled or started by hand) and saved its results to a list."
+    }
+  ]
+}

@@ -63,10 +63,15 @@ export function missingSearchFields(type: string, fields: Record<string, unknown
     .map((group) => group.join(" or "))
 }
 
-export async function interpretRequest(a: AgentActor, text: string, key: string) {
-  const deps: InterpretDeps | undefined = devBypass()
+/**
+ * `free`: the Scale Plugin Store channel only (dashboard review list:
+ * interpret-request is free for plugins). Lead Finder pays the AI; the owner
+ * is not charged. src/server/plugins/service.db.ts limits it per install.
+ */
+export async function interpretRequest(a: AgentActor, text: string, key: string, options: { free?: boolean } = {}) {
+  const deps: InterpretDeps | undefined = devBypass() || options.free
     ? {
-        // Development only: the tokens are not charged.
+        // Development, or a plugin: the tokens are not charged to the owner.
         generate: generateWithModel,
         bill: async () => null,
       }
